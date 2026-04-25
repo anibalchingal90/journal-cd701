@@ -879,9 +879,15 @@ async function activateLicense() {
     }));
 
     hideLicOverlay();
-    // El toast se mostrará después de que cargue la app
-    setTimeout(function() {
-      if (typeof toast === 'function') toast('✅ ¡Licencia activada! Bienvenido a Cursos Digitales 701 Journal', 'var(--green)');
+    // Sincronizar datos desde la nube al activar licencia
+    setTimeout(async function() {
+      var synced = await syncFromCloud();
+      if(synced){
+        render();renderStats();renderAnalysis();
+        if(typeof toast==='function') toast('☁ Datos sincronizados desde la nube — Bienvenido','#4d9fff');
+      } else {
+        if (typeof toast === 'function') toast('✅ ¡Licencia activada! Bienvenido a Cursos Digitales 701 Journal', 'var(--green)');
+      }
     }, 800);
 
   } catch(e) {
