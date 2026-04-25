@@ -446,17 +446,28 @@ tr:hover td{background:rgba(19,24,40,.8)}
   <!-- ═══ DASHBOARD ═══ -->
   <div id="tab-dash" class="tsec act">
     <div id="dd-wrap" style="display:none;margin-bottom:13px">
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-          <span style="color:var(--gold);font-weight:700;font-size:11px;letter-spacing:1px">🏆 MODO FONDEO — DRAWDOWN</span>
-          <span id="ddpct" style="font-weight:700;font-size:16px"></span>
+      <div class="card" style="position:relative;overflow:hidden;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span id="dd-label" style="font-weight:700;font-size:11px;letter-spacing:1px;color:var(--gold)">🏆 MODO FONDEO</span>
+          <span id="ddpct" style="font-weight:800;font-size:18px"></span>
         </div>
-        <div class="ddbar"><div class="ddfill" id="ddfill"></div></div>
-        <div style="display:flex;justify-content:space-between;font-size:9px">
-          <span style="color:var(--gray2)">0%</span><span id="ddal" style="color:var(--org)"></span><span id="ddlim" style="color:var(--red)"></span>
+        <div style="font-size:10px;color:#555;margin-bottom:8px;" id="dd-sublabel"></div>
+        <!-- Barra inteligente única -->
+        <div style="background:#1a1a1a;border-radius:99px;height:14px;overflow:hidden;position:relative;border:1px solid #2a2a2a;">
+          <div id="ddfill" style="height:100%;border-radius:99px;transition:width .6s,background .4s;width:0%;position:relative;">
+            <div style="position:absolute;top:0;left:0;right:0;height:50%;background:rgba(255,255,255,.12);border-radius:99px;"></div>
+          </div>
         </div>
-        <div style="display:flex;justify-content:space-between;font-size:11px;margin-top:7px">
-          <span style="color:var(--gray2)">Objetivo de ganancia:</span><span id="ddgoal" style="color:var(--green);font-weight:700"></span>
+        <!-- Etiquetas de la barra -->
+        <div style="display:flex;justify-content:space-between;font-size:9px;margin-top:4px;">
+          <span style="color:#444">0%</span>
+          <span id="ddal" style="color:var(--org)"></span>
+          <span id="ddlim"></span>
+        </div>
+        <!-- Estado actual -->
+        <div style="display:flex;justify-content:space-between;font-size:11px;margin-top:8px;padding-top:8px;border-top:1px solid #1e1e1e;">
+          <span style="color:#666" id="dd-left-label"></span>
+          <span id="ddgoal" style="font-weight:700"></span>
         </div>
       </div>
     </div>
@@ -659,23 +670,35 @@ tr:hover td{background:rgba(19,24,40,.8)}
       </div>
       <div>
         <div class="card" style="margin-bottom:12px">
-          <div class="card-hdr" style="color:var(--gold);border-color:rgba(255,200,77,.2)">Progreso de la Cuenta</div>
-          <!-- BARRA PROFIT -->
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <span style="font-size:10px;color:var(--gray2)">📈 Ganancia acumulada</span>
-            <span id="profitst" style="font-weight:700;font-size:14px;color:var(--green)"></span>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+            <span id="fondeo-bar-icon" style="font-size:16px;">📊</span>
+            <div>
+              <div id="fondeo-bar-title" style="font-size:12px;font-weight:800;color:#f0f0f0;"></div>
+              <div id="fondeo-bar-sub" style="font-size:10px;color:#555;margin-top:1px;"></div>
+            </div>
+            <span id="profitst" style="font-weight:900;font-size:20px;margin-left:auto;"></span>
           </div>
-          <div style="background:rgba(0,230,118,.1);border-radius:99px;height:8px;overflow:hidden;margin-bottom:3px;border:1px solid rgba(0,230,118,.2)">
-            <div id="profitfill" style="height:100%;border-radius:99px;background:linear-gradient(90deg,#00c853,#00e676);transition:width .5s;width:0%"></div>
+          <!-- BARRA ÚNICA INTELIGENTE -->
+          <div style="background:#1a1a1a;border-radius:99px;height:14px;overflow:hidden;position:relative;border:1px solid #2a2a2a;margin-bottom:5px;">
+            <div id="profitfill" style="height:100%;border-radius:99px;transition:width .6s,background .4s;width:0%;position:relative;">
+              <div style="position:absolute;top:0;left:0;right:0;height:50%;background:rgba(255,255,255,.12);border-radius:99px;"></div>
+            </div>
           </div>
-          <div style="display:flex;justify-content:space-between;font-size:9px;margin-bottom:10px"><span style="color:var(--gray2)">0%</span><span id="profitmeta" style="color:var(--green)"></span></div>
-          <!-- BARRA DRAWDOWN -->
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <span style="font-size:10px;color:var(--gray2)">📉 Drawdown acumulado</span>
-            <span id="ddst" style="font-weight:700;font-size:14px"></span>
+          <div style="display:flex;justify-content:space-between;font-size:9px;margin-bottom:12px;">
+            <span style="color:#444">0%</span>
+            <span id="profitmeta" style="font-weight:700;"></span>
           </div>
-          <div class="ddbar"><div class="ddfill" id="ddfill2"></div></div>
-          <div style="display:flex;justify-content:space-between;font-size:9px"><span style="color:var(--gray2)">0%</span><span id="ddal2" style="color:var(--org)"></span><span id="ddlim2" style="color:var(--red)"></span></div>
+          <!-- Indicadores secundarios -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div style="background:#0f0f0f;border-radius:8px;padding:8px;text-align:center;">
+              <div id="ddst" style="font-size:14px;font-weight:800;"></div>
+              <div style="font-size:9px;color:#444;margin-top:2px;">Drawdown</div>
+            </div>
+            <div style="background:#0f0f0f;border-radius:8px;padding:8px;text-align:center;">
+              <div id="ddgoal2" style="font-size:14px;font-weight:800;color:#00e676;"></div>
+              <div style="font-size:9px;color:#444;margin-top:2px;">Objetivo</div>
+            </div>
+          </div>
         </div>
         <div class="card">
           <div class="card-hdr" style="color:var(--red);border-color:rgba(255,77,106,.2)">Estado en Tiempo Real</div>
@@ -695,9 +718,17 @@ tr:hover td{background:rgba(19,24,40,.8)}
 
   <!-- ═══ CONFIG ═══ -->
   <div id="tab-config" class="tsec">
+    <!-- SECCIÓN CUENTAS EN CONFIGURACIÓN -->
+    <div class="card" style="margin-bottom:14px;">
+      <div class="card-hdr" style="color:var(--gold);border-color:rgba(255,200,77,.2);display:flex;justify-content:space-between;align-items:center;">
+        <span>💼 Mis Cuentas</span>
+        <button onclick="openAccounts()" class="btn btn-gold" style="padding:5px 12px;font-size:11px;">+ Gestionar</button>
+      </div>
+      <div id="config-acct-list" style="margin-top:2px;"></div>
+    </div>
     <div class="g2">
       <div class="card">
-        <div class="card-hdr" style="color:var(--gold);border-color:rgba(255,200,77,.2)">⚙ Cuenta</div>
+        <div class="card-hdr" style="color:var(--gold);border-color:rgba(255,200,77,.2)">⚙ Cuenta Activa</div>
         <div class="fg"><label class="fl">Tamaño de cuenta (USD)</label><input type="number" id="ca2" class="fi" oninput="saveC2()"></div>
         <div style="background:var(--bg);border-radius:9px;padding:12px;border:1px solid var(--bdr)">
           <div style="color:var(--green);font-weight:700;font-size:11px;margin-bottom:6px;letter-spacing:.5px">ℹ Almacenamiento local</div>
@@ -1245,6 +1276,7 @@ function renderConfig(){
   var cfal=g('cfal');if(cfal)cfal.value=s.alertAt;
   var t=g('ctog');if(t){if(s.challengeActive)t.classList.add('on');else t.classList.remove('on');}
   renderAssets();renderASels();
+  renderConfigAccounts();
 }
 function saveC2(){
   var n=pN(g('ca2').value);
@@ -1260,6 +1292,38 @@ function saveF(){
   // accountSize NOT included - only editable from Configuracion
   [['cfd','maxDailyLoss'],['cft','maxTotalLoss'],['cfg','profitTarget'],['cfal','alertAt']].forEach(function(p){var n=pN(g(p[0]).value);if(n!==null)s[p[1]]=n;});
   save();renderDash();checkAlerts();
+}
+function renderConfigAccounts(){
+  var el = document.getElementById('config-acct-list');
+  if(!el) return;
+  var accounts = getAccounts();
+  var activeId = getActiveId();
+  if(!accounts.length){ el.innerHTML=''; return; }
+  var html = '';
+  for(var i=0;i<accounts.length;i++){
+    var a = accounts[i];
+    var isActive = a.id === activeId;
+    var trades = getAccountTrades(a.id);
+    var pnl = trades.reduce(function(s,t){return s+(t.pnl||0);},0);
+    var pnlCol = pnl>=0?'#00e676':'#ff1744';
+    var bg = isActive?'rgba(0,230,118,.06)':'rgba(255,255,255,.02)';
+    var bdr = isActive?'rgba(0,230,118,.2)':'rgba(255,255,255,.05)';
+    html += '<div style="background:'+bg+';border:1px solid '+bdr+';border-radius:9px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px;">';
+    html += '<div style="flex:1;">';
+    html += '<div style="display:flex;align-items:center;gap:6px;">';
+    if(isActive) html += '<span style="width:6px;height:6px;background:#00e676;border-radius:50%;flex-shrink:0;display:inline-block;"></span>';
+    html += '<span style="font-size:12px;font-weight:700;color:#f0f0f0;">'+a.name+'</span>';
+    html += '<span style="font-size:9px;padding:2px 6px;border-radius:4px;font-weight:700;background:'+(a.type==='fondeo'?'rgba(232,160,32,.15)':'rgba(77,159,255,.12)')+';color:'+(a.type==='fondeo'?'#e8a020':'#4d9fff')+';">'+(a.type==='fondeo'?'FONDEO':'NORMAL')+'</span>';
+    html += '</div>';
+    html += '<div style="font-size:10px;color:#555;margin-top:2px;">$'+Number(a.initialBalance).toLocaleString('en')+' &middot; '+trades.length+' ops &middot; <span style="color:'+pnlCol+';">'+(pnl>=0?'+':'')+pnl.toFixed(2)+'$</span></div>';
+    html += '</div>';
+    html += '<div style="display:flex;gap:5px;">';
+    if(!isActive) html += '<button onclick="switchAccount('+JSON.stringify(a.id)+')" style="background:rgba(0,230,118,.15);border:1px solid rgba(0,230,118,.3);color:#00e676;border-radius:7px;padding:5px 9px;cursor:pointer;font-size:10px;font-weight:700;">Usar</button>';
+    html += '<button onclick="editAccount('+JSON.stringify(a.id)+')" style="background:#1e1e1e;border:1px solid #333;color:#4d9fff;border-radius:7px;padding:5px 7px;cursor:pointer;font-size:11px;">&#9998;</button>';
+    if(accounts.length>1) html += '<button onclick="deleteAccount(this,'+JSON.stringify(a.id)+')" style="background:#1e1e1e;border:1px solid #333;color:#ff1744;border-radius:7px;padding:5px 7px;cursor:pointer;font-size:11px;">&#128465;</button>';
+    html += '</div></div>';
+  }
+  el.innerHTML = html;
 }
 function togChallenge(){S.settings.challengeActive=!S.settings.challengeActive;save();renderConfig();renderDash();renderFondeo();checkAlerts();}
 function clearAF(){g('ay').value='';g('am').value='';g('aa').value='';g('adir').value='';renderA();}
@@ -1352,16 +1416,40 @@ function renderDash(){
   ];
   g('dash-kpis').innerHTML=hkpis.map(function(k){return'<div class="kcard '+k.cls+'"><div class="klbl">'+k.l+'</div><div class="kval" style="color:'+k.c+'">'+k.v+'</div>'+(k.sub?'<div class="ksub">'+k.sub+'</div>':'')+'</div>';}).join('');
 
-  // DD bar
+  // Barra inteligente única
   var ddw=g('dd-wrap');if(ddw)ddw.style.display=s.challengeActive?'block':'none';
   if(s.challengeActive){
-    var used=Math.min(Math.abs(Math.min(to.ddPct,0)),s.maxTotalLoss),pct=(used/s.maxTotalLoss)*100;
-    var col=pct>80?'var(--red)':pct>60?'var(--org)':'var(--green)';
-    var f=g('ddfill');if(f){f.style.width=Math.min(pct,100)+'%';f.style.background=col;}
-    var dp=g('ddpct');if(dp){dp.textContent=used.toFixed(2)+'% / '+s.maxTotalLoss+'%';dp.style.color=col;}
-    var dal=g('ddal');if(dal)dal.textContent='⚠ Alert: '+(s.maxTotalLoss*s.alertAt/100).toFixed(1)+'%';
-    var dlm=g('ddlim');if(dlm)dlm.textContent='🔴 Límite: '+s.maxTotalLoss+'%';
-    var dg=g('ddgoal');if(dg)dg.textContent=Math.max(to.ddPct,0).toFixed(2)+'% / '+s.profitTarget+'%'+(to.ddPct>=s.profitTarget?' 🎉 ¡META!':'');
+    var profPct = s.accountSize ? (to.totalPnl/s.accountSize)*100 : 0;
+    var isWinning = profPct >= 0;
+    var barPct, barCol, barLabel, limitLabel, sublabel, leftLabel, goalText;
+    if(isWinning){
+      // Ganando — barra verde hacia el objetivo
+      barPct = Math.min((profPct/(s.profitTarget||10))*100, 100);
+      barCol = profPct>=(s.profitTarget||10)?'linear-gradient(90deg,#00c853,#00e676)':'linear-gradient(90deg,#007a32,#00c853)';
+      barLabel = '📈 GANANCIA';
+      limitLabel = '🎯 Meta: '+(s.profitTarget||10)+'%';
+      sublabel = 'Progresando hacia el objetivo de '+( s.profitTarget||10)+'%';
+      leftLabel = 'Ganancia: +'+profPct.toFixed(2)+'%';
+      goalText = profPct.toFixed(2)+'% / '+(s.profitTarget||10)+'%'+(profPct>=(s.profitTarget||10)?' 🎉 ¡META!':'');
+    } else {
+      // Perdiendo — barra roja hacia el límite
+      var absPct = Math.abs(profPct);
+      barPct = Math.min((absPct/(s.maxTotalLoss||10))*100, 100);
+      barCol = barPct>80?'linear-gradient(90deg,#b71c1c,#ff1744)':barPct>60?'linear-gradient(90deg,#e65100,#ff6d00)':'linear-gradient(90deg,#d50000,#ff5252)';
+      barLabel = '📉 DRAWDOWN';
+      limitLabel = '🔴 Límite: '+(s.maxTotalLoss||10)+'%';
+      sublabel = 'Pérdida acumulada — Límite: '+(s.maxTotalLoss||10)+'%';
+      leftLabel = 'Pérdida: -'+absPct.toFixed(2)+'%';
+      goalText = absPct.toFixed(2)+'% / '+(s.maxTotalLoss||10)+'%'+(absPct>=(s.maxTotalLoss||10)?' 🔥 QUEMADA':'');
+    }
+    var lbl=g('dd-label');if(lbl){lbl.textContent=barLabel;lbl.style.color=isWinning?'#00e676':'#ff5252';}
+    var sub=g('dd-sublabel');if(sub)sub.textContent=sublabel;
+    var f=g('ddfill');if(f){f.style.width=Math.min(barPct,100)+'%';f.style.background=barCol;}
+    var dp=g('ddpct');if(dp){dp.textContent=(isWinning?'+':'-')+Math.abs(profPct).toFixed(2)+'%';dp.style.color=isWinning?'#00e676':'#ff5252';}
+    var dal=g('ddal');if(dal)dal.textContent=isWinning?'':('⚠ Alerta: '+(s.maxTotalLoss*s.alertAt/100).toFixed(1)+'%');
+    var dlm=g('ddlim');if(dlm){dlm.textContent=limitLabel;dlm.style.color=isWinning?'#00e676':'#ff1744';}
+    var ll=g('dd-left-label');if(ll)ll.textContent=leftLabel;
+    var dg=g('ddgoal');if(dg){dg.textContent=goalText;dg.style.color=isWinning?'#00e676':'#ff5252';}
   }
 
   var sorted=getSorted();var bal=a;var eq=[{l:'Inicio',b:a}];
@@ -1709,26 +1797,29 @@ function renderStreaks(trades){
 function renderFondeo(){
   var s=S.settings,to=totals(),a=acct();
   var t=g('ctog');if(t){if(s.challengeActive)t.classList.add('on');else t.classList.remove('on');}
-  // Barra de profit
+  // Barra única inteligente en fondeo
   var profitPct = s.accountSize ? (to.totalPnl/s.accountSize)*100 : 0;
   var profitGoal = s.profitTarget||10;
-  var profitFillPct = Math.max(0, Math.min(Math.abs(profitPct)/profitGoal*100, 100));
-  var pf2=g('profitfill');
-  if(pf2){pf2.style.width=profitFillPct.toFixed(1)+'%';pf2.style.background=profitPct>=0?'linear-gradient(90deg,#00c853,#00e676)':'linear-gradient(90deg,#d50000,#ff1744)';}
-  var pst=g('profitst');
-  if(pst){pst.textContent=(profitPct>=0?'+':'')+profitPct.toFixed(2)+'%';pst.style.color=profitPct>=0?'var(--green)':'var(--red)';}
+  var isWinningF = profitPct >= 0;
+  var icon=g('fondeo-bar-icon'), title=g('fondeo-bar-title'), sub=g('fondeo-bar-sub');
+  if(icon) icon.textContent = isWinningF ? '📈' : '📉';
+  if(title){title.textContent = isWinningF ? 'Progreso hacia el objetivo' : 'Drawdown acumulado'; title.style.color=isWinningF?'#00e676':'#ff5252';}
+  if(sub) sub.textContent = isWinningF ? 'Meta: +'+profitGoal+'%' : 'Límite: -'+(s.maxTotalLoss||10)+'%';
+  var barFillPct, barCol;
+  if(isWinningF){
+    barFillPct = Math.min((profitPct/profitGoal)*100, 100);
+    barCol = profitPct>=profitGoal?'linear-gradient(90deg,#00c853,#00e676)':'linear-gradient(90deg,#007a32,#00c853)';
+  } else {
+    barFillPct = Math.min((Math.abs(profitPct)/(s.maxTotalLoss||10))*100, 100);
+    barCol = barFillPct>80?'linear-gradient(90deg,#b71c1c,#ff1744)':barFillPct>60?'linear-gradient(90deg,#e65100,#ff6d00)':'linear-gradient(90deg,#c62828,#ef5350)';
+  }
+  var pf=g('profitfill');if(pf){pf.style.width=barFillPct.toFixed(1)+'%';pf.style.background=barCol;}
+  var pst=g('profitst');if(pst){pst.textContent=(profitPct>=0?'+':'')+profitPct.toFixed(2)+'%';pst.style.color=isWinningF?'#00e676':'#ff5252';}
   var pm=g('profitmeta');
-  if(pm)pm.textContent='Meta: '+profitGoal+'%'+(profitPct>=profitGoal?' 🎉 ¡META!':'');
-
-  ['','2'].forEach(function(sfx){
-    var used=Math.min(Math.abs(Math.min(to.ddPct,0)),s.maxTotalLoss),pct=(used/s.maxTotalLoss)*100;
-    var col=pct>80?'var(--red)':pct>60?'var(--org)':'var(--green)';
-    var f=g('ddfill'+sfx);if(f){f.style.width=Math.min(pct,100)+'%';f.style.background=col;}
-    var ds=g('ddst');if(ds){ds.textContent=used.toFixed(2)+'% / '+s.maxTotalLoss+'%';ds.style.color=col;}
-    var al=g('ddal'+sfx),ll=g('ddlim'+sfx);
-    if(al)al.textContent='⚠ Alerta: '+(s.maxTotalLoss*s.alertAt/100).toFixed(1)+'%';
-    if(ll)ll.textContent='🔴 Límite: '+s.maxTotalLoss+'%';
-  });
+  if(pm){pm.textContent=isWinningF?(profitPct.toFixed(2)+'% / '+profitGoal+'%'+(profitPct>=profitGoal?' 🎉':'')):(Math.abs(profitPct).toFixed(2)+'% / '+(s.maxTotalLoss||10)+'%'+(Math.abs(profitPct)>=(s.maxTotalLoss||10)?' 🔥':'')); pm.style.color=isWinningF?'#00e676':'#ff5252';}
+  // Indicadores secundarios
+  var dd2=g('ddst'); if(dd2){var ddAbs=Math.abs(Math.min(to.ddPct,0));dd2.textContent='-'+ddAbs.toFixed(2)+'%';dd2.style.color=ddAbs>=(s.maxTotalLoss||10)?'#ff1744':ddAbs>=(s.maxTotalLoss||10)*0.7?'#ff6d00':'#e0e0e0';}
+  var dg2=g('ddgoal2');if(dg2){dg2.textContent=profitGoal+'%';dg2.style.color='#00e676';}
   var fsl=g('fsl');if(fsl)fsl.innerHTML=[['Cuenta inicial','$'+s.accountSize.toLocaleString('en'),'var(--gold)'],['Balance actual',fU(to.balance),to.balance>=s.accountSize?'var(--green)':'var(--red)'],['P&L Total',fU(to.totalPnl),to.totalPnl>=0?'var(--green)':'var(--red)'],['Drawdown actual',fP(Math.min(to.ddPct,0)),to.ddPct<0?'var(--red)':'var(--green)'],['Pérd. máx. diaria',s.maxDailyLoss+'%','var(--gray2)'],['Pérd. máx. total',s.maxTotalLoss+'%','var(--gray2)'],['Objetivo',s.profitTarget+'%','var(--gold)'],['Umbral de alerta',(s.maxTotalLoss*s.alertAt/100).toFixed(1)+'%','var(--org)']].map(function(r){return'<div class="sr"><span class="sl2">'+r[0]+'</span><span class="sv" style="color:'+r[2]+'">'+r[1]+'</span></div>';}).join('');
   var sorted=getSorted(),burns=[],run=s.accountSize,inB=false;
   sorted.forEach(function(t){run+=(t.pnl||0);var dd=((run-s.accountSize)/s.accountSize)*100;if(dd<=-s.maxTotalLoss&&!inB){inB=true;burns.push({date:t.date,balance:run,drawdown:Math.abs(dd).toFixed(2)});}else if(dd>-s.maxTotalLoss*.5)inB=false;});
@@ -1912,9 +2003,12 @@ function switchAccount(id){
   var accounts = getAccounts();
   var acct = accounts.find(function(a){return a.id===id;});
   if(acct){
-    S.settings = {accountSize:acct.initialBalance, assets:S.settings.assets||[], challengeActive:acct.type==='fondeo', maxDailyLoss:5, maxTotalLoss:10, profitTarget:10, alertAt:80};
+    var defaultCfg = {accountSize:acct.initialBalance, assets:S.settings.assets||[], challengeActive:acct.type==='fondeo', maxDailyLoss:5, maxTotalLoss:10, profitTarget:10, alertAt:80};
+    S.settings = Object.assign({}, defaultCfg);
     loadAccountData(id);
     S.settings.accountSize = acct.initialBalance;
+    // Asegurar que challengeActive es consistente con el tipo de cuenta
+    if(!localStorage.getItem('tt_cfg_'+id)) S.settings.challengeActive = acct.type==='fondeo';
   }
   updateAcctBtn();
   refresh();
