@@ -659,10 +659,20 @@ tr:hover td{background:rgba(19,24,40,.8)}
       </div>
       <div>
         <div class="card" style="margin-bottom:12px">
-          <div class="card-hdr" style="color:var(--gold);border-color:rgba(255,200,77,.2)">Drawdown Actual</div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-            <span style="font-size:11px;color:var(--gray2)">Pérdida acumulada vs límite</span>
-            <span id="ddst" style="font-weight:700;font-size:18px"></span>
+          <div class="card-hdr" style="color:var(--gold);border-color:rgba(255,200,77,.2)">Progreso de la Cuenta</div>
+          <!-- BARRA PROFIT -->
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:10px;color:var(--gray2)">📈 Ganancia acumulada</span>
+            <span id="profitst" style="font-weight:700;font-size:14px;color:var(--green)"></span>
+          </div>
+          <div style="background:rgba(0,230,118,.1);border-radius:99px;height:8px;overflow:hidden;margin-bottom:3px;border:1px solid rgba(0,230,118,.2)">
+            <div id="profitfill" style="height:100%;border-radius:99px;background:linear-gradient(90deg,#00c853,#00e676);transition:width .5s;width:0%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:9px;margin-bottom:10px"><span style="color:var(--gray2)">0%</span><span id="profitmeta" style="color:var(--green)"></span></div>
+          <!-- BARRA DRAWDOWN -->
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:10px;color:var(--gray2)">📉 Drawdown acumulado</span>
+            <span id="ddst" style="font-weight:700;font-size:14px"></span>
           </div>
           <div class="ddbar"><div class="ddfill" id="ddfill2"></div></div>
           <div style="display:flex;justify-content:space-between;font-size:9px"><span style="color:var(--gray2)">0%</span><span id="ddal2" style="color:var(--org)"></span><span id="ddlim2" style="color:var(--red)"></span></div>
@@ -719,22 +729,55 @@ tr:hover td{background:rgba(19,24,40,.8)}
 <!-- ═══════════════════════════════════════════════════════════ -->
 <!-- PANTALLA DE ACTIVACIÓN DE LICENCIA — TRADETRACK PRO       -->
 <!-- ═══════════════════════════════════════════════════════════ -->
-<div id="lic-overlay" style="display:flex;position:fixed;inset:0;background:#0a0a0a;z-index:999999;align-items:center;justify-content:center;flex-direction:column;font-family:'Segoe UI',system-ui,sans-serif;">
-  <div style="background:#141414;border:1px solid #2a2a2a;border-radius:20px;padding:36px 28px;max-width:360px;width:92%;text-align:center;box-shadow:0 0 60px rgba(0,230,118,0.08);">
-    <div style="width:56px;height:56px;background:linear-gradient(135deg,#00c853,#00e676);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 20px;box-shadow:0 0 24px rgba(0,230,118,0.3);">🚀</div>
-    <div style="font-size:22px;font-weight:800;color:#f0f0f0;margin-bottom:6px;letter-spacing:1px;">Cursos Digitales 701</div>
-    <div style="color:#555;font-size:10px;letter-spacing:3px;text-transform:uppercase;margin-bottom:24px;">Journal de Trading</div>
-    <div style="color:#909090;font-size:13px;margin-bottom:20px;line-height:1.5;">Ingresa el código que recibiste al comprar para activar tu acceso.</div>
-    <input id="lic-input" type="text" placeholder="REVENDEDOR-001" maxlength="30"
-      style="width:100%;background:#1c1c1c;border:1px solid #3a3a3a;color:#f0f0f0;padding:14px 16px;border-radius:10px;font-size:15px;text-align:center;letter-spacing:3px;outline:none;margin-bottom:12px;text-transform:uppercase;"
+<div id="lic-overlay" style="display:flex;position:fixed;inset:0;z-index:999999;align-items:center;justify-content:center;font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden;">
+  <!-- Fondo con gradiente animado -->
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 30% 20%,rgba(0,180,100,.12) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(77,80,255,.1) 0%,transparent 60%),#080c10;"></div>
+  <!-- Partículas decorativas -->
+  <div style="position:absolute;top:15%;left:10%;width:200px;height:200px;background:radial-gradient(circle,rgba(0,230,118,.06),transparent 70%);border-radius:50%;animation:pulse 4s ease-in-out infinite;"></div>
+  <div style="position:absolute;bottom:20%;right:8%;width:160px;height:160px;background:radial-gradient(circle,rgba(77,159,255,.06),transparent 70%);border-radius:50%;animation:pulse 6s ease-in-out infinite reverse;"></div>
+  <style>
+    @keyframes pulse{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.15);opacity:1}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
+    #lic-box{animation:fadeUp .6s ease forwards}
+    #lic-input:focus{border-color:rgba(0,230,118,.5)!important;box-shadow:0 0 0 3px rgba(0,230,118,.08)!important;}
+  </style>
+  <!-- Tarjeta principal -->
+  <div id="lic-box" style="position:relative;background:linear-gradient(145deg,#111820,#0d1219);border:1px solid rgba(255,255,255,.07);border-radius:24px;padding:40px 32px 32px;max-width:380px;width:92%;text-align:center;box-shadow:0 40px 80px rgba(0,0,0,.6),0 0 0 1px rgba(0,230,118,.06),inset 0 1px 0 rgba(255,255,255,.05);">
+    <!-- Badge top -->
+    <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,#00c853,#00e676);color:#000;font-size:9px;font-weight:900;padding:4px 14px;border-radius:99px;letter-spacing:2px;white-space:nowrap;">✦ ACCESO PROFESIONAL ✦</div>
+    <!-- Icono principal -->
+    <div style="margin:0 auto 18px;position:relative;display:inline-block;">
+      <div style="width:72px;height:72px;background:linear-gradient(135deg,#003d1a,#006b2e);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:32px;border:1px solid rgba(0,230,118,.25);box-shadow:0 0 30px rgba(0,230,118,.15),inset 0 1px 0 rgba(255,255,255,.08);">📊</div>
+      <div style="position:absolute;bottom:-4px;right:-4px;width:22px;height:22px;background:linear-gradient(135deg,#00c853,#00e676);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;border:2px solid #0d1219;">✓</div>
+    </div>
+    <!-- Titulo -->
+    <div style="font-size:26px;font-weight:900;color:#f5f5f5;margin-bottom:4px;letter-spacing:-.5px;line-height:1.1;">TradeJournal</div>
+    <div style="font-size:11px;font-weight:700;letter-spacing:4px;text-transform:uppercase;margin-bottom:6px;background:linear-gradient(90deg,#00e676,#4d9fff,#00e676);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 3s linear infinite;">PRO EDITION</div>
+    <div style="width:40px;height:2px;background:linear-gradient(90deg,#00c853,#00e676);margin:0 auto 20px;border-radius:99px;"></div>
+    <!-- Subtitulo -->
+    <div style="color:#8a9bb0;font-size:13px;margin-bottom:24px;line-height:1.6;">Ingresa tu código de acceso para<br>activar tu licencia personal.</div>
+    <!-- Input -->
+    <input id="lic-input" type="text" placeholder="XXXX-XXXXXX-XXXX" maxlength="30"
+      style="width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:#f0f0f0;padding:15px 18px;border-radius:12px;font-size:16px;text-align:center;letter-spacing:4px;outline:none;margin-bottom:12px;text-transform:uppercase;box-sizing:border-box;transition:border-color .2s,box-shadow .2s;font-weight:700;"
       onkeydown="if(event.key==='Enter')activateLicense()">
+    <!-- Boton -->
     <button id="lic-btn" onclick="activateLicense()"
-      style="width:100%;background:linear-gradient(135deg,#00c853,#00e676);color:#000;font-weight:800;padding:14px;border-radius:10px;border:none;font-size:14px;cursor:pointer;letter-spacing:1px;margin-bottom:12px;transition:opacity .2s;">
-      ✅ ACTIVAR LICENCIA
+      style="width:100%;background:linear-gradient(135deg,#00b341,#00e676);color:#000;font-weight:900;padding:16px;border-radius:12px;border:none;font-size:14px;cursor:pointer;letter-spacing:1.5px;margin-bottom:14px;transition:opacity .2s,transform .1s;box-shadow:0 4px 20px rgba(0,230,118,.3);"
+      onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
+      ACTIVAR LICENCIA
     </button>
     <div id="lic-loading" style="display:none;color:#e8a020;font-size:12px;margin-bottom:8px;">⏳ Verificando con el servidor...</div>
-    <div id="lic-error" style="color:#ff1744;font-size:12px;min-height:20px;line-height:1.5;"></div>
-    <div style="color:#333;font-size:10px;margin-top:20px;border-top:1px solid #1e1e1e;padding-top:16px;">Si tienes problemas con tu código, contacta a quien te vendió el producto.</div>
+    <div id="lic-error" style="color:#ff4d6a;font-size:12px;min-height:18px;line-height:1.5;"></div>
+    <!-- Footer -->
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.05);">
+      <div style="color:#3a4a5a;font-size:10px;line-height:1.7;">Si tienes problemas con tu código,<br>contacta a tu proveedor.</div>
+      <div style="margin-top:8px;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <div style="width:6px;height:6px;background:#00e676;border-radius:50%;"></div>
+        <span style="color:#2a4a3a;font-size:9px;font-weight:700;letter-spacing:1px;">SISTEMA SEGURO</span>
+        <div style="width:6px;height:6px;background:#00e676;border-radius:50%;"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -947,23 +990,32 @@ function checkAlerts(){
 // STORAGE
 function save(){
   try{
-    localStorage.setItem('tt_cfg',JSON.stringify(S.settings));
+    var id = getActiveId();
+    localStorage.setItem('tt_cfg',JSON.stringify(S.settings)); // legacy
+    localStorage.setItem('tt_cfg_'+id,JSON.stringify(S.settings));
     var n=Math.ceil(S.trades.length/500)||1;
-    localStorage.setItem('tt_n',String(n));
-    for(var i=0;i<n;i++) localStorage.setItem('tt_'+i,JSON.stringify(S.trades.slice(i*500,(i+1)*500)));
-    var old=parseInt(localStorage.getItem('tt_old')||String(n));
-    for(var j=n;j<=old;j++) localStorage.removeItem('tt_'+j);
-    localStorage.setItem('tt_old',String(n));
+    localStorage.setItem('tt_n',String(n)); // legacy
+    localStorage.setItem('tt_n_'+id,String(n));
+    for(var i=0;i<n;i++){
+      localStorage.setItem('tt_'+i,JSON.stringify(S.trades.slice(i*500,(i+1)*500))); // legacy
+      localStorage.setItem('tt_'+id+'_'+i,JSON.stringify(S.trades.slice(i*500,(i+1)*500)));
+    }
+    var old=parseInt(localStorage.getItem('tt_old_'+id)||String(n));
+    for(var j=n;j<=old;j++) localStorage.removeItem('tt_'+id+'_'+j);
+    localStorage.setItem('tt_old_'+id,String(n));
     syncToCloud();
   }catch(e){console.error('save',e);}
 }
 function load(){
   try{
-    var c=localStorage.getItem('tt_cfg');if(c)S.settings=Object.assign({},S.settings,JSON.parse(c));
-    var n=parseInt(localStorage.getItem('tt_n')||'1');
+    var id = (typeof getActiveId==='function') ? getActiveId() : 'default';
+    var c=localStorage.getItem('tt_cfg_'+id)||localStorage.getItem('tt_cfg');
+    if(c)S.settings=Object.assign({},S.settings,JSON.parse(c));
+    var n=parseInt(localStorage.getItem('tt_n_'+id)||localStorage.getItem('tt_n')||'1');
     var t=[];
-    for(var i=0;i<n;i++){var x=localStorage.getItem('tt_'+i);if(x)t=t.concat(JSON.parse(x));}
-    if(!t.length){var old=localStorage.getItem('smc5_0')||localStorage.getItem('smc_trades');if(old)try{t=JSON.parse(old);}catch(e2){}}
+    // Try account-specific first, then legacy
+    for(var i=0;i<n;i++){var x=localStorage.getItem('tt_'+id+'_'+i)||localStorage.getItem('tt_'+i);if(x)t=t.concat(JSON.parse(x));}
+    if(!t.length){var old2=localStorage.getItem('smc5_0')||localStorage.getItem('smc_trades');if(old2)try{t=JSON.parse(old2);}catch(e2){}}
     S.trades=t;
   }catch(e){console.error('load',e);}
 }
@@ -1657,6 +1709,17 @@ function renderStreaks(trades){
 function renderFondeo(){
   var s=S.settings,to=totals(),a=acct();
   var t=g('ctog');if(t){if(s.challengeActive)t.classList.add('on');else t.classList.remove('on');}
+  // Barra de profit
+  var profitPct = s.accountSize ? (to.totalPnl/s.accountSize)*100 : 0;
+  var profitGoal = s.profitTarget||10;
+  var profitFillPct = Math.max(0, Math.min(Math.abs(profitPct)/profitGoal*100, 100));
+  var pf2=g('profitfill');
+  if(pf2){pf2.style.width=profitFillPct.toFixed(1)+'%';pf2.style.background=profitPct>=0?'linear-gradient(90deg,#00c853,#00e676)':'linear-gradient(90deg,#d50000,#ff1744)';}
+  var pst=g('profitst');
+  if(pst){pst.textContent=(profitPct>=0?'+':'')+profitPct.toFixed(2)+'%';pst.style.color=profitPct>=0?'var(--green)':'var(--red)';}
+  var pm=g('profitmeta');
+  if(pm)pm.textContent='Meta: '+profitGoal+'%'+(profitPct>=profitGoal?' 🎉 ¡META!':'');
+
   ['','2'].forEach(function(sfx){
     var used=Math.min(Math.abs(Math.min(to.ddPct,0)),s.maxTotalLoss),pct=(used/s.maxTotalLoss)*100;
     var col=pct>80?'var(--red)':pct>60?'var(--org)':'var(--green)';
@@ -1713,6 +1776,224 @@ function refresh(){
 }
 
 // INIT
+
+// ═══════════════════════════════════════════════════════════
+//  SISTEMA DE MÚLTIPLES CUENTAS
+// ═══════════════════════════════════════════════════════════
+var _newAcctType = 'normal';
+
+function setNewAcctType(t){
+  _newAcctType = t;
+  var n = document.getElementById('nat-normal');
+  var f = document.getElementById('nat-fondeo');
+  if(t==='normal'){
+    n.style.background='rgba(77,159,255,.2)';n.style.borderColor='rgba(77,159,255,.5)';n.style.color='#4d9fff';
+    f.style.background='#1e1e1e';f.style.borderColor='#333';f.style.color='#555';
+  } else {
+    f.style.background='rgba(232,160,32,.2)';f.style.borderColor='rgba(232,160,32,.5)';f.style.color='#e8a020';
+    n.style.background='#1e1e1e';n.style.borderColor='#333';n.style.color='#555';
+  }
+  document.getElementById('new-acct-type').value = t;
+}
+
+function getAccounts(){
+  try{ return JSON.parse(localStorage.getItem('tt_accounts')||'[]'); }catch(e){return [];}
+}
+function saveAccounts(arr){ localStorage.setItem('tt_accounts', JSON.stringify(arr)); }
+function getActiveId(){ return localStorage.getItem('tt_active')||'default'; }
+function setActiveId(id){ localStorage.setItem('tt_active', id); }
+
+function initAccounts(){
+  var accounts = getAccounts();
+  var activeId = getActiveId();
+  if(!accounts.length){
+    // Migrar datos existentes a cuenta "default"
+    accounts = [{id:'default', name:'Mi Cuenta Principal', type:'normal', initialBalance: S.settings.accountSize||10000}];
+    saveAccounts(accounts);
+    if(activeId !== 'default') setActiveId('default');
+  }
+  updateAcctBtn();
+}
+
+function updateAcctBtn(){
+  var accounts = getAccounts();
+  var activeId = getActiveId();
+  var active = accounts.find(function(a){return a.id===activeId;}) || accounts[0];
+  var btn = document.getElementById('acct-name-btn');
+  if(btn && active) btn.textContent = active.name.substring(0,14) + (active.name.length>14?'…':'');
+}
+
+function openAccounts(){
+  document.getElementById('acct-modal').style.display='flex';
+  renderAccountsList();
+}
+
+function closeAccounts(){
+  document.getElementById('acct-modal').style.display='none';
+}
+
+function renderAccountsList(){
+  var accounts = getAccounts();
+  var activeId = getActiveId();
+  var el = document.getElementById('acct-list');
+  if(!accounts.length){ el.innerHTML='<div style="color:#555;font-size:12px;text-align:center;padding:12px;">No hay cuentas aun.</div>'; return; }
+  var html = '';
+  for(var ai=0;ai<accounts.length;ai++){
+    var a = accounts[ai];
+    var isActive = a.id === activeId;
+    var trades = getAccountTrades(a.id);
+    var pnl = trades.reduce(function(s,t){return s+(t.pnl||0);},0);
+    var pnlColor = pnl>=0?'#00e676':'#ff1744';
+    var pnlStr = (pnl>=0?'+':'')+pnl.toFixed(2)+'$';
+    var bgCard = isActive?'rgba(0,230,118,.08)':'#0f0f0f';
+    var bdrCard = isActive?'rgba(0,230,118,.3)':'#2a2a2a';
+    var typeBg = a.type==='fondeo'?'rgba(232,160,32,.2)':'rgba(77,159,255,.15)';
+    var typeClr = a.type==='fondeo'?'#e8a020':'#4d9fff';
+    var typeLabel = a.type==='fondeo'?'FONDEO':'NORMAL';
+    var activeDot = isActive?'<span style="width:7px;height:7px;background:#00e676;border-radius:50%;display:inline-block;flex-shrink:0;"></span>':'';
+    var delBtn = accounts.length>1?'<button onclick="deleteAccount(this,'+JSON.stringify(a.id)+')" style="background:#1e1e1e;border:1px solid #333;color:#ff1744;border-radius:7px;padding:5px 8px;cursor:pointer;font-size:12px;">&#128465;</button>':'';
+    html += '<div style="background:'+bgCard+';border:1px solid '+bdrCard+';border-radius:10px;padding:12px 14px;margin-bottom:8px;" data-acct-id="'+a.id+'">';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;">';
+    html += '<div style="flex:1;cursor:pointer;" onclick="switchAccount('+JSON.stringify(a.id)+')">';
+    html += '<div style="display:flex;align-items:center;gap:7px;">'+activeDot+'<span style="font-size:13px;font-weight:700;color:#f0f0f0;">'+a.name+'</span><span style="font-size:9px;padding:2px 6px;border-radius:5px;font-weight:700;background:'+typeBg+';color:'+typeClr+';">'+typeLabel+'</span></div>';
+    html += '<div style="font-size:10px;color:#555;margin-top:3px;">$'+Number(a.initialBalance).toLocaleString('en')+' &middot; '+trades.length+' ops &middot; <span style="color:'+pnlColor+';">'+pnlStr+'</span></div>';
+    html += '</div>';
+    html += '<div style="display:flex;gap:6px;margin-left:8px;">';
+    html += '<button onclick="editAccount('+JSON.stringify(a.id)+')" style="background:#1e1e1e;border:1px solid #333;color:#4d9fff;border-radius:7px;padding:5px 8px;cursor:pointer;font-size:12px;">&#9998;</button>';
+    html += delBtn;
+    html += '</div></div></div>';
+  }
+  el.innerHTML = html;
+}
+
+function getAccountTrades(id){
+  try{
+    var n = parseInt(localStorage.getItem('tt_n_'+id)||'0');
+    if(!n) return [];
+    var t=[];
+    for(var i=0;i<n;i++){var x=localStorage.getItem('tt_'+id+'_'+i);if(x)t=t.concat(JSON.parse(x));}
+    return t;
+  }catch(e){return [];}
+}
+
+function saveAccountData(id, trades, settings){
+  localStorage.setItem('tt_cfg_'+id, JSON.stringify(settings));
+  var n=Math.ceil(trades.length/500)||1;
+  localStorage.setItem('tt_n_'+id, String(n));
+  for(var i=0;i<n;i++) localStorage.setItem('tt_'+id+'_'+i, JSON.stringify(trades.slice(i*500,(i+1)*500)));
+  var old=parseInt(localStorage.getItem('tt_old_'+id)||String(n));
+  for(var j=n;j<=old;j++) localStorage.removeItem('tt_'+id+'_'+j);
+  localStorage.setItem('tt_old_'+id, String(n));
+}
+
+function loadAccountData(id){
+  try{
+    var c = localStorage.getItem('tt_cfg_'+id);
+    if(c) S.settings = Object.assign({}, S.settings, JSON.parse(c));
+    var trades = getAccountTrades(id);
+    // Fallback: si no hay datos por id, usar datos legacy (tt_0, tt_cfg)
+    if(!trades.length && id==='default'){
+      var leg = localStorage.getItem('tt_cfg');
+      if(leg) S.settings = Object.assign({}, S.settings, JSON.parse(leg));
+      var n=parseInt(localStorage.getItem('tt_n')||'1');
+      for(var i=0;i<n;i++){var x=localStorage.getItem('tt_'+i);if(x)trades=trades.concat(JSON.parse(x));}
+    }
+    S.trades = trades;
+  }catch(e){ S.trades=[]; }
+}
+
+function switchAccount(id){
+  // Guardar cuenta actual
+  var currentId = getActiveId();
+  saveAccountData(currentId, S.trades, S.settings);
+  // Cambiar cuenta
+  setActiveId(id);
+  // Cargar nueva cuenta
+  var accounts = getAccounts();
+  var acct = accounts.find(function(a){return a.id===id;});
+  if(acct){
+    S.settings = {accountSize:acct.initialBalance, assets:S.settings.assets||[], challengeActive:acct.type==='fondeo', maxDailyLoss:5, maxTotalLoss:10, profitTarget:10, alertAt:80};
+    loadAccountData(id);
+    S.settings.accountSize = acct.initialBalance;
+  }
+  updateAcctBtn();
+  refresh();
+  closeAccounts();
+  if(typeof toast==='function') toast('✅ Cuenta: '+acct.name, '#4d9fff');
+}
+
+function createAccount(){
+  var name = document.getElementById('new-acct-name').value.trim();
+  var bal = parseFloat(document.getElementById('new-acct-balance').value)||10000;
+  var type = document.getElementById('new-acct-type').value||'normal';
+  if(!name){ if(typeof toast==='function') toast('⚠ Escribe un nombre','#ff1744'); return; }
+  var accounts = getAccounts();
+  var id = 'acct_'+Date.now();
+  accounts.push({id:id, name:name, type:type, initialBalance:bal});
+  saveAccounts(accounts);
+  // Inicializar datos vacíos
+  saveAccountData(id, [], {accountSize:bal, assets:S.settings.assets||[], challengeActive:type==='fondeo', maxDailyLoss:5, maxTotalLoss:10, profitTarget:10, alertAt:80});
+  document.getElementById('new-acct-name').value='';
+  document.getElementById('new-acct-balance').value='';
+  renderAccountsList();
+  if(typeof toast==='function') toast('✅ Cuenta creada: '+name, '#00e676');
+}
+
+function editAccount(id){
+  var accounts = getAccounts();
+  var a = accounts.find(function(x){return x.id===id;});
+  if(!a) return;
+  document.getElementById('edit-acct-id').value = id;
+  document.getElementById('edit-acct-name').value = a.name;
+  document.getElementById('edit-acct-balance').value = a.initialBalance;
+  document.getElementById('edit-acct-modal').style.display='flex';
+}
+
+function closeEditAccount(){
+  document.getElementById('edit-acct-modal').style.display='none';
+}
+
+function saveEditAccount(){
+  var id = document.getElementById('edit-acct-id').value;
+  var name = document.getElementById('edit-acct-name').value.trim();
+  var bal = parseFloat(document.getElementById('edit-acct-balance').value)||10000;
+  if(!name) return;
+  var accounts = getAccounts();
+  var idx = accounts.findIndex(function(a){return a.id===id;});
+  if(idx<0) return;
+  accounts[idx].name = name;
+  accounts[idx].initialBalance = bal;
+  saveAccounts(accounts);
+  // Si es la cuenta activa, actualizar settings
+  if(getActiveId()===id){
+    S.settings.accountSize = bal;
+    save();
+  }
+  closeEditAccount();
+  renderAccountsList();
+  updateAcctBtn();
+  if(typeof toast==='function') toast('✅ Cuenta actualizada', '#4d9fff');
+}
+
+function deleteAccount(btn,id){
+  var accounts = getAccounts();
+  if(accounts.length<=1){ if(typeof toast==='function') toast('⚠ Necesitas al menos 1 cuenta','#ff1744'); return; }
+  if(btn && btn.dataset.confirmDelete===id){
+    accounts = accounts.filter(function(a){return a.id!==id;});
+  saveAccounts(accounts);
+  // Limpiar datos
+  localStorage.removeItem('tt_cfg_'+id);
+    var n=parseInt(localStorage.getItem('tt_n_'+id)||'0');
+    for(var i=0;i<n;i++) localStorage.removeItem('tt_'+id+'_'+i);
+    localStorage.removeItem('tt_n_'+id);
+    if(getActiveId()===id) switchAccount(accounts[0].id);
+    else renderAccountsList();
+  } else {
+    if(btn){ btn.dataset.confirmDelete=id; btn.textContent='Confirmar'; btn.style.color='#ff1744'; btn.style.borderColor='#ff1744'; }
+    setTimeout(function(){ if(btn){ btn.dataset.confirmDelete=''; btn.innerHTML='&#128465;'; btn.style.color='#ff1744'; btn.style.borderColor='#333'; }},3000);
+  }
+}
+
 document.addEventListener('DOMContentLoaded',function(){
   // ── Verificar licencia primero ──
   checkLicenseOnLoad();
@@ -1826,6 +2107,50 @@ self.addEventListener('fetch', e => {
   }
 })();
 </script>
+
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- MODAL DE CUENTAS                                           -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div id="acct-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);z-index:99999;align-items:center;justify-content:center;">
+  <div style="background:#141414;border:1px solid #2a2a2a;border-radius:16px;width:92%;max-width:400px;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;">
+    <div style="padding:16px 20px;border-bottom:1px solid #1e1e1e;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:15px;font-weight:800;color:#f0f0f0;">💼 Mis Cuentas</div>
+        <div style="font-size:10px;color:#555;margin-top:2px;">Gestiona tus cuentas de trading</div>
+      </div>
+      <button onclick="closeAccounts()" style="background:#1e1e1e;border:1px solid #333;color:#aaa;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:14px;">✕</button>
+    </div>
+    <div style="padding:14px 16px;overflow-y:auto;flex:1;">
+      <div id="acct-list" style="margin-bottom:14px;"></div>
+      <div style="background:#0f0f0f;border:1px solid #2a2a2a;border-radius:10px;padding:14px;">
+        <div style="font-size:11px;font-weight:700;color:#555;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">+ Nueva Cuenta</div>
+        <input id="new-acct-name" type="text" placeholder="Nombre (ej: FTMO Principal)" style="width:100%;background:#1c1c1c;border:1px solid #3a3a3a;color:#f0f0f0;padding:9px 12px;border-radius:8px;font-size:13px;margin-bottom:8px;box-sizing:border-box;">
+        <input id="new-acct-balance" type="number" placeholder="Capital inicial ($)" style="width:100%;background:#1c1c1c;border:1px solid #3a3a3a;color:#f0f0f0;padding:9px 12px;border-radius:8px;font-size:13px;margin-bottom:8px;box-sizing:border-box;">
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <button onclick="setNewAcctType('normal')" id="nat-normal" style="flex:1;padding:8px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;background:rgba(77,159,255,.2);border:1px solid rgba(77,159,255,.5);color:#4d9fff;">📊 Normal</button>
+          <button onclick="setNewAcctType('fondeo')" id="nat-fondeo" style="flex:1;padding:8px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;background:#1e1e1e;border:1px solid #333;color:#555;">🏆 Fondeo</button>
+        </div>
+        <input type="hidden" id="new-acct-type" value="normal">
+        <button onclick="createAccount()" style="width:100%;background:linear-gradient(135deg,#00c853,#00e676);color:#000;font-weight:800;padding:10px;border-radius:8px;border:none;font-size:13px;cursor:pointer;">✅ Crear Cuenta</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT ACCOUNT MODAL -->
+<div id="edit-acct-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);z-index:999999;align-items:center;justify-content:center;">
+  <div style="background:#141414;border:1px solid #2a2a2a;border-radius:16px;width:88%;max-width:360px;padding:20px;">
+    <div style="font-size:14px;font-weight:800;color:#f0f0f0;margin-bottom:14px;">✏️ Editar Cuenta</div>
+    <input type="hidden" id="edit-acct-id">
+    <input id="edit-acct-name" type="text" placeholder="Nombre de la cuenta" style="width:100%;background:#1c1c1c;border:1px solid #3a3a3a;color:#f0f0f0;padding:9px 12px;border-radius:8px;font-size:13px;margin-bottom:8px;box-sizing:border-box;">
+    <input id="edit-acct-balance" type="number" placeholder="Capital ($)" style="width:100%;background:#1c1c1c;border:1px solid #3a3a3a;color:#f0f0f0;padding:9px 12px;border-radius:8px;font-size:13px;margin-bottom:12px;box-sizing:border-box;">
+    <div style="display:flex;gap:8px;">
+      <button onclick="closeEditAccount()" style="flex:1;background:#1e1e1e;border:1px solid #333;color:#aaa;padding:10px;border-radius:8px;cursor:pointer;font-size:13px;">Cancelar</button>
+      <button onclick="saveEditAccount()" style="flex:1;background:linear-gradient(135deg,#1565c0,#4d9fff);color:#fff;font-weight:800;padding:10px;border-radius:8px;border:none;cursor:pointer;font-size:13px;">Guardar</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
