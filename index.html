@@ -431,7 +431,7 @@ tr:hover td{background:rgba(19,24,40,.8)}
 
 <!-- MAIN -->
 <div class="main">
-  <div class="topbar">
+  <div class="topbar"><span id="sync-status" style="position:fixed;bottom:80px;right:12px;background:rgba(77,159,255,.2);border:1px solid rgba(77,159,255,.3);color:#4d9fff;padding:6px 12px;border-radius:20px;font-size:11px;font-weight:700;opacity:0;transition:opacity .5s;z-index:9998;pointer-events:none;"></span>
     <div><div class="page-title" id="pg-title">Dashboard</div><div class="page-sub" id="pg-sub">Resumen general de rendimiento</div></div>
     <div style="display:flex;gap:8px;align-items:center">
       <input id="acct-inp" type="number" value="10000" style="display:none">
@@ -948,6 +948,7 @@ function save(){
     var old=parseInt(localStorage.getItem('tt_old')||String(n));
     for(var j=n;j<=old;j++) localStorage.removeItem('tt_'+j);
     localStorage.setItem('tt_old',String(n));
+    syncToCloud();
   }catch(e){console.error('save',e);}
 }
 function load(){
@@ -960,6 +961,57 @@ function load(){
     S.trades=t;
   }catch(e){console.error('load',e);}
 }
+
+// ═══════════════════════════════════════════════════════════
+//  SINCRONIZACIÓN CON FIREBASE — NUBE
+// ═══════════════════════════════════════════════════════════
+var SYNC_FB_KEY='AIzaSyDi65NcJKjx0ClhJ0T2RFjf4XLK38AidNw';
+var SYNC_FB_BASE='https://firestore.googleapis.com/v1/projects/journa-2d389/databases/(default)/documents/userData';
+var _syncTimeout=null;
+
+function getSyncKey(){
+  try{var l=JSON.parse(localStorage.getItem('ttlic')||'null');return l&&l.key?l.key:null;}catch(e){return null;}
+}
+
+function syncToCloud(){
+  var key=getSyncKey();if(!key)return;
+  clearTimeout(_syncTimeout);
+  _syncTimeout=setTimeout(function(){
+    var payload={fields:{
+      trades:{stringValue:JSON.stringify(S.trades)},
+      settings:{stringValue:JSON.stringify(S.settings)},
+      updatedAt:{timestampValue:new Date().toISOString()}
+    }};
+    fetch(SYNC_FB_BASE+'/'+encodeURIComponent(key)+'?key='+SYNC_FB_KEY,{
+      method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
+    }).then(function(){showSyncStatus('☁ Sincronizado');}).catch(function(){showSyncStatus('⚠ Sin conexión');});
+  },2000);
+}
+
+async function syncFromCloud(){
+  var key=getSyncKey();if(!key)return false;
+  try{
+    var res=await fetch(SYNC_FB_BASE+'/'+encodeURIComponent(key)+'?key='+SYNC_FB_KEY);
+    if(!res.ok)return false;
+    var data=await res.json();var f=data.fields||{};
+    var ct=f.trades&&f.trades.stringValue?JSON.parse(f.trades.stringValue):null;
+    var cs=f.settings&&f.settings.stringValue?JSON.parse(f.settings.stringValue):null;
+    if(ct&&ct.length>0&&ct.length>=S.trades.length){
+      S.trades=ct;if(cs)S.settings=Object.assign({},S.settings,cs);
+      localStorage.setItem('tt_cfg',JSON.stringify(S.settings));
+      var n=Math.ceil(S.trades.length/500)||1;localStorage.setItem('tt_n',String(n));
+      for(var i=0;i<n;i++)localStorage.setItem('tt_'+i,JSON.stringify(S.trades.slice(i*500,(i+1)*500)));
+      return true;
+    }return false;
+  }catch(e){return false;}
+}
+
+function showSyncStatus(msg){
+  var el=document.getElementById('sync-status');if(!el)return;
+  el.textContent=msg;el.style.opacity='1';
+  setTimeout(function(){el.style.opacity='0';},3000);
+}
+
 function loadSample(){return;// datos de muestra desactivados
   if(S.trades.length)return;
   var y=calYear,m=calMonth;
@@ -1659,6 +1711,11 @@ document.addEventListener('DOMContentLoaded',function(){
   // ── Verificar licencia primero ──
   checkLicenseOnLoad();
   load();
+  // Sincronizar desde la nube al abrir
+  setTimeout(async function(){
+    var synced=await syncFromCloud();
+    if(synced){render();renderStats();renderAnalysis();if(typeof toast==='function')toast('☁ Datos sincronizados desde la nube','#4d9fff');}
+  },1500);
   // Setup del-all button safely
   var dab=g('del-all-btn');
   if(dab)dab.onclick=function(){delAll();};
