@@ -2480,9 +2480,15 @@ function initAccounts(){
     renderSidebarAccounts();
     return;
   }
+  // Asegurar que el activeId apunte a una cuenta existente
   if(!accounts.find(function(a){return a.id===activeId;})){
-    setActiveId(accounts[0].id);
+    activeId = accounts[0].id;
+    setActiveId(activeId);
   }
+  // Cargar datos de la cuenta activa
+  loadAccountData(activeId);
+  var activeAcct = accounts.find(function(a){return a.id===activeId;});
+  if(activeAcct) S.settings.accountSize = activeAcct.initialBalance || S.settings.accountSize;
   updateAcctBtn();
   renderSidebarAccounts();
 }
@@ -2603,31 +2609,48 @@ function renderSidebarAccounts(){
   if(!el) return;
   var accounts = getAccounts();
   var activeId = getActiveId();
+  if(!accounts.length){
+    el.innerHTML = '<div style="font-size:10px;color:var(--gray2);padding:6px 4px;text-align:center;">Sin cuentas — crea una en Cuentas</div>';
+    return;
+  }
   var html = '';
   for(var i=0;i<accounts.length;i++){
     var a = accounts[i];
     var isActive = a.id === activeId;
-    var col = a.color||'#8b5cf6';
-    var icon = a.icon||'🏦';
-    var bg = isActive ? 'rgba(0,230,118,.1)' : 'rgba(255,255,255,.03)';
-    var bdr = isActive ? 'rgba(0,230,118,.35)' : 'rgba(255,255,255,.06)';
+    var col = a.color || '#8b5cf6';
+    var icon = a.icon || '🏦';
+    var bg  = isActive ? 'rgba(0,230,118,.12)' : 'rgba(255,255,255,.03)';
+    var bdr = isActive ? 'rgba(0,230,118,.4)'  : 'rgba(255,255,255,.07)';
     var nameColor = isActive ? '#00e676' : 'var(--text2)';
-    var isFondeo = S.settings.challengeActive && isActive;
-    html += '<div style="background:'+bg+';border:1px solid '+bdr+';border-radius:8px;padding:5px 7px;transition:all .15s;">';
-    // Fila nombre + botones
+    var isFondeo  = a.type === 'fondeo';
+    var badgeHtml = isFondeo
+      ? '<span style="font-size:8px;padding:1px 5px;border-radius:3px;background:rgba(232,160,32,.2);color:#e8a020;font-weight:700;flex-shrink:0;">F</span>'
+      : '';
+
+    html += '<div style="background:'+bg+';border:1px solid '+bdr+';border-radius:8px;padding:6px 7px;transition:all .15s;">';
     html += '<div style="display:flex;align-items:center;gap:5px;">';
-    html += '<div onclick="seleccionarCuentaSidebar(\''+a.id+'\')" style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;cursor:pointer;">';
-    html += '<div style="width:20px;height:20px;background:'+col+'33;border:1px solid '+col+'55;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;">'+icon+'</div>';
-    html += '<div style="flex:1;min-width:0;">';
-    html += '<div style="font-size:11px;font-weight:700;color:'+nameColor+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+a.name+'</div>';
-    html += '<div style="font-size:9px;color:var(--gray2);">$'+Number(a.initialBalance||0).toLocaleString('en')+'</div>';
+
+    // Zona clicable (seleccionar cuenta)
+    html += '<div onclick="seleccionarCuentaSidebar(\''+a.id+'\')" style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;cursor:pointer;overflow:hidden;">';
+    html += '<div style="width:22px;height:22px;background:'+col+'33;border:1px solid '+col+'66;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;">'+icon+'</div>';
+    html += '<div style="flex:1;min-width:0;overflow:hidden;">';
+    html += '<div style="display:flex;align-items:center;gap:4px;">';
+    if(isActive) html += '<span style="width:5px;height:5px;background:#00e676;border-radius:50%;flex-shrink:0;display:inline-block;"></span>';
+    html += '<span style="font-size:11px;font-weight:700;color:'+nameColor+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px;">'+a.name+'</span>';
+    html += badgeHtml;
+    html += '</div>';
+    html += '<div style="font-size:9px;color:var(--gray2);margin-top:1px;">$'+Number(a.initialBalance||0).toLocaleString('en')+'</div>';
     html += '</div></div>';
-    // Botones editar / eliminar
-    html += '<button onclick="editarCuentaSidebar(\''+a.id+'\')" title="Editar" style="background:none;border:1px solid rgba(77,159,255,.25);color:#4d9fff;border-radius:5px;width:22px;height:22px;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;">✏</button>';
-    if(accounts.length>1) html += '<button onclick="eliminarCuentaSidebar(this,\''+a.id+'\')" title="Eliminar" style="background:none;border:1px solid rgba(255,23,68,.25);color:#ff1744;border-radius:5px;width:22px;height:22px;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;">🗑</button>';
+
+    // Botón ✏ editar
+    html += '<button onclick="editarCuentaSidebar(\''+a.id+'\')" title="Editar" style="background:rgba(77,159,255,.08);border:1px solid rgba(77,159,255,.3);color:#4d9fff;border-radius:5px;width:24px;height:24px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;line-height:1;">✏</button>';
+    // Botón 🗑 eliminar (siempre visible pero desactivado si es la única)
+    var canDelete = accounts.length > 1;
+    html += '<button onclick="eliminarCuentaSidebar(this,\''+a.id+'\')" title="Eliminar" style="background:rgba(255,23,68,.08);border:1px solid rgba(255,23,68,.3);color:#ff1744;border-radius:5px;width:24px;height:24px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;line-height:1;'+(canDelete?'':'opacity:.3;pointer-events:none;')+'">🗑</button>';
+
     html += '</div></div>';
   }
-  el.innerHTML = html || '<div style="font-size:10px;color:var(--gray2);padding:4px 2px;">Sin cuentas</div>';
+  el.innerHTML = html;
 }
 
 function editarCuentaSidebar(id){
@@ -2715,10 +2738,17 @@ function guardarCuenta(){
     saveAccounts(accounts);
     saveAccountData(newId, [], {accountSize:bal, assets:S.settings.assets||[], challengeActive:isFondeo, maxDailyLoss:S.settings.maxDailyLoss||5, maxTotalLoss:S.settings.maxTotalLoss||10, profitTarget:S.settings.profitTarget||10, alertAt:80});
     _modoNuevaCuenta = false;
-    switchAccount(newId);
+    // Cargar la nueva cuenta como activa
+    setActiveId(newId);
+    loadAccountData(newId);
+    S.settings.accountSize = bal;
+    S.settings.challengeActive = isFondeo;
+    // Actualizar UI
     renderSidebarAccounts();
+    updateAcctBtn();
     renderConfig();
     actualizarBtnGuardar();
+    refresh();
     if(typeof toast==='function') toast('✅ Cuenta creada: '+nombre, '#00e676');
     return;
   }
