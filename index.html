@@ -1811,30 +1811,32 @@ function refreshFondeoSwitch(){
 }
 
 function setAcctColor(color){
-  var accounts=getAccounts();var id=getActiveId();
-  var idx=accounts.findIndex(function(a){return a.id===id;});
-  if(idx>=0){accounts[idx].color=color;saveAccounts(accounts);}
-  // Update dots UI
+  _selectedColor = color;
+  if(!_modoNuevaCuenta){
+    var accounts=getAccounts();var id=getActiveId();
+    var idx=accounts.findIndex(function(a){return a.id===id;});
+    if(idx>=0){accounts[idx].color=color;saveAccounts(accounts);}
+  }
   document.querySelectorAll('.acct-color-dot').forEach(function(d){
     d.style.border=d.dataset.color===color?'3px solid #fff':'2px solid transparent';
   });
-  // Update preview card bg
   var bg=document.getElementById('prev-card-bg');
   if(bg) bg.style.background='linear-gradient(135deg,'+color+'55,'+color+'33)';
   var pi=document.getElementById('prev-icon');
   if(pi) pi.style.background=color+'66';
 }
 function setAcctIcon(icon){
-  var accounts=getAccounts();var id=getActiveId();
-  var idx=accounts.findIndex(function(a){return a.id===id;});
-  if(idx>=0){accounts[idx].icon=icon;saveAccounts(accounts);}
-  // Update icons UI
+  _selectedIcon = icon;
+  if(!_modoNuevaCuenta){
+    var accounts=getAccounts();var id=getActiveId();
+    var idx=accounts.findIndex(function(a){return a.id===id;});
+    if(idx>=0){accounts[idx].icon=icon;saveAccounts(accounts);}
+  }
   document.querySelectorAll('#acct-icons > div').forEach(function(d){
     var sel=d.dataset.icon===icon;
     d.style.border=sel?'2px solid var(--green)':'1px solid var(--bdr)';
     d.style.background=sel?'rgba(77,159,255,.2)':'var(--bg)';
   });
-  // Update preview
   var pi=document.getElementById('prev-icon');if(pi)pi.textContent=icon;
 }
 function createAccountFromInline(){
@@ -2706,13 +2708,15 @@ function borrarCuentaDirecto(id, nombre){
   for(var i=0;i<n;i++) localStorage.removeItem('tt_'+id+'_'+i);
   localStorage.removeItem('tt_n_'+id);
   if(getActiveId()===id){
-    // Cambiar a otra cuenta
-    setActiveId(accounts[0].id);
-    loadAccountData(accounts[0].id);
+    var nextId = accounts[0].id;
+    setActiveId(nextId);
+    loadAccountData(nextId);
     _modoNuevaCuenta = false;
+    refresh();
   }
   renderSidebarAccounts();
   renderConfigAccounts();
+  updateAcctBtn();
   if(typeof toast==='function') toast('🗑 Cuenta "'+nombre+'" eliminada','#ff1744');
 }
 
@@ -2753,6 +2757,8 @@ function abrirFormNuevaCuenta(){
 
 /* ── NUEVA CUENTA: preparar formulario vacío ── */
 var _modoNuevaCuenta = false;
+var _selectedColor = '#8b5cf6';
+var _selectedIcon = '🏦';
 function prepararNuevaCuenta(){
   _modoNuevaCuenta = true;
   var fields=['acfg-name','acfg-initial','acfg-desc'];
@@ -2791,18 +2797,23 @@ function guardarCuenta(){
 
   if(isNueva){
     var newId = 'acct_'+Date.now();
-    accounts.push({id:newId, name:nombre, type:tipo, initialBalance:bal, currency:cur, description:desc, icon:'🏦', color:'#8b5cf6'});
+    accounts.push({id:newId, name:nombre, type:tipo, initialBalance:bal, currency:cur, description:desc, icon:_selectedIcon||'🏦', color:_selectedColor||'#8b5cf6'});
     saveAccounts(accounts);
     saveAccountData(newId, [], {
       accountSize:bal, assets:S.settings.assets||[],
       challengeActive:isFondeo, maxDailyLoss:S.settings.maxDailyLoss||5,
       maxTotalLoss:S.settings.maxTotalLoss||10, profitTarget:S.settings.profitTarget||10, alertAt:80
     });
+    // Resetear selección de color e icono
+    _selectedColor = '#8b5cf6';
+    _selectedIcon = '🏦';
     // Limpiar campos y dejar listo para nueva cuenta
     var fields=['acfg-name','acfg-initial','acfg-desc'];
     fields.forEach(function(fid){var el=document.getElementById(fid);if(el)el.value='';});
     var currReset=document.getElementById('acfg-currency');if(currReset)currReset.value='USD';
-    // Mantener modo nueva cuenta activo para que el usuario pueda seguir agregando
+    // Resetear UI de color e icono al default
+    document.querySelectorAll('.acct-color-dot').forEach(function(d){d.style.border=d.dataset.color==='#8b5cf6'?'3px solid #fff':'2px solid transparent';});
+    document.querySelectorAll('#acct-icons > div').forEach(function(d){var sel=d.dataset.icon==='🏦';d.style.border=sel?'2px solid var(--green)':'1px solid var(--bdr)';d.style.background=sel?'rgba(77,159,255,.2)':'var(--bg)';});
     _modoNuevaCuenta = true;
     var lbl=document.getElementById('acct-editing-label');if(lbl)lbl.textContent='Creando nueva cuenta';
     var nm=document.getElementById('acct-editing-name');if(nm)nm.textContent='(rellena los campos y haz clic en Guardar)';
@@ -3401,5 +3412,58 @@ self.addEventListener('fetch', e => {
   </div>
 </div>
 
+<!-- ── Efecto de clic global: ripple + sonido ── -->
+<style>
+.ripple-fx{position:fixed;border-radius:50%;background:rgba(255,255,255,0.18);pointer-events:none;transform:scale(0);animation:ripplePop .45s ease-out forwards;z-index:99999;}
+@keyframes ripplePop{0%{transform:scale(0);opacity:.7;}100%{transform:scale(1);opacity:0;}}
+</style>
+<script>
+(function(){
+  // Sonido de clic via Web Audio API
+  var _audioCtx = null;
+  function getAudioCtx(){
+    if(!_audioCtx) try{ _audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){}
+    return _audioCtx;
+  }
+  function playClick(){
+    try{
+      var ctx = getAudioCtx(); if(!ctx) return;
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(600, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.06);
+      gain.gain.setValueAtTime(0.07, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.08);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.08);
+    }catch(e){}
+  }
+  // Ripple visual
+  function spawnRipple(x, y){
+    var size = 48;
+    var el = document.createElement('div');
+    el.className = 'ripple-fx';
+    el.style.cssText = 'width:'+size+'px;height:'+size+'px;left:'+(x-size/2)+'px;top:'+(y-size/2)+'px;';
+    document.body.appendChild(el);
+    el.addEventListener('animationend', function(){ el.remove(); });
+  }
+  document.addEventListener('mousedown', function(e){
+    // No ripple en inputs, textareas, selects
+    var tag = e.target.tagName;
+    if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT') return;
+    spawnRipple(e.clientX, e.clientY);
+    playClick();
+  }, true);
+  document.addEventListener('touchstart', function(e){
+    var t = e.touches[0]; if(!t) return;
+    var tag = e.target.tagName;
+    if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT') return;
+    spawnRipple(t.clientX, t.clientY);
+    playClick();
+  }, {passive:true, capture:true});
+})();
+</script>
 </body>
 </html>
