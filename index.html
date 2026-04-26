@@ -336,10 +336,6 @@ tr:hover td{background:rgba(19,24,40,.8)}
 <!-- ── DRAWER MÁS ── -->
 <div id="mob-drawer" onclick="this.classList.remove('open')">
   <div id="mob-drawer-inner" onclick="event.stopPropagation()">
-    <button class="mni-big" onclick="showTab('notas',document.getElementById('nav-notas'));renderNotas();mniAct('notas');document.getElementById('mob-drawer').classList.remove('open')">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 2h10a1 1 0 011 1v11l-3-2H3a1 1 0 01-1-1V3a1 1 0 011-1z"/><line x1="5" y1="6" x2="11" y2="6"/><line x1="5" y1="9" x2="9" y2="9"/></svg>
-      Notas
-    </button>
     <button class="mni-big" onclick="showTab('config',document.getElementById('nav-config'));mniAct('config');document.getElementById('mob-drawer').classList.remove('open')">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
       Cuentas
@@ -417,7 +413,6 @@ tr:hover td{background:rgba(19,24,40,.8)}
     <div class="ni" id="nav-stats" onclick="showTab('stats',this)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="1,12 5,8 8,10 12,5 15,7"/></svg>Estadísticas</div>
     <div class="ni" id="nav-analisis" onclick="showTab('analisis',this)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><line x1="8" y1="4" x2="8" y2="9"/><circle cx="8" cy="11" r=".8" fill="currentColor"/></svg>Análisis</div>
     <div class="ns">Sistema</div>
-    <div class="ni" id="nav-notas" onclick="showTab('notas',this);renderNotas();"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 2h10a1 1 0 011 1v11l-3-2H3a1 1 0 01-1-1V3a1 1 0 011-1z"/><line x1="5" y1="6" x2="11" y2="6"/><line x1="5" y1="9" x2="9" y2="9"/></svg>Notas</div>
     <div class="ni" id="nav-config" onclick="showTab('config',this)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>Cuentas</div>
     <div style="margin-top:auto;padding:10px 0 4px;border-top:1px solid var(--bdr)">
       <button id="pwa-install-btn" onclick="installPWA()" style="display:none;width:100%;margin-bottom:6px;background:linear-gradient(135deg,rgba(0,212,255,.15),rgba(77,159,255,.1));border:1px solid rgba(0,212,255,.3);color:#00d4ff;border-radius:8px;padding:8px;font-size:10px;font-weight:700;cursor:pointer;letter-spacing:1px;align-items:center;justify-content:center;gap:5px;">📲 INSTALAR APP</button>
@@ -712,30 +707,24 @@ tr:hover td{background:rgba(19,24,40,.8)}
       <div id="insights-panel" style="display:flex;flex-direction:column;gap:8px;padding:4px 0;"></div></div>
   </div>
 
-  <!-- ═══ NOTAS ═══ -->
-  <div id="tab-notas" class="tsec" style="padding:16px;">
-    <!-- renderizado dinámico por renderNotas() -->
-  </div>
-
   <!-- ═══ CUENTAS (CONFIG) — módulo unificado ═══ -->
   <div id="tab-config" class="tsec">
-
-    <!-- Sub-tabs de Cuentas -->
-    <div style="display:flex;gap:0;margin-bottom:18px;border-bottom:1px solid var(--bdr);overflow-x:auto;">
-      <button class="acct-stab act" id="stab-general" onclick="showAcctTab('general')" style="padding:9px 16px;background:none;border:none;border-bottom:2px solid var(--green);color:var(--green);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;">Información general</button>
-      <button class="acct-stab" id="stab-pares" onclick="showAcctTab('pares')" style="padding:9px 16px;background:none;border:none;border-bottom:2px solid transparent;color:var(--gray2);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;">Pares</button>
-      <button class="acct-stab" id="stab-fondeo" onclick="showAcctTab('fondeo')" style="padding:9px 16px;background:none;border:none;border-bottom:2px solid transparent;color:var(--gray2);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;">Modo fondeo</button>
-      <button class="acct-stab" id="stab-reglas" onclick="showAcctTab('reglas')" style="padding:9px 16px;background:none;border:none;border-bottom:2px solid transparent;color:var(--gray2);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;">Reglas y límites</button>
-      <button class="acct-stab" id="stab-visual" onclick="showAcctTab('visual')" style="padding:9px 16px;background:none;border:none;border-bottom:2px solid transparent;color:var(--gray2);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;">Visualización</button>
+    <!-- Sub-tabs de Cuentas — estilo imagen -->
+    <div style="display:flex;gap:0;margin-bottom:20px;border-bottom:1px solid var(--bdr);overflow-x:auto;">
+      <button class="acct-stab act" id="stab-general" onclick="showAcctTab('general')" style="padding:10px 18px;background:none;border:none;border-bottom:2px solid var(--green);color:var(--green);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .2s;">Información general</button>
+      <button class="acct-stab" id="stab-pares" onclick="showAcctTab('pares')" style="padding:10px 18px;background:none;border:none;border-bottom:2px solid transparent;color:var(--gray2);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .2s;">Pares</button>
+      <button class="acct-stab" id="stab-fondeo" onclick="showAcctTab('fondeo')" style="padding:10px 18px;background:none;border:none;border-bottom:2px solid transparent;color:var(--gray2);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .2s;">Modo fondeo</button>
+      <button class="acct-stab" id="stab-reglas" onclick="showAcctTab('reglas')" style="padding:10px 18px;background:none;border:none;border-bottom:2px solid transparent;color:var(--gray2);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .2s;">Reglas y límites</button>
+      <button class="acct-stab" id="stab-visual" onclick="showAcctTab('visual')" style="padding:10px 18px;background:none;border:none;border-bottom:2px solid transparent;color:var(--gray2);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .2s;">Visualización</button>
     </div>
 
-    <!-- ── SUB-TAB: Información General ── -->
-    <div id="acct-panel-general" class="acct-panel" style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;">
+    <!-- ── SUB-TAB: Información General — Layout 3 columnas ── -->
+    <div id="acct-panel-general" class="acct-panel" style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start;">
 
-      <!-- Columna izquierda: Información general -->
-      <div style="flex:1;min-width:280px;display:flex;flex-direction:column;gap:14px;">
+      <!-- COLUMNA 1: Info general + Zona horaria -->
+      <div style="flex:1;min-width:260px;display:flex;flex-direction:column;gap:12px;">
         <div class="card">
-          <div class="card-hdr" style="color:var(--gold);border-color:rgba(255,200,77,.2)">Información general</div>
+          <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:4px;">Información general</div>
           <div style="font-size:11px;color:var(--gray2);margin-bottom:14px;">Define los datos básicos de tu cuenta de trading.</div>
           <div class="fg2">
             <div class="fg">
@@ -771,7 +760,7 @@ tr:hover td{background:rgba(19,24,40,.8)}
           <div class="fg">
             <label class="fl">Capital actual</label>
             <div style="display:flex;gap:6px;">
-              <input type="number" id="acfg-current" class="fi" id="ca2" placeholder="25000" style="flex:1" oninput="saveAcctConfig();saveC2fromConfig()">
+              <input type="number" id="acfg-current" class="fi" placeholder="25000" style="flex:1" oninput="saveAcctConfig();saveC2fromConfig()">
               <span style="background:var(--card2);border:1px solid var(--bdr);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--gray2);white-space:nowrap;">USD</span>
             </div>
           </div>
@@ -779,9 +768,26 @@ tr:hover td{background:rgba(19,24,40,.8)}
             <label class="fl">Descripción (opcional)</label>
             <textarea id="acfg-desc" class="fi" rows="3" placeholder="Ej: Challenge de FTMO - Fase 1" style="resize:vertical;" oninput="saveAcctConfig()"></textarea>
           </div>
-          <!-- Zona horaria -->
+        </div>
+
+        <!-- Pares que operas (en columna 1 debajo) -->
+        <div class="card">
+          <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:4px;">Pares que operas</div>
+          <div style="font-size:11px;color:var(--gray2);margin-bottom:12px;">Selecciona los pares de divisas que deseas operar en esta cuenta.</div>
+          <div id="pairs-tags" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;min-height:36px;padding:8px;background:var(--bg);border:1px solid var(--bdr);border-radius:8px;"></div>
+          <div style="display:flex;gap:7px;margin-bottom:10px;">
+            <input type="text" id="nai" class="fi" placeholder="Ej: BTCUSD" style="flex:1;text-transform:uppercase;" onkeydown="if(event.key==='Enter')addAsset()">
+            <button class="btn btn-g" onclick="addAsset()">+ Agregar</button>
+          </div>
+          <div style="font-size:9px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Pares disponibles</div>
+          <div id="alist" style="display:flex;flex-wrap:wrap;gap:5px;max-height:160px;overflow-y:auto;"></div>
+        </div>
+
+        <!-- Zona horaria -->
+        <div class="card">
+          <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:4px;">Zona horaria</div>
+          <div style="font-size:11px;color:var(--gray2);margin-bottom:12px;">Establece la zona horaria para esta cuenta.</div>
           <div class="fg">
-            <label class="fl">Zona horaria</label>
             <select id="acfg-tz" class="fi" onchange="saveAcctConfig()">
               <option value="-12">(GMT-12:00) Línea de fecha internacional</option>
               <option value="-11">(GMT-11:00) Samoa</option>
@@ -812,15 +818,95 @@ tr:hover td{background:rgba(19,24,40,.8)}
             </select>
           </div>
         </div>
+      </div>
+
+      <!-- COLUMNA 2: Modo fondeo + Reglas -->
+      <div style="flex:1;min-width:260px;display:flex;flex-direction:column;gap:12px;">
+        <!-- Color e ícono -->
+        <div class="card">
+          <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:4px;">Color e ícono</div>
+          <div style="font-size:11px;color:var(--gray2);margin-bottom:12px;">Personaliza la apariencia de tu cuenta.</div>
+          <!-- Colores -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;" id="acct-colors">
+            <div class="acct-color-dot" data-color="#22c55e" onclick="setAcctColor('#22c55e')" style="width:28px;height:28px;border-radius:50%;background:#22c55e;cursor:pointer;border:2px solid transparent;transition:all .2s;"></div>
+            <div class="acct-color-dot" data-color="#8b5cf6" onclick="setAcctColor('#8b5cf6')" style="width:28px;height:28px;border-radius:50%;background:#8b5cf6;cursor:pointer;border:3px solid #fff;transition:all .2s;"></div>
+            <div class="acct-color-dot" data-color="#3b82f6" onclick="setAcctColor('#3b82f6')" style="width:28px;height:28px;border-radius:50%;background:#3b82f6;cursor:pointer;border:2px solid transparent;transition:all .2s;"></div>
+            <div class="acct-color-dot" data-color="#f59e0b" onclick="setAcctColor('#f59e0b')" style="width:28px;height:28px;border-radius:50%;background:#f59e0b;cursor:pointer;border:2px solid transparent;transition:all .2s;"></div>
+            <div class="acct-color-dot" data-color="#ef4444" onclick="setAcctColor('#ef4444')" style="width:28px;height:28px;border-radius:50%;background:#ef4444;cursor:pointer;border:2px solid transparent;transition:all .2s;"></div>
+            <div class="acct-color-dot" data-color="#06b6d4" onclick="setAcctColor('#06b6d4')" style="width:28px;height:28px;border-radius:50%;background:#06b6d4;cursor:pointer;border:2px solid transparent;transition:all .2s;"></div>
+            <div class="acct-color-dot" data-color="#6b7280" onclick="setAcctColor('#6b7280')" style="width:28px;height:28px;border-radius:50%;background:#6b7280;cursor:pointer;border:2px solid transparent;transition:all .2s;"></div>
+          </div>
+          <!-- Íconos -->
+          <div style="display:flex;gap:7px;flex-wrap:wrap;" id="acct-icons">
+            <div onclick="setAcctIcon('🏦')" data-icon="🏦" style="width:40px;height:40px;border-radius:9px;background:rgba(139,92,246,.3);border:2px solid #8b5cf6;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;transition:all .2s;">🏦</div>
+            <div onclick="setAcctIcon('💼')" data-icon="💼" style="width:40px;height:40px;border-radius:9px;background:var(--bg);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;transition:all .2s;">💼</div>
+            <div onclick="setAcctIcon('🏆')" data-icon="🏆" style="width:40px;height:40px;border-radius:9px;background:var(--bg);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;transition:all .2s;">🏆</div>
+            <div onclick="setAcctIcon('🛡')" data-icon="🛡" style="width:40px;height:40px;border-radius:9px;background:var(--bg);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;transition:all .2s;">🛡</div>
+            <div onclick="setAcctIcon('⭐')" data-icon="⭐" style="width:40px;height:40px;border-radius:9px;background:var(--bg);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;transition:all .2s;">⭐</div>
+            <div onclick="setAcctIcon('👤')" data-icon="👤" style="width:40px;height:40px;border-radius:9px;background:var(--bg);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;transition:all .2s;">👤</div>
+          </div>
+        </div>
+
+        <!-- Modo fondeo -->
+        <div class="card">
+          <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:4px;">Modo fondeo</div>
+          <div style="font-size:11px;color:var(--gray2);margin-bottom:14px;">Activa el modo fondeo si esta cuenta pertenece a una empresa de fondeo.</div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg);border-radius:9px;border:1px solid var(--bdr);">
+            <span style="flex:1;font-size:13px;color:var(--text2);">Modo Fondeo Activo</span>
+            <button class="tog" id="ctog" onclick="togChallenge()"><div class="tthumb"></div></button>
+          </div>
+        </div>
+
+        <!-- Reglas de fondeo -->
+        <div class="card">
+          <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:4px;">Límite de pérdida</div>
+          <div style="font-size:11px;color:var(--gray2);margin-bottom:10px;">Porcentaje máximo de pérdida permitido.</div>
+          <div class="fg">
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input type="number" id="cft" class="fi" style="flex:1;" placeholder="10" oninput="saveF();updatePreview()">
+              <span style="font-size:11px;color:var(--gray2);background:var(--card2);border:1px solid var(--bdr);padding:8px 10px;border-radius:8px;white-space:nowrap;">%</span>
+              <span id="rule-loss-equiv" style="font-size:11px;font-weight:700;color:var(--red);white-space:nowrap;"></span>
+            </div>
+          </div>
+          <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:4px;margin-top:14px;">Objetivo de ganancia</div>
+          <div style="font-size:11px;color:var(--gray2);margin-bottom:10px;">Objetivo de ganancia requerido.</div>
+          <div class="fg">
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input type="number" id="cfg" class="fi" style="flex:1;" placeholder="8" oninput="saveF();updatePreview()">
+              <span style="font-size:11px;color:var(--gray2);background:var(--card2);border:1px solid var(--bdr);padding:8px 10px;border-radius:8px;white-space:nowrap;">%</span>
+              <span id="rule-profit-equiv" style="font-size:11px;font-weight:700;color:var(--green);white-space:nowrap;"></span>
+            </div>
+          </div>
+          <div style="font-size:11px;font-weight:700;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin:14px 0 10px;">Reglas adicionales <span style="font-weight:400;font-size:10px;">(opcional)</span></div>
+          <div class="fg2">
+            <div class="fg">
+              <label class="fl">Pérdida diaria máxima</label>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <input type="number" id="cfd" class="fi" style="flex:1;" placeholder="5" oninput="saveF();updatePreview()">
+                <span style="font-size:11px;color:var(--gray2);background:var(--card2);border:1px solid var(--bdr);padding:8px 10px;border-radius:8px;">%</span>
+              </div>
+            </div>
+            <div class="fg">
+              <label class="fl">Pérdida máxima total</label>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <input type="number" id="cfal-rule" class="fi" style="flex:1;" placeholder="10" oninput="saveRuleExtra()">
+                <span style="font-size:11px;color:var(--gray2);background:var(--card2);border:1px solid var(--bdr);padding:8px 10px;border-radius:8px;">%</span>
+              </div>
+            </div>
+          </div>
+          <div class="fg">
+            <label class="fl">⚠ Alertar al (% del límite)</label>
+            <input type="number" id="cfal" class="fi" placeholder="80" oninput="saveF()">
+          </div>
+        </div>
 
         <!-- Mis cuentas -->
         <div class="card">
-          <div class="card-hdr" style="color:var(--gold);border-color:rgba(255,200,77,.2);display:flex;justify-content:space-between;align-items:center;">
-            <span>MIS CUENTAS</span>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div style="font-size:13px;font-weight:800;color:var(--text);">MIS CUENTAS</div>
             <button onclick="openNewAcctInline()" class="btn btn-gold" style="padding:4px 10px;font-size:10px;">+ Nueva</button>
           </div>
           <div id="config-acct-list" style="margin-top:4px;"></div>
-          <!-- Inline create form -->
           <div id="new-acct-inline" style="display:none;background:var(--bg);border:1px solid var(--bdr);border-radius:10px;padding:12px;margin-top:10px;">
             <div style="font-size:10px;font-weight:700;color:var(--gray2);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">+ Nueva Cuenta</div>
             <input id="new-acct-name" type="text" placeholder="Nombre (ej: FTMO Principal)" class="fi" style="margin-bottom:7px;">
@@ -832,102 +918,102 @@ tr:hover td{background:rgba(19,24,40,.8)}
             <input type="hidden" id="new-acct-type" value="normal">
             <div style="display:flex;gap:6px;">
               <button onclick="closeNewAcctInline()" class="btn" style="flex:1;font-size:11px;">Cancelar</button>
-              <button onclick="createAccount();closeNewAcctInline();" class="btn btn-g" style="flex:1;font-size:11px;">✅ Crear</button>
+              <button onclick="createAccountFromInline()" class="btn btn-g" style="flex:1;font-size:11px;">✅ Crear</button>
             </div>
           </div>
-          <!-- Zona peligrosa -->
           <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--bdr);">
             <button class="btn btn-r" id="del-all-btn" style="width:100%;justify-content:center;font-size:11px;">🗑 Borrar todo el registro de esta cuenta</button>
           </div>
         </div>
       </div>
 
-      <!-- Columna derecha: Vista previa -->
-      <div style="width:280px;flex-shrink:0;" id="acct-preview-col">
-        <div class="card" style="background:linear-gradient(135deg,#1a1040,#120c2a);border-color:rgba(139,92,246,.3);">
-          <div class="card-hdr" style="color:var(--purp);border-color:rgba(139,92,246,.2)">Vista previa de la cuenta</div>
-          <!-- Header card preview -->
-          <div style="background:linear-gradient(135deg,rgba(139,92,246,.3),rgba(99,50,200,.2));border:1px solid rgba(139,92,246,.3);border-radius:10px;padding:14px;margin-bottom:14px;">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-              <div id="prev-icon" style="width:36px;height:36px;background:rgba(139,92,246,.3);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🏦</div>
+      <!-- COLUMNA 3: Vista previa de la cuenta (igual a la imagen) -->
+      <div style="width:290px;flex-shrink:0;" id="acct-preview-col">
+        <div class="card" style="background:linear-gradient(135deg,#111,#0f0f0f);border-color:var(--bdr2);position:sticky;top:0;">
+          <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:14px;">Vista previa de la cuenta</div>
+
+          <!-- Tarjeta preview estilo imagen -->
+          <div id="prev-card-bg" style="background:linear-gradient(135deg,rgba(80,40,180,.55),rgba(50,20,120,.4));border:1px solid rgba(139,92,246,.35);border-radius:12px;padding:16px;margin-bottom:16px;position:relative;overflow:hidden;">
+            <div style="position:absolute;top:-20px;right:-20px;width:80px;height:80px;background:rgba(139,92,246,.15);border-radius:50%;"></div>
+            <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:14px;">
+              <div id="prev-icon" style="width:40px;height:40px;background:rgba(139,92,246,.4);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:1px solid rgba(139,92,246,.4);">🏦</div>
               <div style="flex:1;min-width:0;">
                 <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                  <span id="prev-name" style="font-size:13px;font-weight:800;color:#f0f0f0;">FTMO Challenge</span>
-                  <span id="prev-type-badge" style="font-size:8px;padding:2px 6px;border-radius:4px;font-weight:700;background:rgba(232,160,32,.2);color:#e8a020;">FONDEO</span>
+                  <span id="prev-name" style="font-size:14px;font-weight:800;color:#f0f0f0;">Mi Cuenta</span>
+                  <span id="prev-type-badge" style="font-size:8px;padding:2px 6px;border-radius:4px;font-weight:700;background:rgba(232,160,32,.2);color:#e8a020;letter-spacing:.5px;">FONDEO</span>
                 </div>
-                <div id="prev-desc" style="font-size:10px;color:#888;margin-top:2px;">Challenge de FTMO - Fase 1</div>
+                <div id="prev-desc" style="font-size:10px;color:#888;margin-top:3px;">—</div>
               </div>
             </div>
-            <div style="margin-bottom:6px;">
-              <div style="font-size:9px;color:#666;text-transform:uppercase;letter-spacing:1px;">Capital actual</div>
-              <div id="prev-current" style="font-size:22px;font-weight:800;color:#f0f0f0;">$25,000.00 <span style="font-size:12px;color:#888;">USD</span></div>
+            <div style="margin-bottom:8px;">
+              <div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Capital actual</div>
+              <div id="prev-current" style="font-size:24px;font-weight:900;color:#f0f0f0;line-height:1;">$0.00 <span style="font-size:12px;color:#888;font-weight:400;">USD</span></div>
             </div>
-            <div style="display:flex;gap:16px;">
-              <div>
-                <div style="font-size:9px;color:#666;">Capital inicial</div>
-                <div id="prev-initial" style="font-size:12px;font-weight:700;color:#ccc;">$25,000.00 USD</div>
-              </div>
-              <div>
-                <div style="font-size:9px;color:#666;">Moneda base</div>
-                <div id="prev-currency" style="font-size:12px;font-weight:700;color:#ccc;">USD</div>
-              </div>
+            <div style="margin-bottom:4px;">
+              <div style="font-size:9px;color:#666;margin-bottom:1px;">Capital inicial</div>
+              <div id="prev-initial" style="font-size:12px;font-weight:700;color:#ccc;">$0.00 USD</div>
+            </div>
+            <div>
+              <div style="font-size:9px;color:#666;margin-bottom:1px;">Moneda base</div>
+              <div id="prev-currency" style="font-size:12px;font-weight:700;color:#ccc;">USD</div>
             </div>
           </div>
+
           <!-- Pares -->
-          <div style="margin-bottom:12px;">
-            <div style="font-size:10px;color:#666;margin-bottom:6px;">Pares</div>
+          <div style="margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--bdr);">
+            <div style="font-size:9px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;">Pares</div>
             <div id="prev-pairs" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
           </div>
-          <!-- Modo fondeo -->
-          <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid rgba(255,255,255,.06);">
-            <span style="font-size:14px;">🏆</span>
-            <span style="font-size:11px;color:#888;flex:1;">Modo fondeo</span>
-            <span id="prev-fondeo-status" style="font-size:11px;font-weight:700;color:#00e676;">Activo</span>
+
+          <!-- Modo fondeo estado -->
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bdr);">
+            <span id="prev-fondeo-icon" style="font-size:16px;">🏆</span>
+            <span style="font-size:12px;color:var(--gray2);flex:1;">Modo fondeo</span>
+            <span id="prev-fondeo-status" style="font-size:12px;font-weight:700;color:#00e676;">Activo</span>
           </div>
+
           <!-- Reglas fondeo -->
-          <div id="prev-rules" style="display:none;border-top:1px solid rgba(255,255,255,.06);padding-top:10px;margin-top:6px;">
-            <div style="display:flex;justify-content:space-between;padding:5px 0;">
-              <span style="font-size:11px;color:#666;">Límite de pérdida</span>
+          <div id="prev-rules" style="display:none;padding-top:8px;">
+            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+              <span style="font-size:11px;color:var(--gray2);">Límite de pérdida</span>
               <span id="prev-loss-limit" style="font-size:11px;font-weight:700;color:#ff5252;"></span>
             </div>
-            <div style="display:flex;justify-content:space-between;padding:5px 0;">
-              <span style="font-size:11px;color:#666;">Objetivo de ganancia</span>
+            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+              <span style="font-size:11px;color:var(--gray2);">Objetivo de ganancia</span>
               <span id="prev-profit-target" style="font-size:11px;font-weight:700;color:#00e676;"></span>
             </div>
-            <div style="display:flex;justify-content:space-between;padding:5px 0;">
-              <span style="font-size:11px;color:#666;">Pérdida diaria máxima</span>
-              <span id="prev-daily-loss" style="font-size:11px;font-weight:700;color:#888;"></span>
+            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+              <span style="font-size:11px;color:var(--gray2);">Pérdida diaria máxima</span>
+              <span id="prev-daily-loss" style="font-size:11px;font-weight:700;color:var(--gray2);"></span>
             </div>
             <div style="display:flex;justify-content:space-between;padding:5px 0;">
-              <span style="font-size:11px;color:#666;">Pérdida máxima total</span>
-              <span id="prev-max-loss" style="font-size:11px;font-weight:700;color:#888;"></span>
+              <span style="font-size:11px;color:var(--gray2);">Pérdida máxima total</span>
+              <span id="prev-max-loss" style="font-size:11px;font-weight:700;color:var(--gray2);"></span>
             </div>
           </div>
-          <!-- Info nota -->
-          <div style="display:flex;gap:8px;padding:10px;background:rgba(255,255,255,.03);border-radius:8px;margin-top:12px;border:1px solid rgba(255,255,255,.06);">
-            <span style="font-size:14px;flex-shrink:0;">ℹ</span>
-            <span style="font-size:10px;color:#555;line-height:1.6;">Cada cuenta es completamente independiente. Las operaciones, estadísticas, capital y configuraciones de cada cuenta se guardan por separado.</span>
+
+          <!-- Nota info -->
+          <div style="display:flex;gap:8px;padding:10px;background:rgba(77,159,255,.05);border-radius:8px;margin-top:12px;border:1px solid rgba(77,159,255,.12);">
+            <span style="font-size:15px;flex-shrink:0;color:var(--blue);">ℹ</span>
+            <span style="font-size:10px;color:#555;line-height:1.6;">Cada cuenta es completamente independiente. Las operaciones, estadísticas, capital y configuraciones de cada cuenta se guardan por separado y no se mezclan con las demás.</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ── SUB-TAB: Pares ── -->
+    <!-- ── SUB-TAB: Pares (standalone) ── -->
     <div id="acct-panel-pares" class="acct-panel" style="display:none;">
       <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;">
         <div class="card" style="flex:1;min-width:280px;">
           <div class="card-hdr" style="color:var(--blue);border-color:rgba(77,159,255,.2)">Pares que operas</div>
           <div style="font-size:11px;color:var(--gray2);margin-bottom:14px;">Selecciona los pares de divisas que deseas operar en esta cuenta.</div>
-          <!-- Pares activos como tags -->
-          <div id="pairs-tags" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;min-height:36px;padding:8px;background:var(--bg);border:1px solid var(--bdr);border-radius:8px;"></div>
-          <!-- Agregar par nuevo -->
+          <div id="pairs-tags-standalone" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;min-height:36px;padding:8px;background:var(--bg);border:1px solid var(--bdr);border-radius:8px;"></div>
           <div style="display:flex;gap:7px;margin-bottom:10px;">
-            <input type="text" id="nai" class="fi" placeholder="Ej: BTCUSD" style="flex:1;text-transform:uppercase;" onkeydown="if(event.key==='Enter')addAsset()">
-            <button class="btn btn-g" onclick="addAsset()">+ Agregar</button>
+            <input type="text" id="nai-p" class="fi" placeholder="Ej: BTCUSD" style="flex:1;text-transform:uppercase;" onkeydown="if(event.key==='Enter'){g('nai').value=this.value;addAsset();}">
+            <button class="btn btn-g" onclick="g('nai').value=g('nai-p').value;addAsset();g('nai-p').value='';">+ Agregar</button>
           </div>
-          <!-- Lista de pares disponibles por categoría -->
           <div style="font-size:9px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Pares disponibles</div>
-          <div id="alist" style="display:flex;flex-wrap:wrap;gap:5px;max-height:200px;overflow-y:auto;"></div>
+          <div id="alist-p" style="display:flex;flex-wrap:wrap;gap:5px;max-height:200px;overflow-y:auto;"></div>
         </div>
         <div class="card" style="width:260px;flex-shrink:0;">
           <div class="card-hdr" style="color:var(--gold);border-color:rgba(255,200,77,.2)">Pares activos</div>
@@ -945,7 +1031,7 @@ tr:hover td{background:rgba(19,24,40,.8)}
             <div style="font-size:11px;color:var(--gray2);margin-bottom:16px;">Activa el modo fondeo si esta cuenta pertenece a una empresa de fondeo.</div>
             <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg);border-radius:9px;border:1px solid var(--bdr);">
               <span style="flex:1;font-size:13px;color:var(--text2);">Modo Fondeo Activo</span>
-              <button class="tog" id="ctog" onclick="togChallenge()"><div class="tthumb"></div></button>
+              <button class="tog" id="ctog2" onclick="togChallenge()"><div class="tthumb"></div></button>
             </div>
           </div>
           <!-- Barra de progreso fondeo -->
@@ -1011,75 +1097,13 @@ tr:hover td{background:rgba(19,24,40,.8)}
       </div>
     </div>
 
-    <!-- ── SUB-TAB: Reglas y límites ── -->
+    <!-- ── SUB-TAB: Reglas y límites — Ahora integrado en Información general ── -->
     <div id="acct-panel-reglas" class="acct-panel" style="display:none;">
-      <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;">
-        <div class="card" style="flex:1;min-width:280px;">
-          <div class="card-hdr" style="color:var(--gold);border-color:rgba(255,200,77,.2)">Configuración de reglas de fondeo</div>
-          <div style="font-size:11px;color:var(--gray2);margin-bottom:16px;">Define los límites y objetivos de tu cuenta prop. Estas reglas se usan para alertas y análisis.</div>
-          <!-- Cuenta inicial (readonly) -->
-          <div class="fg">
-            <label class="fl">Cuenta inicial ($)</label>
-            <div id="cfa-display" style="background:var(--bg);border:1px solid var(--bdr);border-radius:8px;padding:8px 10px;font-size:13px;font-weight:700;color:var(--gold);">$10,000</div>
-            <div style="font-size:9px;color:var(--gray2);margin-top:3px;">Editable en <b style="color:var(--cyan)">Información general</b></div>
-            <input type="hidden" id="cfa">
-          </div>
-          <!-- Límite de pérdida -->
-          <div class="fg">
-            <label class="fl">📉 Límite de pérdida (%)</label>
-            <div style="display:flex;gap:8px;align-items:center;">
-              <input type="number" id="cft" class="fi" style="flex:1;" placeholder="10" oninput="saveF();updatePreview()">
-              <span style="font-size:11px;color:var(--gray2);background:var(--card2);border:1px solid var(--bdr);padding:8px 10px;border-radius:8px;white-space:nowrap;">%</span>
-              <span id="rule-loss-equiv" style="font-size:11px;font-weight:700;color:var(--red);white-space:nowrap;"></span>
-            </div>
-            <div style="font-size:9px;color:var(--gray2);margin-top:3px;">Porcentaje máximo de pérdida permitido.</div>
-          </div>
-          <!-- Objetivo de ganancia -->
-          <div class="fg">
-            <label class="fl">📈 Objetivo de ganancia (%)</label>
-            <div style="display:flex;gap:8px;align-items:center;">
-              <input type="number" id="cfg" class="fi" style="flex:1;" placeholder="8" oninput="saveF();updatePreview()">
-              <span style="font-size:11px;color:var(--gray2);background:var(--card2);border:1px solid var(--bdr);padding:8px 10px;border-radius:8px;white-space:nowrap;">%</span>
-              <span id="rule-profit-equiv" style="font-size:11px;font-weight:700;color:var(--green);white-space:nowrap;"></span>
-            </div>
-            <div style="font-size:9px;color:var(--gray2);margin-top:3px;">Objetivo de ganancia requerido.</div>
-          </div>
-          <div style="font-size:10px;font-weight:700;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin:14px 0 10px;">Reglas adicionales (opcional)</div>
-          <!-- Pérdida diaria -->
-          <div class="fg2">
-            <div class="fg">
-              <label class="fl">Pérdida diaria máxima</label>
-              <div style="display:flex;gap:6px;align-items:center;">
-                <input type="number" id="cfd" class="fi" style="flex:1;" placeholder="5" oninput="saveF();updatePreview()">
-                <span style="font-size:11px;color:var(--gray2);background:var(--card2);border:1px solid var(--bdr);padding:8px 10px;border-radius:8px;">%</span>
-              </div>
-            </div>
-            <div class="fg">
-              <label class="fl">Pérdida máxima total</label>
-              <div style="display:flex;gap:6px;align-items:center;">
-                <input type="number" id="cfal-rule" class="fi" style="flex:1;" placeholder="10" oninput="saveRuleExtra()">
-                <span style="font-size:11px;color:var(--gray2);background:var(--card2);border:1px solid var(--bdr);padding:8px 10px;border-radius:8px;">%</span>
-              </div>
-            </div>
-          </div>
-          <!-- Alerta -->
-          <div class="fg">
-            <label class="fl">⚠ Alertar al (% del límite)</label>
-            <input type="number" id="cfal" class="fi" placeholder="80" oninput="saveF()">
-            <div style="font-size:9px;color:var(--gray2);margin-top:3px;">Muestra una alerta cuando el drawdown alcance este porcentaje del límite.</div>
-          </div>
-        </div>
-        <!-- Resumen reglas lateral -->
-        <div style="width:260px;flex-shrink:0;">
-          <div class="card">
-            <div class="card-hdr" style="color:var(--purp);border-color:rgba(139,92,246,.2)">Resumen de reglas</div>
-            <div id="rules-summary" style="display:flex;flex-direction:column;gap:0;"></div>
-          </div>
-          <div class="card" style="margin-top:12px;background:rgba(77,159,255,.04);border-color:rgba(77,159,255,.15);">
-            <div class="card-hdr" style="color:var(--blue);border-color:rgba(77,159,255,.15)">💡 Consejo</div>
-            <div style="font-size:11px;color:var(--gray2);line-height:1.7;">Las reglas se guardan por cuenta. Puedes editar en cualquier momento y se aplicarán al análisis y alertas de esta cuenta específica.</div>
-          </div>
-        </div>
+      <div class="card" style="max-width:600px;text-align:center;padding:40px;">
+        <div style="font-size:32px;margin-bottom:12px;">⚙️</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px;">Reglas integradas en Información general</div>
+        <div style="font-size:12px;color:var(--gray2);margin-bottom:16px;">Las reglas de fondeo ahora se configuran directamente en la pestaña de Información general, en la columna central.</div>
+        <button class="btn btn-g" onclick="showAcctTab('general')" style="padding:10px 20px;">← Ir a Información general</button>
       </div>
     </div>
 
@@ -1624,14 +1648,13 @@ function renderConfig(){
   var s=S.settings;
   var ca=g('ca2');if(ca)ca.value=s.accountSize;
   var ai=g('acct-inp');if(ai)ai.value=s.accountSize;
-  // Update fondeo read-only display
-  var cfaD=g('cfa-display');if(cfaD)cfaD.textContent='$'+s.accountSize.toLocaleString('en');
   var cfd=g('cfd');if(cfd)cfd.value=s.maxDailyLoss;
   var cft=g('cft');if(cft)cft.value=s.maxTotalLoss;
   var cfg=g('cfg');if(cfg)cfg.value=s.profitTarget;
   var cfal=g('cfal');if(cfal)cfal.value=s.alertAt;
   var cfalR=g('cfal-rule');if(cfalR)cfalR.value=s.maxTotalLoss;
   var t=g('ctog');if(t){if(s.challengeActive)t.classList.add('on');else t.classList.remove('on');}
+  var t2=g('ctog2');if(t2){if(s.challengeActive)t2.classList.add('on');else t2.classList.remove('on');}
   // Populate the new unified accounts form fields
   var accounts=getAccounts();var id=getActiveId();
   var acct=accounts.find(function(a){return a.id===id;})||{};
@@ -1680,20 +1703,23 @@ function renderConfigAccounts(){
     var pnl = trades.reduce(function(s,t){return s+(t.pnl||0);},0);
     var pnlCol = pnl>=0?'#00e676':'#ff1744';
     var bg = isActive?'rgba(0,230,118,.06)':'rgba(255,255,255,.02)';
-    var bdr = isActive?'rgba(0,230,118,.2)':'rgba(255,255,255,.05)';
-    html += '<div style="background:'+bg+';border:1px solid '+bdr+';border-radius:9px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px;">';
-    html += '<div style="flex:1;">';
-    html += '<div style="display:flex;align-items:center;gap:6px;">';
+    var bdr = isActive?'rgba(0,230,118,.25)':'rgba(255,255,255,.06)';
+    var col = a.color||'#8b5cf6';
+    var icon = a.icon||'🏦';
+    html += '<div style="background:'+bg+';border:1px solid '+bdr+';border-radius:10px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px;transition:all .2s;">';
+    html += '<div style="width:32px;height:32px;background:'+col+'33;border:1px solid '+col+'55;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">'+icon+'</div>';
+    html += '<div style="flex:1;min-width:0;">';
+    html += '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">';
     if(isActive) html += '<span style="width:6px;height:6px;background:#00e676;border-radius:50%;flex-shrink:0;display:inline-block;"></span>';
-    html += '<span style="font-size:12px;font-weight:700;color:#f0f0f0;">'+a.name+'</span>';
-    html += '<span style="font-size:9px;padding:2px 6px;border-radius:4px;font-weight:700;background:'+(a.type==='fondeo'?'rgba(232,160,32,.15)':'rgba(77,159,255,.12)')+';color:'+(a.type==='fondeo'?'#e8a020':'#4d9fff')+';">'+(a.type==='fondeo'?'FONDEO':'NORMAL')+'</span>';
+    html += '<span style="font-size:12px;font-weight:700;color:#f0f0f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;">'+a.name+'</span>';
+    html += '<span style="font-size:9px;padding:2px 6px;border-radius:4px;font-weight:700;background:'+(a.type==='fondeo'?'rgba(232,160,32,.15)':'rgba(77,159,255,.12)')+';color:'+(a.type==='fondeo'?'#e8a020':'#4d9fff')+';">'+(a.type==='fondeo'?'FONDEO':'PERSONAL')+'</span>';
     html += '</div>';
     html += '<div style="font-size:10px;color:#555;margin-top:2px;">$'+Number(a.initialBalance).toLocaleString('en')+' &middot; '+trades.length+' ops &middot; <span style="color:'+pnlCol+';">'+(pnl>=0?'+':'')+pnl.toFixed(2)+'$</span></div>';
     html += '</div>';
-    html += '<div style="display:flex;gap:5px;">';
+    html += '<div style="display:flex;gap:5px;flex-shrink:0;">';
     if(!isActive) html += '<button onclick="switchAccount('+JSON.stringify(a.id)+')" style="background:rgba(0,230,118,.15);border:1px solid rgba(0,230,118,.3);color:#00e676;border-radius:7px;padding:5px 9px;cursor:pointer;font-size:10px;font-weight:700;">Usar</button>';
-    html += '<button onclick="editAccount('+JSON.stringify(a.id)+')" style="background:#1e1e1e;border:1px solid #333;color:#4d9fff;border-radius:7px;padding:5px 7px;cursor:pointer;font-size:11px;">&#9998;</button>';
-    if(accounts.length>1) html += '<button onclick="deleteAccount(this,'+JSON.stringify(a.id)+')" style="background:#1e1e1e;border:1px solid #333;color:#ff1744;border-radius:7px;padding:5px 7px;cursor:pointer;font-size:11px;">&#128465;</button>';
+    html += '<button onclick="editAccount('+JSON.stringify(a.id)+')" style="background:#1e1e1e;border:1px solid #333;color:#4d9fff;border-radius:7px;padding:5px 8px;cursor:pointer;font-size:12px;">&#9998;</button>';
+    if(accounts.length>1) html += '<button onclick="deleteAccount(this,'+JSON.stringify(a.id)+')" style="background:#1e1e1e;border:1px solid #333;color:#ff1744;border-radius:7px;padding:5px 8px;cursor:pointer;font-size:12px;">&#128465;</button>';
     html += '</div></div>';
   }
   el.innerHTML = html;
@@ -1717,26 +1743,29 @@ function showAcctTab(name){
   if(name==='fondeo') renderFondeo();
   if(name==='pares'){renderAssets();renderPairsTags();}
   if(name==='reglas'){renderRulesSummary();updateRuleEquivalents();}
+  if(name==='general'){renderAssets();renderPairsTags();updatePreview();renderConfigAccounts();}
 }
 
 function renderPairsTags(){
-  var el=g('pairs-tags'); if(!el) return;
   var assets=S.settings.assets||[];
-  el.innerHTML=assets.map(function(a){
+  var tagsHtml=assets.map(function(a){
     return '<div style="display:flex;align-items:center;gap:4px;background:rgba(77,159,255,.12);border:1px solid rgba(77,159,255,.3);border-radius:20px;padding:3px 10px;">'
       +'<span style="color:#4d9fff;font-weight:700;font-size:11px;">'+a+'</span>'
       +'<button onclick="rmAsset(\''+a+'\')" style="background:none;border:none;color:var(--gray2);cursor:pointer;font-size:13px;line-height:1;padding:0;">×</button>'
       +'</div>';
   }).join('');
-  // Also update pairs detail panel
-  var det=g('prev-pairs-detail'); if(!det) return;
-  if(!assets.length){det.innerHTML='<div style="color:var(--gray2);font-size:11px;padding:8px 0;">No hay pares seleccionados.</div>';return;}
-  det.innerHTML=assets.map(function(a){
-    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bdr);">'
-      +'<span style="font-size:12px;font-weight:700;color:var(--blue);">'+a+'</span>'
-      +'<button onclick="rmAsset(\''+a+'\')" style="background:none;border:1px solid var(--bdr);border-radius:5px;color:var(--gray2);cursor:pointer;padding:2px 6px;font-size:10px;">✕ Quitar</button>'
-      +'</div>';
-  }).join('');
+  // Update pairs-tags in the unified general panel
+  var el=g('pairs-tags'); if(el) el.innerHTML=tagsHtml;
+  // Also update pairs detail panel (standalone pares tab)
+  var det=g('prev-pairs-detail'); if(det){
+    if(!assets.length){det.innerHTML='<div style="color:var(--gray2);font-size:11px;padding:8px 0;">No hay pares seleccionados.</div>';}
+    else det.innerHTML=assets.map(function(a){
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bdr);">'
+        +'<span style="font-size:12px;font-weight:700;color:var(--blue);">'+a+'</span>'
+        +'<button onclick="rmAsset(\''+a+'\')" style="background:none;border:1px solid var(--bdr);border-radius:5px;color:var(--gray2);cursor:pointer;padding:2px 6px;font-size:10px;">✕ Quitar</button>'
+        +'</div>';
+    }).join('');
+  }
 }
 
 function renderRulesSummary(){
@@ -1816,19 +1845,35 @@ function updatePreview(){
   var curEl=g('acfg-current');var curVal=pN(curEl&&curEl.value)||s.accountSize||0;
   var descEl=g('acfg-desc');var descVal=(descEl&&descEl.value)||acct.description||'';
   var isFondeo=typeVal==='fondeo';
+  var acctColor=acct.color||'#8b5cf6';
+  var acctIcon=acct.icon||'🏦';
   var pn=g('prev-name');if(pn)pn.textContent=nameVal;
   var pb=g('prev-type-badge');if(pb){pb.textContent=isFondeo?'FONDEO':'PERSONAL';pb.style.background=isFondeo?'rgba(232,160,32,.2)':'rgba(77,159,255,.12)';pb.style.color=isFondeo?'#e8a020':'#4d9fff';}
-  var pd=g('prev-desc');if(pd)pd.textContent=descVal;
+  var pd=g('prev-desc');if(pd)pd.textContent=descVal||'—';
   var pc=g('prev-current');if(pc)pc.innerHTML='$'+curVal.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})+' <span style="font-size:12px;color:#888;">'+currVal+'</span>';
-  var pi=g('prev-initial');if(pi)pi.textContent='$'+initVal.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})+' '+currVal;
+  var pi2=g('prev-initial');if(pi2)pi2.textContent='$'+initVal.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})+' '+currVal;
   var pcu=g('prev-currency');if(pcu)pcu.textContent=currVal;
-  var pp=g('prev-pairs');if(pp){var asts=s.assets||[];pp.innerHTML=asts.slice(0,6).map(function(a){return'<span style="font-size:9px;padding:2px 6px;border-radius:4px;background:rgba(77,159,255,.12);border:1px solid rgba(77,159,255,.25);color:#4d9fff;font-weight:700;">'+a+'</span>';}).join('')+(asts.length>6?'<span style="font-size:9px;color:#555;">+'+( asts.length-6)+'</span>':'');}
+  var pp=g('prev-pairs');if(pp){var asts=s.assets||[];pp.innerHTML=asts.slice(0,8).map(function(a){return'<span style="font-size:9px;padding:2px 6px;border-radius:4px;background:rgba(77,159,255,.12);border:1px solid rgba(77,159,255,.25);color:#4d9fff;font-weight:700;">'+a+'</span>';}).join('')+(asts.length>8?'<span style="font-size:9px;color:#555;">+'+( asts.length-8)+'</span>':'');}
   var pfs=g('prev-fondeo-status');if(pfs){pfs.textContent=isFondeo?'Activo':'Inactivo';pfs.style.color=isFondeo?'#00e676':'#555';}
   var pr=g('prev-rules');if(pr)pr.style.display=isFondeo?'block':'none';
   var pll=g('prev-loss-limit');if(pll)pll.textContent=(s.maxTotalLoss||10)+'% ($'+(initVal*(s.maxTotalLoss||10)/100).toLocaleString('en')+')';
   var ppt=g('prev-profit-target');if(ppt)ppt.textContent=(s.profitTarget||10)+'% ($'+(initVal*(s.profitTarget||10)/100).toLocaleString('en')+')';
   var pdl=g('prev-daily-loss');if(pdl)pdl.textContent=(s.maxDailyLoss||5)+'%';
   var pml=g('prev-max-loss');if(pml)pml.textContent=(s.maxTotalLoss||10)+'%';
+  // Update preview card color & icon
+  var bg=g('prev-card-bg');
+  if(bg) bg.style.background='linear-gradient(135deg,'+acctColor+'55,'+acctColor+'33)';
+  var pi=g('prev-icon');if(pi){pi.textContent=acctIcon;pi.style.background=acctColor+'44';}
+  // Sync color dots UI
+  document.querySelectorAll('.acct-color-dot').forEach(function(d){
+    d.style.border=d.dataset.color===acctColor?'3px solid #fff':'2px solid transparent';
+  });
+  // Sync icon UI
+  document.querySelectorAll('#acct-icons > div').forEach(function(d){
+    var sel=d.dataset.icon===acctIcon;
+    d.style.border=sel?'2px solid var(--green)':'1px solid var(--bdr)';
+    d.style.background=sel?'rgba(77,159,255,.2)':'var(--bg)';
+  });
 }
 
 function refreshFondeoSwitch(){
@@ -1841,7 +1886,50 @@ function refreshFondeoSwitch(){
   updatePreview();
 }
 
-function openNewAcctInline(){
+function setAcctColor(color){
+  var accounts=getAccounts();var id=getActiveId();
+  var idx=accounts.findIndex(function(a){return a.id===id;});
+  if(idx>=0){accounts[idx].color=color;saveAccounts(accounts);}
+  // Update dots UI
+  document.querySelectorAll('.acct-color-dot').forEach(function(d){
+    d.style.border=d.dataset.color===color?'3px solid #fff':'2px solid transparent';
+  });
+  // Update preview card bg
+  var bg=document.getElementById('prev-card-bg');
+  if(bg) bg.style.background='linear-gradient(135deg,'+color+'55,'+color+'33)';
+  var pi=document.getElementById('prev-icon');
+  if(pi) pi.style.background=color+'66';
+}
+function setAcctIcon(icon){
+  var accounts=getAccounts();var id=getActiveId();
+  var idx=accounts.findIndex(function(a){return a.id===id;});
+  if(idx>=0){accounts[idx].icon=icon;saveAccounts(accounts);}
+  // Update icons UI
+  document.querySelectorAll('#acct-icons > div').forEach(function(d){
+    var sel=d.dataset.icon===icon;
+    d.style.border=sel?'2px solid var(--green)':'1px solid var(--bdr)';
+    d.style.background=sel?'rgba(77,159,255,.2)':'var(--bg)';
+  });
+  // Update preview
+  var pi=document.getElementById('prev-icon');if(pi)pi.textContent=icon;
+}
+function createAccountFromInline(){
+  var name=document.getElementById('new-acct-name').value.trim();
+  var bal=parseFloat(document.getElementById('new-acct-balance').value)||10000;
+  var type=document.getElementById('new-acct-type').value||'normal';
+  if(!name){if(typeof toast==='function')toast('⚠ Escribe un nombre','#ff1744');return;}
+  var accounts=getAccounts();
+  var id='acct_'+Date.now();
+  accounts.push({id:id,name:name,type:type,initialBalance:bal,currency:'USD',icon:'🏦',color:'#8b5cf6'});
+  saveAccounts(accounts);
+  saveAccountData(id,[],{accountSize:bal,assets:S.settings.assets||[],challengeActive:type==='fondeo',maxDailyLoss:5,maxTotalLoss:10,profitTarget:10,alertAt:80});
+  document.getElementById('new-acct-name').value='';
+  document.getElementById('new-acct-balance').value='';
+  closeNewAcctInline();
+  renderConfigAccounts();
+  if(typeof toast==='function')toast('✅ Cuenta creada: '+name,'#00e676');
+}
+
   var el=g('new-acct-inline');if(el)el.style.display=(el.style.display==='none'?'block':'none');
 }
 function closeNewAcctInline(){
@@ -1849,7 +1937,12 @@ function closeNewAcctInline(){
 }
 
 
-function togChallenge(){S.settings.challengeActive=!S.settings.challengeActive;save();renderConfig();renderDash();renderFondeo();checkAlerts();updatePreview();}
+function togChallenge(){
+  S.settings.challengeActive=!S.settings.challengeActive;
+  save();renderConfig();renderDash();renderFondeo();checkAlerts();updatePreview();
+  // Sync both toggles
+  var t2=g('ctog2');if(t2){if(S.settings.challengeActive)t2.classList.add('on');else t2.classList.remove('on');}
+}
 
 // SORTED
 function getSorted(){
@@ -1914,7 +2007,7 @@ function renderNotes(notes){
 }
 
 // TABS
-var TAB_INFO={dash:{title:'Dashboard',sub:'Resumen general'},registro:{title:'Registro de Operaciones',sub:'Toca un día para agregar, editar o eliminar'},stats:{title:'Estadísticas',sub:'Análisis por año'},analisis:{title:'Análisis Avanzado',sub:'Patrones, rachas y filtros'},fondeo:{title:'Modo Fondeo',sub:'Seguimiento de cuentas prop'},config:{title:'Cuentas',sub:'Gestión de cuentas de trading'}};
+var TAB_INFO={dash:{title:'Dashboard',sub:'Resumen general'},registro:{title:'Registro de Operaciones',sub:'Toca un día para agregar, editar o eliminar'},stats:{title:'Estadísticas',sub:'Análisis por año'},analisis:{title:'Análisis Avanzado',sub:'Patrones, rachas y filtros'},fondeo:{title:'Modo Fondeo',sub:'Seguimiento de cuentas prop'},config:{title:'Configuración de la cuenta',sub:'Gestión de cuentas de trading'}};
 function showTab(id,el){
   ['dash','registro','stats','analisis','fondeo','config'].forEach(function(t){
     var el2=g('tab-'+t);if(el2)el2.classList.remove('act');
@@ -2421,6 +2514,7 @@ function setNewAcctType(t){
   _newAcctType = t;
   var n = document.getElementById('nat-normal');
   var f = document.getElementById('nat-fondeo');
+  if(!n||!f) return;
   if(t==='normal'){
     n.style.background='rgba(77,159,255,.2)';n.style.borderColor='rgba(77,159,255,.5)';n.style.color='#4d9fff';
     f.style.background='#1e1e1e';f.style.borderColor='#333';f.style.color='#555';
@@ -2567,12 +2661,42 @@ function createAccount(){
   if(!name){ if(typeof toast==='function') toast('⚠ Escribe un nombre','#ff1744'); return; }
   var accounts = getAccounts();
   var id = 'acct_'+Date.now();
-  accounts.push({id:id, name:name, type:type, initialBalance:bal});
+  accounts.push({id:id, name:name, type:type, initialBalance:bal, currency:'USD', icon:'🏦', color:'#8b5cf6'});
   saveAccounts(accounts);
-  // Inicializar datos vacíos
   saveAccountData(id, [], {accountSize:bal, assets:S.settings.assets||[], challengeActive:type==='fondeo', maxDailyLoss:5, maxTotalLoss:10, profitTarget:10, alertAt:80});
   document.getElementById('new-acct-name').value='';
   document.getElementById('new-acct-balance').value='';
+  renderAccountsList();
+  if(typeof toast==='function') toast('✅ Cuenta creada: '+name, '#00e676');
+}
+
+function setModalAcctType(t){
+  _newAcctType = t;
+  var n = document.getElementById('mnat-normal');
+  var f = document.getElementById('mnat-fondeo');
+  if(!n||!f) return;
+  if(t==='normal'){
+    n.style.background='rgba(77,159,255,.2)';n.style.borderColor='rgba(77,159,255,.5)';n.style.color='#4d9fff';
+    f.style.background='#1e1e1e';f.style.borderColor='#333';f.style.color='#555';
+  } else {
+    f.style.background='rgba(232,160,32,.2)';f.style.borderColor='rgba(232,160,32,.5)';f.style.color='#e8a020';
+    n.style.background='#1e1e1e';n.style.borderColor='#333';n.style.color='#555';
+  }
+  document.getElementById('modal-acct-type').value = t;
+}
+
+function createAccountFromModal(){
+  var name = document.getElementById('modal-acct-name').value.trim();
+  var bal = parseFloat(document.getElementById('modal-acct-balance').value)||10000;
+  var type = document.getElementById('modal-acct-type').value||'normal';
+  if(!name){ if(typeof toast==='function') toast('⚠ Escribe un nombre','#ff1744'); return; }
+  var accounts = getAccounts();
+  var id = 'acct_'+Date.now();
+  accounts.push({id:id, name:name, type:type, initialBalance:bal, currency:'USD', icon:'🏦', color:'#8b5cf6'});
+  saveAccounts(accounts);
+  saveAccountData(id, [], {accountSize:bal, assets:S.settings.assets||[], challengeActive:type==='fondeo', maxDailyLoss:5, maxTotalLoss:10, profitTarget:10, alertAt:80});
+  document.getElementById('modal-acct-name').value='';
+  document.getElementById('modal-acct-balance').value='';
   renderAccountsList();
   if(typeof toast==='function') toast('✅ Cuenta creada: '+name, '#00e676');
 }
@@ -3060,14 +3184,14 @@ self.addEventListener('fetch', e => {
       <div id="acct-list" style="margin-bottom:14px;"></div>
       <div style="background:#0f0f0f;border:1px solid #2a2a2a;border-radius:10px;padding:14px;">
         <div style="font-size:11px;font-weight:700;color:#555;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">+ Nueva Cuenta</div>
-        <input id="new-acct-name" type="text" placeholder="Nombre (ej: FTMO Principal)" style="width:100%;background:#1c1c1c;border:1px solid #3a3a3a;color:#f0f0f0;padding:9px 12px;border-radius:8px;font-size:13px;margin-bottom:8px;box-sizing:border-box;">
-        <input id="new-acct-balance" type="number" placeholder="Capital inicial ($)" style="width:100%;background:#1c1c1c;border:1px solid #3a3a3a;color:#f0f0f0;padding:9px 12px;border-radius:8px;font-size:13px;margin-bottom:8px;box-sizing:border-box;">
+        <input id="modal-acct-name" type="text" placeholder="Nombre (ej: FTMO Principal)" style="width:100%;background:#1c1c1c;border:1px solid #3a3a3a;color:#f0f0f0;padding:9px 12px;border-radius:8px;font-size:13px;margin-bottom:8px;box-sizing:border-box;">
+        <input id="modal-acct-balance" type="number" placeholder="Capital inicial ($)" style="width:100%;background:#1c1c1c;border:1px solid #3a3a3a;color:#f0f0f0;padding:9px 12px;border-radius:8px;font-size:13px;margin-bottom:8px;box-sizing:border-box;">
         <div style="display:flex;gap:8px;margin-bottom:10px;">
-          <button onclick="setNewAcctType('normal')" id="nat-normal" style="flex:1;padding:8px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;background:rgba(77,159,255,.2);border:1px solid rgba(77,159,255,.5);color:#4d9fff;">📊 Normal</button>
-          <button onclick="setNewAcctType('fondeo')" id="nat-fondeo" style="flex:1;padding:8px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;background:#1e1e1e;border:1px solid #333;color:#555;">🏆 Fondeo</button>
+          <button onclick="setModalAcctType('normal')" id="mnat-normal" style="flex:1;padding:8px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;background:rgba(77,159,255,.2);border:1px solid rgba(77,159,255,.5);color:#4d9fff;">📊 Normal</button>
+          <button onclick="setModalAcctType('fondeo')" id="mnat-fondeo" style="flex:1;padding:8px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;background:#1e1e1e;border:1px solid #333;color:#555;">🏆 Fondeo</button>
         </div>
-        <input type="hidden" id="new-acct-type" value="normal">
-        <button onclick="createAccount()" style="width:100%;background:linear-gradient(135deg,#00c853,#00e676);color:#000;font-weight:800;padding:10px;border-radius:8px;border:none;font-size:13px;cursor:pointer;">✅ Crear Cuenta</button>
+        <input type="hidden" id="modal-acct-type" value="normal">
+        <button onclick="createAccountFromModal()" style="width:100%;background:linear-gradient(135deg,#00c853,#00e676);color:#000;font-weight:800;padding:10px;border-radius:8px;border:none;font-size:13px;cursor:pointer;">✅ Crear Cuenta</button>
       </div>
     </div>
   </div>
