@@ -644,7 +644,7 @@ tr:hover td{background:rgba(19,24,40,.8)}
           </div>
           <div style="display:flex;gap:7px;margin-top:5px">
             <button class="btn btn-r" id="btn-cancel" style="display:none;flex:1;justify-content:center" onclick="cancelEdit()">✕ Cancelar</button>
-            <button class="btn btn-g" id="btn-save" style="flex:1;justify-content:center" onclick="saveTrade()">💾 Guardar</button>
+            <button class="btn btn-g" id="btn-save" style="flex:1;justify-content:center" onclick="if(window._spawnRipple)window._spawnRipple(event.clientX,event.clientY);if(window._playClick)window._playClick();saveTrade()">💾 Registrar operación</button>
           </div>
         </div>
         <!-- Month stats -->
@@ -2654,7 +2654,7 @@ function renderSidebarAccounts(){
 
     // Botón eliminar 🗑
     if(accounts.length > 1){
-      html += '<button onclick="event.stopPropagation();eliminarCuentaSidebar(this,\''+a.id+'\')" title="Eliminar" style="flex-shrink:0;background:rgba(255,23,68,.1);border:1px solid rgba(255,23,68,.35);color:#ff1744;border-radius:5px;width:24px;height:24px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;padding:0;">🗑</button>';
+      html += '<button onclick="event.stopPropagation();borrarCuentaDirecto(\''+a.id+'\',\''+a.name.replace(/'/g,"\\'")+'\')" title="Eliminar" style="flex-shrink:0;background:rgba(255,23,68,.1);border:1px solid rgba(255,23,68,.35);color:#ff1744;border-radius:5px;width:24px;height:24px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;padding:0;">🗑</button>';
     }
 
     html += '</div></div>';
@@ -3452,6 +3452,9 @@ self.addEventListener('fetch', e => {
     document.body.appendChild(el);
     el.addEventListener('animationend', function(){ el.remove(); });
   }
+  // Exponer globalmente para uso directo en botones críticos
+  window._spawnRipple = spawnRipple;
+  window._playClick = playClick;
   function shouldIgnore(target){
     var tag = target.tagName;
     return tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT';
