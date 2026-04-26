@@ -413,12 +413,9 @@ tr:hover td{background:rgba(19,24,40,.8)}
     <div class="ni" id="nav-stats" onclick="showTab('stats',this)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="1,12 5,8 8,10 12,5 15,7"/></svg>Estadísticas</div>
     <div class="ni" id="nav-analisis" onclick="showTab('analisis',this)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><line x1="8" y1="4" x2="8" y2="9"/><circle cx="8" cy="11" r=".8" fill="currentColor"/></svg>Análisis</div>
     <div class="ns">Sistema</div>
-    <!-- Cuentas + botón Nueva -->
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 8px;margin-bottom:2px;">
-      <div class="ni" id="nav-config" onclick="showTab('config',this)" style="flex:1;margin:0;padding:6px 4px;">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>Cuentas
-      </div>
-      <button onclick="abrirFormNuevaCuenta()" title="Nueva cuenta" style="background:var(--green);border:none;color:#000;border-radius:6px;width:20px;height:20px;font-size:14px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;">+</button>
+    <!-- Cuentas -->
+    <div class="ni" id="nav-config" onclick="showTab('config',this)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>Cuentas
     </div>
     <!-- Lista de cuentas en sidebar -->
     <div id="sb-acct-list" style="padding:0 8px 4px;display:flex;flex-direction:column;gap:3px;max-height:200px;overflow-y:auto;"></div>
@@ -717,15 +714,20 @@ tr:hover td{background:rgba(19,24,40,.8)}
 
   <!-- ═══ CUENTAS (CONFIG) — módulo unificado ═══ -->
   <div id="tab-config" class="tsec">
-    <!-- Barra superior: título + botón Guardar -->
+    <!-- Barra superior: título + botones -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
       <div>
         <div style="font-size:11px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;" id="acct-editing-label">Configurando cuenta activa</div>
         <div style="font-size:16px;font-weight:800;color:var(--text);" id="acct-editing-name">—</div>
       </div>
-      <button onclick="guardarCuenta()" style="background:linear-gradient(135deg,#00c853,#00e676);color:#000;font-weight:800;font-size:12px;padding:10px 24px;border-radius:10px;border:none;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 4px 14px rgba(0,230,118,.3);">
-        💾 Guardar cuenta
-      </button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button onclick="prepararNuevaCuenta()" style="background:linear-gradient(135deg,rgba(0,212,255,.2),rgba(77,159,255,.1));border:1px solid rgba(0,212,255,.4);color:#00d4ff;font-weight:800;font-size:12px;padding:10px 18px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:7px;">
+          ＋ Nueva cuenta
+        </button>
+        <button onclick="guardarCuenta()" style="background:linear-gradient(135deg,#00c853,#00e676);color:#000;font-weight:800;font-size:12px;padding:10px 24px;border-radius:10px;border:none;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 4px 14px rgba(0,230,118,.3);">
+          💾 Guardar cuenta
+        </button>
+      </div>
     </div>
     <!-- Sub-tabs de Cuentas — estilo imagen -->
     <div style="display:flex;gap:0;margin-bottom:20px;border-bottom:1px solid var(--bdr);overflow-x:auto;">
@@ -801,41 +803,6 @@ tr:hover td{background:rgba(19,24,40,.8)}
           <div id="alist" style="display:flex;flex-wrap:wrap;gap:5px;max-height:160px;overflow-y:auto;"></div>
         </div>
 
-        <!-- Zona horaria -->
-        <div class="card">
-          <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:4px;">Zona horaria</div>
-          <div style="font-size:11px;color:var(--gray2);margin-bottom:12px;">Establece la zona horaria para esta cuenta.</div>
-          <div class="fg">
-            <select id="acfg-tz" class="fi" onchange="saveAcctConfig()">
-              <option value="-12">(GMT-12:00) Línea de fecha internacional</option>
-              <option value="-11">(GMT-11:00) Samoa</option>
-              <option value="-10">(GMT-10:00) Hawái</option>
-              <option value="-9">(GMT-9:00) Alaska</option>
-              <option value="-8">(GMT-8:00) Los Ángeles</option>
-              <option value="-7">(GMT-7:00) Denver</option>
-              <option value="-6">(GMT-6:00) Ciudad de México</option>
-              <option value="-5" selected>(GMT-5:00) Nueva York</option>
-              <option value="-4">(GMT-4:00) Santiago</option>
-              <option value="-3">(GMT-3:00) Buenos Aires</option>
-              <option value="-2">(GMT-2:00) Atlántico sur</option>
-              <option value="-1">(GMT-1:00) Azores</option>
-              <option value="0">(GMT+0:00) Londres</option>
-              <option value="1">(GMT+1:00) Madrid / París</option>
-              <option value="2">(GMT+2:00) Johannesburgo</option>
-              <option value="3">(GMT+3:00) Moscú</option>
-              <option value="4">(GMT+4:00) Dubái</option>
-              <option value="5">(GMT+5:00) Karachi</option>
-              <option value="5.5">(GMT+5:30) Mumbai</option>
-              <option value="6">(GMT+6:00) Daca</option>
-              <option value="7">(GMT+7:00) Bangkok</option>
-              <option value="8">(GMT+8:00) Singapur</option>
-              <option value="9">(GMT+9:00) Tokio</option>
-              <option value="10">(GMT+10:00) Sídney</option>
-              <option value="11">(GMT+11:00) Islas Salomón</option>
-              <option value="12">(GMT+12:00) Auckland</option>
-            </select>
-          </div>
-        </div>
       </div>
 
       <!-- COLUMNA 2: Modo fondeo + Reglas -->
@@ -918,34 +885,9 @@ tr:hover td{background:rgba(19,24,40,.8)}
           </div>
         </div>
 
-        <!-- Mis cuentas -->
-        <div class="card">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-            <div style="font-size:13px;font-weight:800;color:var(--text);">MIS CUENTAS</div>
-            <button onclick="openNewAcctInline()" class="btn btn-gold" style="padding:4px 10px;font-size:10px;">+ Nueva</button>
-          </div>
-          <div id="config-acct-list" style="margin-top:4px;"></div>
-          <div id="new-acct-inline" style="display:none;background:var(--bg);border:1px solid var(--bdr);border-radius:10px;padding:12px;margin-top:10px;">
-            <div style="font-size:10px;font-weight:700;color:var(--gray2);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">+ Nueva Cuenta</div>
-            <input id="new-acct-name" type="text" placeholder="Nombre (ej: FTMO Principal)" class="fi" style="margin-bottom:7px;">
-            <input id="new-acct-balance" type="number" placeholder="Capital inicial ($)" class="fi" style="margin-bottom:7px;">
-            <div style="display:flex;gap:6px;margin-bottom:8px;">
-              <button onclick="setNewAcctType('normal')" id="nat-normal" class="btn" style="flex:1;font-size:10px;background:rgba(77,159,255,.2);border-color:rgba(77,159,255,.5);color:#4d9fff;">📊 Personal</button>
-              <button onclick="setNewAcctType('fondeo')" id="nat-fondeo" class="btn" style="flex:1;font-size:10px;">🏆 Fondeo</button>
-            </div>
-            <input type="hidden" id="new-acct-type" value="normal">
-            <div style="display:flex;gap:6px;">
-              <button onclick="closeNewAcctInline()" class="btn" style="flex:1;font-size:11px;">Cancelar</button>
-              <button onclick="createAccountFromInline()" class="btn btn-g" style="flex:1;font-size:11px;">✅ Crear</button>
-            </div>
-          </div>
-          <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--bdr);">
-            <button class="btn btn-r" id="del-all-btn" style="width:100%;justify-content:center;font-size:11px;">🗑 Borrar todo el registro de esta cuenta</button>
-          </div>
-        </div>
       </div>
 
-      <!-- COLUMNA 3: Vista previa de la cuenta (igual a la imagen) -->
+      <!-- COLUMNA 3: Vista previa de la cuenta -->
       <div style="width:290px;flex-shrink:0;" id="acct-preview-col">
         <div class="card" style="background:linear-gradient(135deg,#111,#0f0f0f);border-color:var(--bdr2);position:sticky;top:0;">
           <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:14px;">Vista previa de la cuenta</div>
@@ -1136,6 +1078,16 @@ tr:hover td{background:rgba(19,24,40,.8)}
             <button class="btn btn-gold" style="margin-top:10px;width:100%;justify-content:center;" onclick="document.getElementById('smo').classList.add('show');setSTab('exp')">↕ Abrir Sincronización</button>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- ── REGISTRO DE DATOS ── -->
+    <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--bdr);">
+      <div style="font-size:11px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">⚠ Registro de datos</div>
+      <div class="card" style="border-color:rgba(255,23,68,.2);background:rgba(255,23,68,.03);">
+        <div style="font-size:13px;font-weight:800;color:var(--red);margin-bottom:6px;">Eliminar registro de esta cuenta</div>
+        <div style="font-size:11px;color:var(--gray2);margin-bottom:14px;">Borra permanentemente todas las operaciones registradas en la cuenta activa. Esta acción no se puede deshacer.</div>
+        <button class="btn btn-r" id="del-all-btn" onclick="delAll()" style="justify-content:center;font-size:12px;padding:10px 20px;">🗑 Borrar todo el registro de esta cuenta</button>
       </div>
     </div>
 
@@ -1663,6 +1615,7 @@ function calGoTo(){
 
 // CONFIG
 function renderConfig(){
+  _modoNuevaCuenta = false;
   var s=S.settings;
   var ca=g('ca2');if(ca)ca.value=s.accountSize;
   var ai=g('acct-inp');if(ai)ai.value=s.accountSize;
@@ -1682,7 +1635,7 @@ function renderConfig(){
   var inf=g('acfg-initial');if(inf)inf.value=acct.initialBalance||s.accountSize||0;
   var curf=g('acfg-current');if(curf)curf.value=s.accountSize||0;
   var df=g('acfg-desc');if(df)df.value=acct.description||'';
-  var tzf=g('acfg-tz');if(tzf&&acct.timezone)tzf.value=acct.timezone;
+  var tzf=null;if(tzf&&acct.timezone)tzf.value=acct.timezone;
   // Actualizar label del header
   var lbl=g('acct-editing-name');if(lbl)lbl.textContent=acct.name||'—';
   renderAssets();renderASels();
@@ -1822,7 +1775,7 @@ function saveRuleExtra(){
 }
 
 function saveAcctConfig(){
-  var name=g('acfg-name'),type=g('acfg-type'),curr=g('acfg-currency'),init=g('acfg-initial'),cur=g('acfg-current'),desc=g('acfg-desc'),tz=g('acfg-tz');
+  var name=g('acfg-name'),type=g('acfg-type'),curr=g('acfg-currency'),init=g('acfg-initial'),cur=g('acfg-current'),desc=g('acfg-desc'),tz=null;
   // Update account meta
   var accounts=getAccounts(); var id=getActiveId();
   var idx=accounts.findIndex(function(a){return a.id===id;});
@@ -2728,32 +2681,67 @@ function abrirFormNuevaCuenta(){
   if(typeof toast==='function') toast('✅ Cuenta creada: '+nombre.trim(), '#00e676');
 }
 
-/* ── GUARDAR configuración de la cuenta activa ── */
-function guardarCuenta(){
-  var id = getActiveId();
-  var accounts = getAccounts();
-  var idx = accounts.findIndex(function(a){return a.id===id;});
+/* ── NUEVA CUENTA: preparar formulario vacío ── */
+var _modoNuevaCuenta = false;
+function prepararNuevaCuenta(){
+  _modoNuevaCuenta = true;
+  // Limpiar campos del formulario
+  var fields=['acfg-name','acfg-initial','acfg-current','acfg-desc'];
+  fields.forEach(function(id){var el=g(id);if(el)el.value='';});
+  var typeEl=g('acfg-type');if(typeEl)typeEl.value='normal';
+  var currEl=g('acfg-currency');if(currEl)currEl.value='USD';
+  // Actualizar header
+  var lbl=g('acct-editing-label');if(lbl)lbl.textContent='Creando nueva cuenta';
+  var nm=g('acct-editing-name');if(nm)nm.textContent='(rellena los campos y haz clic en Guardar)';
+  // Ir a la pestaña general
+  showAcctTab('general');
+  if(typeof toast==='function') toast('Rellena los campos y pulsa Guardar', '#00d4ff');
+}
 
-  // Leer campos del formulario
+/* ── GUARDAR configuración de la cuenta activa (o crear nueva) ── */
+function guardarCuenta(){
   var nameEl = document.getElementById('acfg-name');
   var typeEl = document.getElementById('acfg-type');
   var currEl = document.getElementById('acfg-currency');
   var initEl = document.getElementById('acfg-initial');
   var curEl  = document.getElementById('acfg-current');
   var descEl = document.getElementById('acfg-desc');
-  var tzEl   = document.getElementById('acfg-tz');
 
-  if(nameEl && nameEl.value.trim()) {
-    // Actualizar datos de la cuenta en el array
-    if(idx >= 0){
-      accounts[idx].name = nameEl.value.trim();
-      accounts[idx].type = typeEl ? typeEl.value : accounts[idx].type;
-      accounts[idx].currency = currEl ? currEl.value : accounts[idx].currency;
-      accounts[idx].initialBalance = parseFloat(initEl&&initEl.value)||accounts[idx].initialBalance;
-      accounts[idx].description = descEl ? descEl.value : '';
-      accounts[idx].timezone = tzEl ? tzEl.value : '-5';
-      saveAccounts(accounts);
-    }
+  var nombre = nameEl ? nameEl.value.trim() : '';
+  if(!nombre){ if(typeof toast==='function') toast('⚠ Escribe un nombre para la cuenta','#ff1744'); return; }
+
+  if(_modoNuevaCuenta){
+    // ── CREAR NUEVA CUENTA ──
+    var bal = parseFloat(initEl&&initEl.value)||10000;
+    var tipo = typeEl ? typeEl.value : 'normal';
+    var cur  = currEl ? currEl.value : 'USD';
+    var desc = descEl ? descEl.value : '';
+    var accounts = getAccounts();
+    var newId = 'acct_'+Date.now();
+    accounts.push({id:newId, name:nombre, type:tipo, initialBalance:bal, currency:cur, description:desc, icon:'🏦', color:'#8b5cf6'});
+    saveAccounts(accounts);
+    saveAccountData(newId, [], {accountSize:bal, assets:S.settings.assets||[], challengeActive:tipo==='fondeo', maxDailyLoss:5, maxTotalLoss:10, profitTarget:10, alertAt:80});
+    _modoNuevaCuenta = false;
+    // Cambiar a la nueva cuenta automáticamente
+    switchAccount(newId);
+    renderSidebarAccounts();
+    renderConfig();
+    if(typeof toast==='function') toast('✅ Cuenta creada: '+nombre, '#00e676');
+    return;
+  }
+
+  // ── ACTUALIZAR CUENTA EXISTENTE ──
+  var id = getActiveId();
+  var accounts = getAccounts();
+  var idx = accounts.findIndex(function(a){return a.id===id;});
+
+  if(idx >= 0){
+    accounts[idx].name = nombre;
+    accounts[idx].type = typeEl ? typeEl.value : accounts[idx].type;
+    accounts[idx].currency = currEl ? currEl.value : accounts[idx].currency;
+    accounts[idx].initialBalance = parseFloat(initEl&&initEl.value)||accounts[idx].initialBalance;
+    accounts[idx].description = descEl ? descEl.value : '';
+    saveAccounts(accounts);
   }
 
   // Guardar settings (capital actual, reglas, pares, fondeo)
