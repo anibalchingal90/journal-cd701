@@ -1930,6 +1930,7 @@ function createAccountFromInline(){
   if(typeof toast==='function')toast('✅ Cuenta creada: '+name,'#00e676');
 }
 
+function openNewAcctInline(){
   var el=g('new-acct-inline');if(el)el.style.display=(el.style.display==='none'?'block':'none');
 }
 function closeNewAcctInline(){
