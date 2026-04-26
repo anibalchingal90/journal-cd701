@@ -2459,7 +2459,14 @@ function getAccounts(){
   try{ return JSON.parse(localStorage.getItem('tt_accounts')||'[]'); }catch(e){return [];}
 }
 function saveAccounts(arr){ localStorage.setItem('tt_accounts', JSON.stringify(arr)); }
-function getActiveId(){ return localStorage.getItem('tt_active')||'default'; }
+function getActiveId(){
+  var id = localStorage.getItem('tt_active')||'';
+  // Validar que el id existe en las cuentas
+  var accounts = getAccounts();
+  if(id && accounts.find(function(a){return a.id===id;})) return id;
+  if(accounts.length) return accounts[0].id;
+  return '';
+}
 function setActiveId(id){ localStorage.setItem('tt_active', id); }
 
 function initAccounts(){
@@ -2714,26 +2721,34 @@ function guardarCuenta(){
   var nombre = nameEl ? nameEl.value.trim() : '';
   if(!nombre){ if(typeof toast==='function') toast('⚠ Escribe un nombre para la cuenta','#ff1744'); return; }
 
-  // Determinar tipo según toggle de fondeo activo
   var isFondeo = S.settings.challengeActive;
   var tipo = isFondeo ? 'fondeo' : 'normal';
+  var bal = parseFloat(initEl&&initEl.value)||10000;
+  var cur  = currEl ? currEl.value : 'USD';
+  var desc = descEl ? descEl.value.trim() : '';
 
-  if(_modoNuevaCuenta){
-    var bal = parseFloat(initEl&&initEl.value)||10000;
-    var cur  = currEl ? currEl.value : 'USD';
-    var desc = descEl ? descEl.value : '';
-    var accounts = getAccounts();
+  var accounts = getAccounts();
+  var activeId = getActiveId();
+
+  // Es nueva cuenta si: modo explícito, o no hay cuentas, o el id activo no existe
+  var isNueva = _modoNuevaCuenta
+    || !accounts.length
+    || !accounts.find(function(a){ return a.id === activeId; });
+
+  if(isNueva){
     var newId = 'acct_'+Date.now();
     accounts.push({id:newId, name:nombre, type:tipo, initialBalance:bal, currency:cur, description:desc, icon:'🏦', color:'#8b5cf6'});
     saveAccounts(accounts);
-    saveAccountData(newId, [], {accountSize:bal, assets:S.settings.assets||[], challengeActive:isFondeo, maxDailyLoss:S.settings.maxDailyLoss||5, maxTotalLoss:S.settings.maxTotalLoss||10, profitTarget:S.settings.profitTarget||10, alertAt:80});
+    saveAccountData(newId, [], {
+      accountSize:bal, assets:S.settings.assets||[],
+      challengeActive:isFondeo, maxDailyLoss:S.settings.maxDailyLoss||5,
+      maxTotalLoss:S.settings.maxTotalLoss||10, profitTarget:S.settings.profitTarget||10, alertAt:80
+    });
     _modoNuevaCuenta = false;
-    // Activar la nueva cuenta SIN usar switchAccount para evitar side effects
     setActiveId(newId);
     S.settings.accountSize = bal;
     S.settings.challengeActive = isFondeo;
     S.trades = [];
-    // Actualizar UI
     renderSidebarAccounts();
     updateAcctBtn();
     renderConfig();
@@ -2744,23 +2759,18 @@ function guardarCuenta(){
   }
 
   // ── ACTUALIZAR CUENTA EXISTENTE ──
-  var id = getActiveId();
-  var accounts = getAccounts();
-  var idx = accounts.findIndex(function(a){return a.id===id;});
+  var idx = accounts.findIndex(function(a){return a.id===activeId;});
   if(idx >= 0){
     accounts[idx].name = nombre;
     accounts[idx].type = tipo;
-    accounts[idx].currency = currEl ? currEl.value : accounts[idx].currency;
-    accounts[idx].initialBalance = parseFloat(initEl&&initEl.value)||accounts[idx].initialBalance;
-    accounts[idx].description = descEl ? descEl.value : '';
+    accounts[idx].currency = cur;
+    accounts[idx].initialBalance = bal;
+    accounts[idx].description = desc;
     saveAccounts(accounts);
   }
-
-  // Guardar capital y settings
-  var capitalInicial = parseFloat(initEl&&initEl.value) || S.settings.accountSize;
-  S.settings.accountSize = capitalInicial;
+  S.settings.accountSize = bal;
   S.settings.challengeActive = isFondeo;
-  saveAccountData(id, S.trades, S.settings);
+  saveAccountData(activeId, S.trades, S.settings);
 
   renderSidebarAccounts();
   updateAcctBtn();
