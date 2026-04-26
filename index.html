@@ -735,14 +735,7 @@ tr:hover td{background:rgba(19,24,40,.8)}
         </button>
       </div>
     </div>
-    <!-- Sub-tabs de Cuentas — estilo imagen -->
-    <div style="display:flex;gap:0;margin-bottom:20px;border-bottom:1px solid var(--bdr);overflow-x:auto;">
-      <button class="acct-stab act" id="stab-general" onclick="showAcctTab('general')" style="padding:10px 18px;background:none;border:none;border-bottom:2px solid var(--green);color:var(--green);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .2s;">Información general</button>
-      <button class="acct-stab" id="stab-pares" onclick="showAcctTab('pares')" style="padding:10px 18px;background:none;border:none;border-bottom:2px solid transparent;color:var(--gray2);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .2s;">Pares</button>
-      <button class="acct-stab" id="stab-fondeo" onclick="showAcctTab('fondeo')" style="padding:10px 18px;background:none;border:none;border-bottom:2px solid transparent;color:var(--gray2);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .2s;">Modo fondeo</button>
-      <button class="acct-stab" id="stab-reglas" onclick="showAcctTab('reglas')" style="padding:10px 18px;background:none;border:none;border-bottom:2px solid transparent;color:var(--gray2);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .2s;">Reglas y límites</button>
-      <button class="acct-stab" id="stab-visual" onclick="showAcctTab('visual')" style="padding:10px 18px;background:none;border:none;border-bottom:2px solid transparent;color:var(--gray2);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .2s;">Visualización</button>
-    </div>
+
 
     <!-- ── SUB-TAB: Información General — Layout 3 columnas ── -->
     <div id="acct-panel-general" class="acct-panel" style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start;">
@@ -1667,7 +1660,7 @@ function renderConfigAccounts(){
     html += '<div style="display:flex;gap:5px;flex-shrink:0;">';
     if(!isActive) html += '<button onclick="switchAccount('+JSON.stringify(a.id)+')" style="background:rgba(0,230,118,.15);border:1px solid rgba(0,230,118,.3);color:#00e676;border-radius:7px;padding:5px 9px;cursor:pointer;font-size:10px;font-weight:700;">Usar</button>';
     html += '<button onclick="editarCuentaSidebar('+JSON.stringify(a.id)+')" style="background:#1e1e1e;border:1px solid #333;color:#4d9fff;border-radius:7px;padding:5px 8px;cursor:pointer;font-size:12px;">&#9998;</button>';
-    if(accounts.length>1) html += '<button onclick="deleteAccount(this,'+JSON.stringify(a.id)+')" style="background:#1e1e1e;border:1px solid #333;color:#ff1744;border-radius:7px;padding:5px 8px;cursor:pointer;font-size:12px;">&#128465;</button>';
+    if(accounts.length>1) html += '<button onclick="borrarCuentaDirecto('+JSON.stringify(a.id)+','+JSON.stringify(a.name)+')" style="background:#1e1e1e;border:1px solid #333;color:#ff1744;border-radius:7px;padding:5px 8px;cursor:pointer;font-size:12px;">&#128465;</button>';
     html += '</div></div>';
   }
   // Botón para crear nueva cuenta
@@ -1954,9 +1947,13 @@ function showTab(id,el){
   if(id==='analisis')renderA();
   if(id==='registro'){renderCalSels();renderCal();renderMonthSummary();renderMonthStats();renderDayDetail();}
   if(id==='config'){
-    var _accs=getAccounts();
-    if(!_accs.length){ _modoNuevaCuenta=true; } 
-    // Si no estamos en modo nueva, preservar estado actual
+    // Siempre limpiar y poner en modo nueva cuenta al entrar
+    _modoNuevaCuenta = true;
+    var _fields=['acfg-name','acfg-initial','acfg-desc'];
+    _fields.forEach(function(fid){var el=g(fid);if(el)el.value='';});
+    var _curr=g('acfg-currency');if(_curr)_curr.value='USD';
+    var _lbl=g('acct-editing-label');if(_lbl)_lbl.textContent='Creando nueva cuenta';
+    var _nm=g('acct-editing-name');if(_nm)_nm.textContent='(rellena los campos y haz clic en Guardar)';
     renderConfig();showAcctTab('general');
   }
 }
@@ -2659,15 +2656,64 @@ function renderSidebarAccounts(){
 }
 
 function editarCuentaSidebar(id){
-  // Ir a config y cargar esa cuenta
-  switchAccount(id);
-  showTab('config', document.getElementById('nav-config'));
-  setTimeout(function(){ renderConfig(); showAcctTab('general'); }, 100);
+  // Cargar esa cuenta en modo edición (sin limpiar campos)
+  var accounts = getAccounts();
+  var a = accounts.find(function(x){return x.id===id;});
+  if(!a) return;
+  // Cambiar cuenta activa sin limpiar form
+  saveAccountData(getActiveId(), S.trades, S.settings);
+  setActiveId(id);
+  _modoNuevaCuenta = false;
+  var defaultCfg = {accountSize:a.initialBalance, assets:S.settings.assets||[], challengeActive:a.type==='fondeo', maxDailyLoss:5, maxTotalLoss:10, profitTarget:10, alertAt:80};
+  S.settings = Object.assign({}, defaultCfg);
+  loadAccountData(id);
+  S.settings.accountSize = a.initialBalance;
+  // Navegar a config sin activar modo nueva cuenta
+  var _savedModo = _modoNuevaCuenta;
+  _modoNuevaCuenta = false;
+  // Mostrar tab config directamente
+  ['dash','registro','stats','analisis','fondeo','config'].forEach(function(t){
+    var e2=g('tab-'+t);if(e2)e2.classList.remove('act');
+    var n=g('nav-'+t);if(n)n.classList.remove('act');
+  });
+  var tc=g('tab-config');if(tc)tc.classList.add('act');
+  var nc=g('nav-config');if(nc)nc.classList.add('act');
+  var pt=g('pg-title');if(pt)pt.textContent='Configuración de la cuenta';
+  var ps=g('pg-sub');if(ps)ps.textContent='Gestión de cuentas de trading';
+  // Actualizar label
+  var lbl=g('acct-editing-label');if(lbl)lbl.textContent='Editando cuenta';
+  var nm=g('acct-editing-name');if(nm)nm.textContent=a.name;
+  renderConfig();
+  showAcctTab('general');
+  updateAcctBtn();
+  renderSidebarAccounts();
+  if(typeof toast==='function') toast('✏ Editando: '+a.name, '#4d9fff');
 }
 
 function eliminarCuentaSidebar(btn, id){
   deleteAccount(btn, id);
   renderSidebarAccounts();
+}
+
+function borrarCuentaDirecto(id, nombre){
+  var accounts = getAccounts();
+  if(accounts.length<=1){ if(typeof toast==='function') toast('⚠ Necesitas al menos 1 cuenta','#ff1744'); return; }
+  if(!confirm('¿Eliminar la cuenta "'+nombre+'"?\nEsta acción no se puede deshacer.')) return;
+  accounts = accounts.filter(function(a){return a.id!==id;});
+  saveAccounts(accounts);
+  localStorage.removeItem('tt_cfg_'+id);
+  var n=parseInt(localStorage.getItem('tt_n_'+id)||'0');
+  for(var i=0;i<n;i++) localStorage.removeItem('tt_'+id+'_'+i);
+  localStorage.removeItem('tt_n_'+id);
+  if(getActiveId()===id){
+    // Cambiar a otra cuenta
+    setActiveId(accounts[0].id);
+    loadAccountData(accounts[0].id);
+    _modoNuevaCuenta = false;
+  }
+  renderSidebarAccounts();
+  renderConfigAccounts();
+  if(typeof toast==='function') toast('🗑 Cuenta "'+nombre+'" eliminada','#ff1744');
 }
 
 function seleccionarCuentaSidebar(id){
