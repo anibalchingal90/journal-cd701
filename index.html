@@ -1594,12 +1594,13 @@ function calGoTo(){
 function renderConfig(){
   actualizarBtnGuardar();
   var s=S.settings;
+  // En modo nueva cuenta: leer DOM → draft antes de renderizar
+  if(_modoNuevaCuenta) _draftReadDOM();
   // Leer valores actuales del form y guardarlos en S.settings antes de renderizar
-  // (así no se pierden cambios que el usuario haya escrito pero no guardado)
   var cfdEl=g('cfd');if(cfdEl&&cfdEl.value!==''){var n=parseFloat(cfdEl.value);if(!isNaN(n))s.maxDailyLoss=n;}
   var cftEl=g('cft');if(cftEl&&cftEl.value!==''){var n2=parseFloat(cftEl.value);if(!isNaN(n2))s.maxTotalLoss=n2;}
   var cfgEl=g('cfg');if(cfgEl&&cfgEl.value!==''){var n3=parseFloat(cfgEl.value);if(!isNaN(n3))s.profitTarget=n3;}
-  // Ahora sí actualizar los campos del form con los valores de S.settings
+  // Actualizar campos del form con los valores de S.settings
   var ca=g('ca2');if(ca)ca.value=s.accountSize;
   var ai=g('acct-inp');if(ai)ai.value=s.accountSize;
   var cfd=g('cfd');if(cfd)cfd.value=s.maxDailyLoss;
@@ -1623,7 +1624,13 @@ function renderConfig(){
   renderPairsTags();
   renderRulesSummary();
   updateRuleEquivalents();
-  updatePreview();
+  // En modo nueva cuenta: restaurar draft para que ningún re-render borre lo ya configurado
+  if(_modoNuevaCuenta){
+    _draftWriteDOM();
+    _updatePreviewDraft();
+  } else {
+    updatePreview();
+  }
 }
 function saveC2(){
   var n=pN(g('ca2').value);
@@ -1635,6 +1642,11 @@ function saveC2(){
   save();renderDash();checkAlerts();
 }
 function saveF(){
+  if(_modoNuevaCuenta){
+    _draftReadDOM();
+    _updatePreviewDraft();
+    return;
+  }
   var s=S.settings;
   [['cfd','maxDailyLoss'],['cft','maxTotalLoss'],['cfg','profitTarget']].forEach(function(p){var n=pN(g(p[0]).value);if(n!==null)s[p[1]]=n;});
   var cfalR=g('cfal-rule');if(cfalR)cfalR.value=s.maxTotalLoss;
@@ -1755,6 +1767,12 @@ function saveRuleExtra(){
 }
 
 function saveAcctConfig(){
+  if(_modoNuevaCuenta){
+    // En modo nueva cuenta: solo actualizar draft, no tocar localStorage
+    _draftReadDOM();
+    _updatePreviewDraft();
+    return;
+  }
   var name=g('acfg-name'),curr=g('acfg-currency'),init=g('acfg-initial'),desc=g('acfg-desc');
   var accounts=getAccounts(); var id=getActiveId();
   var idx=accounts.findIndex(function(a){return a.id===id;});
@@ -1777,6 +1795,7 @@ function saveC2fromConfig(){
 }
 
 function updatePreview(){
+  if(_modoNuevaCuenta){ _updatePreviewDraft(); return; }
   var accounts=getAccounts(); var id=getActiveId();
   var acct=accounts.find(function(a){return a.id===id;})||{};
   var s=S.settings;
@@ -1800,15 +1819,12 @@ function updatePreview(){
   var ppt=g('prev-profit-target');if(ppt)ppt.textContent=(s.profitTarget||10)+'% ($'+(initVal*(s.profitTarget||10)/100).toLocaleString('en')+')';
   var pdl=g('prev-daily-loss');if(pdl)pdl.textContent=(s.maxDailyLoss||5)+'%';
   var pml=g('prev-max-loss');if(pml)pml.textContent=(s.maxTotalLoss||10)+'%';
-  // Update preview card color & icon
   var bg=g('prev-card-bg');
   if(bg) bg.style.background='linear-gradient(135deg,'+acctColor+'55,'+acctColor+'33)';
   var pi=g('prev-icon');if(pi){pi.textContent=acctIcon;pi.style.background=acctColor+'44';}
-  // Sync color dots UI
   document.querySelectorAll('.acct-color-dot').forEach(function(d){
     d.style.border=d.dataset.color===acctColor?'3px solid #fff':'2px solid transparent';
   });
-  // Sync icon UI
   document.querySelectorAll('#acct-icons > div').forEach(function(d){
     var sel=d.dataset.icon===acctIcon;
     d.style.border=sel?'2px solid var(--green)':'1px solid var(--bdr)';
@@ -1822,6 +1838,7 @@ function refreshFondeoSwitch(){
 
 function setAcctColor(color){
   _selectedColor = color;
+  _draft.color   = color;
   if(!_modoNuevaCuenta){
     var accounts=getAccounts();var id=getActiveId();
     var idx=accounts.findIndex(function(a){return a.id===id;});
@@ -1837,6 +1854,7 @@ function setAcctColor(color){
 }
 function setAcctIcon(icon){
   _selectedIcon = icon;
+  _draft.icon   = icon;
   if(!_modoNuevaCuenta){
     var accounts=getAccounts();var id=getActiveId();
     var idx=accounts.findIndex(function(a){return a.id===id;});
@@ -1875,19 +1893,26 @@ function closeNewAcctInline(){
 
 
 function togChallenge(){
-  // Preserve current form values before toggle
+  if(_modoNuevaCuenta){
+    // En modo nueva cuenta: leer draft del DOM, cambiar solo fondeo, restaurar
+    _draftReadDOM();
+    _draft.challengeActive = !_draft.challengeActive;
+    S.settings.challengeActive = _draft.challengeActive;
+    _draftWriteDOM();
+    _updatePreviewDraft();
+    return;
+  }
+  // En modo edición de cuenta existente: guardar campos antes de re-render
   var _prevName=g('acfg-name')&&g('acfg-name').value;
   var _prevCurr=g('acfg-currency')&&g('acfg-currency').value;
   var _prevInit=g('acfg-initial')&&g('acfg-initial').value;
   var _prevDesc=g('acfg-desc')&&g('acfg-desc').value;
   S.settings.challengeActive=!S.settings.challengeActive;
   save();renderConfig();renderDash();renderFondeo();checkAlerts();updatePreview();
-  // Restore form values after re-render
   if(_prevName&&g('acfg-name'))g('acfg-name').value=_prevName;
   if(_prevCurr&&g('acfg-currency'))g('acfg-currency').value=_prevCurr;
   if(_prevInit&&g('acfg-initial'))g('acfg-initial').value=_prevInit;
   if(_prevDesc&&g('acfg-desc'))g('acfg-desc').value=_prevDesc;
-  // Sync both toggles
   var t=g('ctog');if(t){if(S.settings.challengeActive)t.classList.add('on');else t.classList.remove('on');}
   var t2=g('ctog2');if(t2){if(S.settings.challengeActive)t2.classList.add('on');else t2.classList.remove('on');}
   updatePreview();
@@ -1973,11 +1998,8 @@ function showTab(id,el){
   if(id==='config'){
     // Siempre limpiar y poner en modo nueva cuenta al entrar
     _modoNuevaCuenta = true;
-    var _fields=['acfg-name','acfg-initial','acfg-desc'];
-    _fields.forEach(function(fid){var el=g(fid);if(el)el.value='';});
-    var _curr=g('acfg-currency');if(_curr)_curr.value='USD';
-    var _lbl=g('acct-editing-label');if(_lbl)_lbl.textContent='Creando nueva cuenta';
-    var _nm=g('acct-editing-name');if(_nm)_nm.textContent='(rellena los campos y haz clic en Guardar)';
+    _draft = {name:'',currency:'USD',initial:'',desc:'',color:'#8b5cf6',icon:'🏦',challengeActive:false,maxDailyLoss:5,maxTotalLoss:10,profitTarget:10};
+    _selectedColor='#8b5cf6'; _selectedIcon='🏦';
     renderConfig();showAcctTab('general');
   }
 }
@@ -2781,37 +2803,134 @@ function abrirFormNuevaCuenta(){
   if(typeof toast==='function') toast('✅ Cuenta creada: '+nombre.trim(), '#00e676');
 }
 
-/* ── NUEVA CUENTA: preparar formulario vacío ── */
+/* ══════════════════════════════════════════════════════════════
+   NUEVA CUENTA — objeto draft en memoria
+   Es la única fuente de verdad mientras se configura una cuenta.
+   Ningún re-render parcial puede borrarlo porque está en JS, no en el DOM.
+══════════════════════════════════════════════════════════════ */
 var _modoNuevaCuenta = false;
 var _selectedColor = '#8b5cf6';
-var _selectedIcon = '🏦';
-function prepararNuevaCuenta(){
-  _modoNuevaCuenta = true;
-  var fields=['acfg-name','acfg-initial','acfg-desc'];
-  fields.forEach(function(id){var el=g(id);if(el)el.value='';});
-  var currEl=g('acfg-currency');if(currEl)currEl.value='USD';
+var _selectedIcon  = '🏦';
+
+var _draft = {
+  name:'', currency:'USD', initial:'', desc:'',
+  color:'#8b5cf6', icon:'🏦',
+  challengeActive:false, maxDailyLoss:5, maxTotalLoss:10, profitTarget:10
+};
+
+/* Lee el DOM y actualiza _draft (solo si hay valor real en el campo) */
+function _draftReadDOM(){
+  var n=g('acfg-name');    if(n!=null) _draft.name=n.value;
+  var c=g('acfg-currency');if(c!=null) _draft.currency=c.value||'USD';
+  var i=g('acfg-initial'); if(i!=null) _draft.initial=i.value;
+  var d=g('acfg-desc');    if(d!=null) _draft.desc=d.value;
+  var cfd=g('cfd'); if(cfd&&cfd.value!=='') _draft.maxDailyLoss=parseFloat(cfd.value)||_draft.maxDailyLoss;
+  var cft=g('cft'); if(cft&&cft.value!=='') _draft.maxTotalLoss=parseFloat(cft.value)||_draft.maxTotalLoss;
+  var cfg=g('cfg'); if(cfg&&cfg.value!=='') _draft.profitTarget=parseFloat(cfg.value)||_draft.profitTarget;
+  _draft.challengeActive = !!S.settings.challengeActive;
+  _draft.color = _selectedColor;
+  _draft.icon  = _selectedIcon;
+}
+
+/* Escribe _draft en el DOM (restaura campos después de cualquier re-render) */
+function _draftWriteDOM(){
+  var n=g('acfg-name');    if(n) n.value=_draft.name;
+  var c=g('acfg-currency');if(c) c.value=_draft.currency;
+  var i=g('acfg-initial'); if(i) i.value=_draft.initial;
+  var d=g('acfg-desc');    if(d) d.value=_draft.desc;
+  var cfd=g('cfd'); if(cfd) cfd.value=_draft.maxDailyLoss;
+  var cft=g('cft'); if(cft) cft.value=_draft.maxTotalLoss;
+  var cfg=g('cfg'); if(cfg) cfg.value=_draft.profitTarget;
+  _selectedColor = _draft.color;
+  _selectedIcon  = _draft.icon;
+  // Toggle modo fondeo
+  S.settings.challengeActive = _draft.challengeActive;
+  var tog=g('ctog');if(tog){if(_draft.challengeActive)tog.classList.add('on');else tog.classList.remove('on');}
+  var tog2=g('ctog2');if(tog2){if(_draft.challengeActive)tog2.classList.add('on');else tog2.classList.remove('on');}
+  // Color dots
+  document.querySelectorAll('.acct-color-dot').forEach(function(el){
+    el.style.border=el.dataset.color===_draft.color?'3px solid #fff':'2px solid transparent';
+  });
+  // Icon buttons
+  document.querySelectorAll('#acct-icons > div').forEach(function(el){
+    var sel=el.dataset.icon===_draft.icon;
+    el.style.border=sel?'2px solid var(--green)':'1px solid var(--bdr)';
+    el.style.background=sel?'rgba(77,159,255,.2)':'var(--bg)';
+  });
+  // Labels
   var lbl=g('acct-editing-label');if(lbl)lbl.textContent='Creando nueva cuenta';
   var nm=g('acct-editing-name');if(nm)nm.textContent='(rellena los campos y haz clic en Guardar)';
+}
+
+/* Actualiza la vista previa usando _draft como fuente (no toca los inputs) */
+function _updatePreviewDraft(){
+  var color  = _draft.color  || '#8b5cf6';
+  var icon   = _draft.icon   || '🏦';
+  var name   = _draft.name   || 'Nueva Cuenta';
+  var curr   = _draft.currency || 'USD';
+  var initV  = parseFloat(_draft.initial)||0;
+  var desc   = _draft.desc   || '';
+  var isFondeo = !!_draft.challengeActive;
+  var s = S.settings;
+
+  var pn=g('prev-name');if(pn)pn.textContent=name;
+  var pb=g('prev-type-badge');if(pb){pb.textContent=isFondeo?'FONDEO':'PERSONAL';pb.style.background=isFondeo?'rgba(232,160,32,.2)':'rgba(77,159,255,.12)';pb.style.color=isFondeo?'#e8a020':'#4d9fff';}
+  var pd=g('prev-desc');if(pd)pd.textContent=desc||'—';
+  var pc=g('prev-current');if(pc)pc.innerHTML='$'+initV.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})+' <span style="font-size:12px;color:#888;">'+curr+'</span>';
+  var pi2=g('prev-initial');if(pi2)pi2.textContent='$'+initV.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})+' '+curr;
+  var pcu=g('prev-currency');if(pcu)pcu.textContent=curr;
+  var pp=g('prev-pairs');if(pp){var asts=s.assets||[];pp.innerHTML=asts.slice(0,8).map(function(a){return'<span style="font-size:9px;padding:2px 6px;border-radius:4px;background:rgba(77,159,255,.12);border:1px solid rgba(77,159,255,.25);color:#4d9fff;font-weight:700;">'+a+'</span>';}).join('')+(asts.length>8?'<span style="font-size:9px;color:#555;">+'+(asts.length-8)+'</span>':'');}
+  var pfs=g('prev-fondeo-status');if(pfs){pfs.textContent=isFondeo?'Activo':'Inactivo';pfs.style.color=isFondeo?'#00e676':'#555';}
+  var pr=g('prev-rules');if(pr)pr.style.display=isFondeo?'block':'none';
+  var pll=g('prev-loss-limit');if(pll)pll.textContent=(_draft.maxTotalLoss||10)+'% ($'+(initV*(_draft.maxTotalLoss||10)/100).toLocaleString('en')+')';
+  var ppt=g('prev-profit-target');if(ppt)ppt.textContent=(_draft.profitTarget||10)+'% ($'+(initV*(_draft.profitTarget||10)/100).toLocaleString('en')+')';
+  var pdl=g('prev-daily-loss');if(pdl)pdl.textContent=(_draft.maxDailyLoss||5)+'%';
+  var pml=g('prev-max-loss');if(pml)pml.textContent=(_draft.maxTotalLoss||10)+'%';
+  var bg=g('prev-card-bg');
+  if(bg) bg.style.background='linear-gradient(135deg,'+color+'55,'+color+'33)';
+  var pi=g('prev-icon');if(pi){pi.textContent=icon;pi.style.background=color+'44';}
+  document.querySelectorAll('.acct-color-dot').forEach(function(el){
+    el.style.border=el.dataset.color===color?'3px solid #fff':'2px solid transparent';
+  });
+  document.querySelectorAll('#acct-icons > div').forEach(function(el){
+    var sel=el.dataset.icon===icon;
+    el.style.border=sel?'2px solid var(--green)':'1px solid var(--bdr)';
+    el.style.background=sel?'rgba(77,159,255,.2)':'var(--bg)';
+  });
+}
+
+function prepararNuevaCuenta(){
+  _modoNuevaCuenta = true;
+  // Limpiar draft a valores vacíos
+  _draft = {name:'',currency:'USD',initial:'',desc:'',color:'#8b5cf6',icon:'🏦',challengeActive:false,maxDailyLoss:5,maxTotalLoss:10,profitTarget:10};
+  _selectedColor='#8b5cf6'; _selectedIcon='🏦';
+  // Escribir draft en el DOM
+  _draftWriteDOM();
   showAcctTab('general');
   actualizarBtnGuardar();
+  _updatePreviewDraft();
+  renderConfigAccounts();
   if(typeof toast==='function') toast('Rellena los campos y pulsa Guardar', '#00d4ff');
 }
 
 /* ── GUARDAR configuración de la cuenta activa (o crear nueva) ── */
 function guardarCuenta(){
-  var nameEl = document.getElementById('acfg-name');
-  var currEl = document.getElementById('acfg-currency');
-  var initEl = document.getElementById('acfg-initial');
-  var descEl = document.getElementById('acfg-desc');
+  // En modo nueva cuenta: leer draft del DOM antes de guardar
+  if(_modoNuevaCuenta) _draftReadDOM();
 
-  var nombre = nameEl ? nameEl.value.trim() : '';
+  var nombre = _modoNuevaCuenta ? _draft.name.trim() : (g('acfg-name')?g('acfg-name').value.trim():'');
   if(!nombre){ if(typeof toast==='function') toast('⚠ Escribe un nombre para la cuenta','#ff1744'); return; }
 
-  var isFondeo = S.settings.challengeActive;
+  var isFondeo = _modoNuevaCuenta ? _draft.challengeActive : S.settings.challengeActive;
   var tipo = isFondeo ? 'fondeo' : 'normal';
-  var bal = parseFloat(initEl&&initEl.value)||10000;
-  var cur  = currEl ? currEl.value : 'USD';
-  var desc = descEl ? descEl.value.trim() : '';
+  var bal  = _modoNuevaCuenta ? (parseFloat(_draft.initial)||10000) : (parseFloat(g('acfg-initial')&&g('acfg-initial').value)||10000);
+  var cur  = _modoNuevaCuenta ? _draft.currency : (g('acfg-currency')?g('acfg-currency').value:'USD');
+  var desc = _modoNuevaCuenta ? _draft.desc : (g('acfg-desc')?g('acfg-desc').value.trim():'');
+  var color = _modoNuevaCuenta ? _draft.color  : (_selectedColor||'#8b5cf6');
+  var icon  = _modoNuevaCuenta ? _draft.icon   : (_selectedIcon ||'🏦');
+  var mdl   = _modoNuevaCuenta ? _draft.maxDailyLoss  : (S.settings.maxDailyLoss||5);
+  var mtl   = _modoNuevaCuenta ? _draft.maxTotalLoss  : (S.settings.maxTotalLoss||10);
+  var pt    = _modoNuevaCuenta ? _draft.profitTarget  : (S.settings.profitTarget||10);
 
   var accounts = getAccounts();
   var activeId = getActiveId();
@@ -2823,30 +2942,23 @@ function guardarCuenta(){
 
   if(isNueva){
     var newId = 'acct_'+Date.now();
-    accounts.push({id:newId, name:nombre, type:tipo, initialBalance:bal, currency:cur, description:desc, icon:_selectedIcon||'🏦', color:_selectedColor||'#8b5cf6'});
+    accounts.push({id:newId, name:nombre, type:tipo, initialBalance:bal, currency:cur, description:desc, icon:icon, color:color});
     saveAccounts(accounts);
     saveAccountData(newId, [], {
       accountSize:bal, assets:S.settings.assets||[],
-      challengeActive:isFondeo, maxDailyLoss:S.settings.maxDailyLoss||5,
-      maxTotalLoss:S.settings.maxTotalLoss||10, profitTarget:S.settings.profitTarget||10, alertAt:80
+      challengeActive:isFondeo, maxDailyLoss:mdl,
+      maxTotalLoss:mtl, profitTarget:pt, alertAt:80
     });
-    // Resetear selección de color e icono
-    _selectedColor = '#8b5cf6';
-    _selectedIcon = '🏦';
-    // Limpiar campos y dejar listo para nueva cuenta
-    var fields=['acfg-name','acfg-initial','acfg-desc'];
-    fields.forEach(function(fid){var el=document.getElementById(fid);if(el)el.value='';});
-    var currReset=document.getElementById('acfg-currency');if(currReset)currReset.value='USD';
-    // Resetear UI de color e icono al default
-    document.querySelectorAll('.acct-color-dot').forEach(function(d){d.style.border=d.dataset.color==='#8b5cf6'?'3px solid #fff':'2px solid transparent';});
-    document.querySelectorAll('#acct-icons > div').forEach(function(d){var sel=d.dataset.icon==='🏦';d.style.border=sel?'2px solid var(--green)':'1px solid var(--bdr)';d.style.background=sel?'rgba(77,159,255,.2)':'var(--bg)';});
+    // Resetear draft para la próxima cuenta
+    _draft = {name:'',currency:'USD',initial:'',desc:'',color:'#8b5cf6',icon:'🏦',challengeActive:false,maxDailyLoss:5,maxTotalLoss:10,profitTarget:10};
+    _selectedColor='#8b5cf6'; _selectedIcon='🏦';
     _modoNuevaCuenta = true;
-    var lbl=document.getElementById('acct-editing-label');if(lbl)lbl.textContent='Creando nueva cuenta';
-    var nm=document.getElementById('acct-editing-name');if(nm)nm.textContent='(rellena los campos y haz clic en Guardar)';
+    _draftWriteDOM();
+    actualizarBtnGuardar();
     renderSidebarAccounts();
     updateAcctBtn();
     renderConfigAccounts();
-    actualizarBtnGuardar();
+    _updatePreviewDraft();
     if(typeof toast==='function') toast('✅ Cuenta creada: '+nombre+' — puedes agregar otra', '#00e676');
     return;
   }
