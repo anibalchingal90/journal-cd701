@@ -1595,14 +1595,6 @@ function calGoTo(){
 
 // CONFIG
 function renderConfig(){
-  // Solo poner false si hay una cuenta activa válida
-  var accounts=getAccounts();var id=getActiveId();
-  var acctActiva=accounts.find(function(a){return a.id===id;});
-  if(acctActiva){
-    _modoNuevaCuenta = false;
-  } else {
-    _modoNuevaCuenta = true;
-  }
   actualizarBtnGuardar();
   var s=S.settings;
   var ca=g('ca2');if(ca)ca.value=s.accountSize;
@@ -1612,14 +1604,18 @@ function renderConfig(){
   var cfg=g('cfg');if(cfg)cfg.value=s.profitTarget;
   var t=g('ctog');if(t){if(s.challengeActive)t.classList.add('on');else t.classList.remove('on');}
   var t2=g('ctog2');if(t2){if(s.challengeActive)t2.classList.add('on');else t2.classList.remove('on');}
-  // Populate the unified accounts form fields
-  var acct = acctActiva || {};
-  var nf=g('acfg-name');if(nf)nf.value=acct.name||'';
-  var cf=g('acfg-currency');if(cf)cf.value=acct.currency||'USD';
-  var inf=g('acfg-initial');if(inf)inf.value=acct.initialBalance||s.accountSize||0;
-  var df=g('acfg-desc');if(df)df.value=acct.description||'';
-  // Actualizar label del header
-  var lbl=g('acct-editing-name');if(lbl)lbl.textContent=acct.name||'—';
+  // Populate the unified accounts form fields (solo si no estamos creando una nueva)
+  if(!_modoNuevaCuenta){
+    var accounts=getAccounts();var id=getActiveId();
+    var acct=accounts.find(function(a){return a.id===id;})||{};
+    var nf=g('acfg-name');if(nf)nf.value=acct.name||'';
+    var cf=g('acfg-currency');if(cf)cf.value=acct.currency||'USD';
+    var inf=g('acfg-initial');if(inf)inf.value=acct.initialBalance||s.accountSize||0;
+    var df=g('acfg-desc');if(df)df.value=acct.description||'';
+    // Actualizar label del header
+    var lbl2=g('acct-editing-label');if(lbl2)lbl2.textContent='Configurando cuenta activa';
+    var lbl=g('acct-editing-name');if(lbl)lbl.textContent=acct.name||'—';
+  }
   renderAssets();renderASels();
   renderConfigAccounts();
   renderPairsTags();
@@ -1957,7 +1953,12 @@ function showTab(id,el){
   if(id==='stats')renderStats();
   if(id==='analisis')renderA();
   if(id==='registro'){renderCalSels();renderCal();renderMonthSummary();renderMonthStats();renderDayDetail();}
-  if(id==='config'){renderConfig();showAcctTab('general');}
+  if(id==='config'){
+    var _accs=getAccounts();
+    if(!_accs.length){ _modoNuevaCuenta=true; } 
+    // Si no estamos en modo nueva, preservar estado actual
+    renderConfig();showAcctTab('general');
+  }
 }
 
 // CHART HELPER
@@ -2588,6 +2589,7 @@ function switchAccount(id){
   saveAccountData(currentId, S.trades, S.settings);
   // Cambiar cuenta
   setActiveId(id);
+  _modoNuevaCuenta = false; // salir de modo nueva cuenta
   // Cargar nueva cuenta
   var accounts = getAccounts();
   var acct = accounts.find(function(a){return a.id===id;});
@@ -2736,10 +2738,10 @@ function guardarCuenta(){
   var accounts = getAccounts();
   var activeId = getActiveId();
 
-  // SIEMPRE crear nueva si _modoNuevaCuenta está activo
-  // _modoNuevaCuenta se pone true al entrar a config sin cuenta activa, o al pulsar "Nueva cuenta"
-  // Se pone false solo después de guardar o al seleccionar una cuenta existente para editar
-  var isNueva = _modoNuevaCuenta || !activeId || !accounts.find(function(a){ return a.id === activeId; });
+  // Es nueva cuenta si: modo explícito, o no hay cuentas, o el id activo no existe
+  var isNueva = _modoNuevaCuenta
+    || !accounts.length
+    || !accounts.find(function(a){ return a.id === activeId; });
 
   if(isNueva){
     var newId = 'acct_'+Date.now();
@@ -2750,17 +2752,19 @@ function guardarCuenta(){
       challengeActive:isFondeo, maxDailyLoss:S.settings.maxDailyLoss||5,
       maxTotalLoss:S.settings.maxTotalLoss||10, profitTarget:S.settings.profitTarget||10, alertAt:80
     });
-    _modoNuevaCuenta = false;
-    setActiveId(newId);
-    S.settings.accountSize = bal;
-    S.settings.challengeActive = isFondeo;
-    S.trades = [];
+    // Limpiar campos y dejar listo para nueva cuenta
+    var fields=['acfg-name','acfg-initial','acfg-desc'];
+    fields.forEach(function(fid){var el=document.getElementById(fid);if(el)el.value='';});
+    var currReset=document.getElementById('acfg-currency');if(currReset)currReset.value='USD';
+    // Mantener modo nueva cuenta activo para que el usuario pueda seguir agregando
+    _modoNuevaCuenta = true;
+    var lbl=document.getElementById('acct-editing-label');if(lbl)lbl.textContent='Creando nueva cuenta';
+    var nm=document.getElementById('acct-editing-name');if(nm)nm.textContent='(rellena los campos y haz clic en Guardar)';
     renderSidebarAccounts();
     updateAcctBtn();
-    renderConfig();
+    renderConfigAccounts();
     actualizarBtnGuardar();
-    refresh();
-    if(typeof toast==='function') toast('✅ Cuenta creada: '+nombre, '#00e676');
+    if(typeof toast==='function') toast('✅ Cuenta creada: '+nombre+' — puedes agregar otra', '#00e676');
     return;
   }
 
