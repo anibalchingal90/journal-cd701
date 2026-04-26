@@ -655,6 +655,15 @@ tr:hover td{background:rgba(19,24,40,.8)}
         </div>
       </div>
     </div>
+    <!-- ── REGISTRO DE DATOS ── -->
+    <div style="margin-top:20px;padding-top:18px;border-top:1px solid var(--bdr);">
+      <div style="font-size:10px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">⚠ Registro de datos</div>
+      <div class="card" style="border-color:rgba(255,23,68,.2);background:rgba(255,23,68,.03);">
+        <div style="font-size:12px;font-weight:800;color:var(--red);margin-bottom:5px;">Eliminar registro de esta cuenta</div>
+        <div style="font-size:11px;color:var(--gray2);margin-bottom:12px;">Borra permanentemente todas las operaciones de la cuenta activa. No se puede deshacer.</div>
+        <button class="btn btn-r" id="del-all-btn" onclick="delAll()" style="justify-content:center;font-size:11px;padding:8px 18px;">🗑 Borrar todo el registro de esta cuenta</button>
+      </div>
+    </div>
   </div>
 
   <!-- ═══ ESTADÍSTICAS ═══ -->
@@ -746,18 +755,9 @@ tr:hover td{background:rgba(19,24,40,.8)}
         <div class="card">
           <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:4px;">Información general</div>
           <div style="font-size:11px;color:var(--gray2);margin-bottom:14px;">Define los datos básicos de tu cuenta de trading.</div>
-          <div class="fg2">
-            <div class="fg">
-              <label class="fl">Nombre de la cuenta</label>
-              <input type="text" id="acfg-name" class="fi" placeholder="Ej: FTMO Challenge" oninput="saveAcctConfig()">
-            </div>
-            <div class="fg">
-              <label class="fl">Tipo de cuenta</label>
-              <select id="acfg-type" class="fi" onchange="saveAcctConfig();refreshFondeoSwitch()">
-                <option value="normal">Personal</option>
-                <option value="fondeo">Fondeo (Prop Firm)</option>
-              </select>
-            </div>
+          <div class="fg">
+            <label class="fl">Nombre de la cuenta</label>
+            <input type="text" id="acfg-name" class="fi" placeholder="Ej: FTMO Challenge" oninput="saveAcctConfig()">
           </div>
           <div class="fg2">
             <div class="fg">
@@ -775,13 +775,6 @@ tr:hover td{background:rgba(19,24,40,.8)}
                 <input type="number" id="acfg-initial" class="fi" placeholder="25000" style="flex:1" oninput="saveAcctConfig()">
                 <span style="background:var(--card2);border:1px solid var(--bdr);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--gray2);white-space:nowrap;">USD</span>
               </div>
-            </div>
-          </div>
-          <div class="fg">
-            <label class="fl">Capital actual</label>
-            <div style="display:flex;gap:6px;">
-              <input type="number" id="acfg-current" class="fi" placeholder="25000" style="flex:1" oninput="saveAcctConfig();saveC2fromConfig()">
-              <span style="background:var(--card2);border:1px solid var(--bdr);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--gray2);white-space:nowrap;">USD</span>
             </div>
           </div>
           <div class="fg">
@@ -878,10 +871,6 @@ tr:hover td{background:rgba(19,24,40,.8)}
                 <span style="font-size:11px;color:var(--gray2);background:var(--card2);border:1px solid var(--bdr);padding:8px 10px;border-radius:8px;">%</span>
               </div>
             </div>
-          </div>
-          <div class="fg">
-            <label class="fl">⚠ Alertar al (% del límite)</label>
-            <input type="number" id="cfal" class="fi" placeholder="80" oninput="saveF()">
           </div>
         </div>
 
@@ -1081,15 +1070,6 @@ tr:hover td{background:rgba(19,24,40,.8)}
       </div>
     </div>
 
-    <!-- ── REGISTRO DE DATOS ── -->
-    <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--bdr);">
-      <div style="font-size:11px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">⚠ Registro de datos</div>
-      <div class="card" style="border-color:rgba(255,23,68,.2);background:rgba(255,23,68,.03);">
-        <div style="font-size:13px;font-weight:800;color:var(--red);margin-bottom:6px;">Eliminar registro de esta cuenta</div>
-        <div style="font-size:11px;color:var(--gray2);margin-bottom:14px;">Borra permanentemente todas las operaciones registradas en la cuenta activa. Esta acción no se puede deshacer.</div>
-        <button class="btn btn-r" id="del-all-btn" onclick="delAll()" style="justify-content:center;font-size:12px;padding:10px 20px;">🗑 Borrar todo el registro de esta cuenta</button>
-      </div>
-    </div>
 
   </div><!-- /tab-config -->
 
@@ -1351,9 +1331,12 @@ function checkAlerts(){
   var pct=(total/s.accountSize)*100;
   var todayPnl=S.trades.filter(function(t){return t.date===tod();}).reduce(function(a,t){return a+(t.pnl||0);},0);
   var tdp=(todayPnl/s.accountSize)*100;
+  // Alerta roja: cuenta quemada
   if(pct<=-s.maxTotalLoss) showAlert('🔥 CUENTA QUEMADA — Drawdown '+Math.abs(pct).toFixed(2)+'% superó el límite de '+s.maxTotalLoss+'%','#ff4d6a');
-  else if(tdp<=-s.maxDailyLoss) showAlert('⚠ LÍMITE DIARIO ALCANZADO — Pérdida hoy: '+Math.abs(tdp).toFixed(2)+'% (límite: '+s.maxDailyLoss+'%)','#ff8c42');
-  else if(pct<0&&Math.abs(pct)>=(s.maxTotalLoss*s.alertAt/100)) showAlert('⚠ ALERTA FONDEO: Drawdown '+Math.abs(pct).toFixed(2)+'% — alcanzando el límite de '+s.maxTotalLoss+'%','#ffc84d');
+  // Alerta roja: límite diario alcanzado
+  else if(s.maxDailyLoss&&tdp<=-s.maxDailyLoss) showAlert('⚠ LÍMITE DIARIO ALCANZADO — Pérdida hoy: '+Math.abs(tdp).toFixed(2)+'% (límite: '+s.maxDailyLoss+'%)','#ff8c42');
+  // Alerta verde: objetivo de ganancia alcanzado
+  else if(s.profitTarget&&pct>=s.profitTarget) showAlert('🎉 ¡OBJETIVO ALCANZADO! — Ganancia: +'+pct.toFixed(2)+'% (meta: '+s.profitTarget+'%)','#00e676');
   else closeAlert();
 }
 
@@ -1622,20 +1605,15 @@ function renderConfig(){
   var cfd=g('cfd');if(cfd)cfd.value=s.maxDailyLoss;
   var cft=g('cft');if(cft)cft.value=s.maxTotalLoss;
   var cfg=g('cfg');if(cfg)cfg.value=s.profitTarget;
-  var cfal=g('cfal');if(cfal)cfal.value=s.alertAt;
-  var cfalR=g('cfal-rule');if(cfalR)cfalR.value=s.maxTotalLoss;
   var t=g('ctog');if(t){if(s.challengeActive)t.classList.add('on');else t.classList.remove('on');}
   var t2=g('ctog2');if(t2){if(s.challengeActive)t2.classList.add('on');else t2.classList.remove('on');}
-  // Populate the new unified accounts form fields
+  // Populate the unified accounts form fields
   var accounts=getAccounts();var id=getActiveId();
   var acct=accounts.find(function(a){return a.id===id;})||{};
   var nf=g('acfg-name');if(nf)nf.value=acct.name||'';
-  var tf=g('acfg-type');if(tf)tf.value=acct.type||'normal';
   var cf=g('acfg-currency');if(cf)cf.value=acct.currency||'USD';
   var inf=g('acfg-initial');if(inf)inf.value=acct.initialBalance||s.accountSize||0;
-  var curf=g('acfg-current');if(curf)curf.value=s.accountSize||0;
   var df=g('acfg-desc');if(df)df.value=acct.description||'';
-  var tzf=null;if(tzf&&acct.timezone)tzf.value=acct.timezone;
   // Actualizar label del header
   var lbl=g('acct-editing-name');if(lbl)lbl.textContent=acct.name||'—';
   renderAssets();renderASels();
@@ -1656,9 +1634,7 @@ function saveC2(){
 }
 function saveF(){
   var s=S.settings;
-  // accountSize NOT included - only editable from Configuracion
-  [['cfd','maxDailyLoss'],['cft','maxTotalLoss'],['cfg','profitTarget'],['cfal','alertAt']].forEach(function(p){var n=pN(g(p[0]).value);if(n!==null)s[p[1]]=n;});
-  // Sync cfal-rule
+  [['cfd','maxDailyLoss'],['cft','maxTotalLoss'],['cfg','profitTarget']].forEach(function(p){var n=pN(g(p[0]).value);if(n!==null)s[p[1]]=n;});
   var cfalR=g('cfal-rule');if(cfalR)cfalR.value=s.maxTotalLoss;
   save();renderDash();checkAlerts();updatePreview();renderRulesSummary();updateRuleEquivalents();
 }
@@ -1775,36 +1751,25 @@ function saveRuleExtra(){
 }
 
 function saveAcctConfig(){
-  var name=g('acfg-name'),type=g('acfg-type'),curr=g('acfg-currency'),init=g('acfg-initial'),cur=g('acfg-current'),desc=g('acfg-desc'),tz=null;
-  // Update account meta
+  var name=g('acfg-name'),curr=g('acfg-currency'),init=g('acfg-initial'),desc=g('acfg-desc');
   var accounts=getAccounts(); var id=getActiveId();
   var idx=accounts.findIndex(function(a){return a.id===id;});
   if(idx>=0){
     if(name&&name.value.trim()) accounts[idx].name=name.value.trim();
-    if(type) accounts[idx].type=type.value;
     if(curr) accounts[idx].currency=curr.value;
     if(init&&pN(init.value)!==null){accounts[idx].initialBalance=pN(init.value);}
     if(desc) accounts[idx].description=desc.value;
-    if(tz) accounts[idx].timezone=tz.value;
     saveAccounts(accounts);
   }
-  // Update settings
   if(init&&pN(init.value)!==null){
     S.settings.accountSize=pN(init.value);
     var ai=g('acct-inp');if(ai)ai.value=S.settings.accountSize;
   }
-  if(type) S.settings.challengeActive=(type.value==='fondeo');
   save();updateAcctBtn();renderConfigAccounts();updatePreview();checkAlerts();
 }
 
 function saveC2fromConfig(){
-  var cur=g('acfg-current');if(!cur)return;
-  var n=pN(cur.value);if(n!==null){
-    S.settings.accountSize=n;
-    var ai=g('acct-inp');if(ai)ai.value=n;
-    var ca2=g('ca2');if(ca2)ca2.value=n;
-  }
-  save();renderDash();checkAlerts();updatePreview();
+  // Capital actual ya no existe como campo separado — no hacer nada
 }
 
 function updatePreview(){
@@ -1812,18 +1777,16 @@ function updatePreview(){
   var acct=accounts.find(function(a){return a.id===id;})||{};
   var s=S.settings;
   var name=g('acfg-name');var nameVal=(name&&name.value.trim())||acct.name||'Mi Cuenta';
-  var typeEl=g('acfg-type');var typeVal=(typeEl&&typeEl.value)||acct.type||'normal';
   var currEl=g('acfg-currency');var currVal=(currEl&&currEl.value)||acct.currency||'USD';
   var initEl=g('acfg-initial');var initVal=pN(initEl&&initEl.value)||acct.initialBalance||0;
-  var curEl=g('acfg-current');var curVal=pN(curEl&&curEl.value)||s.accountSize||0;
   var descEl=g('acfg-desc');var descVal=(descEl&&descEl.value)||acct.description||'';
-  var isFondeo=typeVal==='fondeo';
+  var isFondeo=s.challengeActive;
   var acctColor=acct.color||'#8b5cf6';
   var acctIcon=acct.icon||'🏦';
   var pn=g('prev-name');if(pn)pn.textContent=nameVal;
   var pb=g('prev-type-badge');if(pb){pb.textContent=isFondeo?'FONDEO':'PERSONAL';pb.style.background=isFondeo?'rgba(232,160,32,.2)':'rgba(77,159,255,.12)';pb.style.color=isFondeo?'#e8a020':'#4d9fff';}
   var pd=g('prev-desc');if(pd)pd.textContent=descVal||'—';
-  var pc=g('prev-current');if(pc)pc.innerHTML='$'+curVal.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})+' <span style="font-size:12px;color:#888;">'+currVal+'</span>';
+  var pc=g('prev-current');if(pc)pc.innerHTML='$'+initVal.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})+' <span style="font-size:12px;color:#888;">'+currVal+'</span>';
   var pi2=g('prev-initial');if(pi2)pi2.textContent='$'+initVal.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})+' '+currVal;
   var pcu=g('prev-currency');if(pcu)pcu.textContent=currVal;
   var pp=g('prev-pairs');if(pp){var asts=s.assets||[];pp.innerHTML=asts.slice(0,8).map(function(a){return'<span style="font-size:9px;padding:2px 6px;border-radius:4px;background:rgba(77,159,255,.12);border:1px solid rgba(77,159,255,.25);color:#4d9fff;font-weight:700;">'+a+'</span>';}).join('')+(asts.length>8?'<span style="font-size:9px;color:#555;">+'+( asts.length-8)+'</span>':'');}
@@ -1850,12 +1813,6 @@ function updatePreview(){
 }
 
 function refreshFondeoSwitch(){
-  var typeEl=g('acfg-type');
-  var ctog=g('ctog');
-  if(typeEl&&ctog){
-    if(typeEl.value==='fondeo') ctog.classList.add('on');
-    else ctog.classList.remove('on');
-  }
   updatePreview();
 }
 
@@ -2643,16 +2600,34 @@ function renderSidebarAccounts(){
     var bg = isActive ? 'rgba(0,230,118,.1)' : 'rgba(255,255,255,.03)';
     var bdr = isActive ? 'rgba(0,230,118,.35)' : 'rgba(255,255,255,.06)';
     var nameColor = isActive ? '#00e676' : 'var(--text2)';
-    html += '<div onclick="seleccionarCuentaSidebar(\''+a.id+'\')" style="display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:8px;cursor:pointer;background:'+bg+';border:1px solid '+bdr+';transition:all .15s;">';
-    html += '<div style="width:22px;height:22px;background:'+col+'33;border:1px solid '+col+'55;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;">'+icon+'</div>';
+    var isFondeo = S.settings.challengeActive && isActive;
+    html += '<div style="background:'+bg+';border:1px solid '+bdr+';border-radius:8px;padding:5px 7px;transition:all .15s;">';
+    // Fila nombre + botones
+    html += '<div style="display:flex;align-items:center;gap:5px;">';
+    html += '<div onclick="seleccionarCuentaSidebar(\''+a.id+'\')" style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;cursor:pointer;">';
+    html += '<div style="width:20px;height:20px;background:'+col+'33;border:1px solid '+col+'55;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;">'+icon+'</div>';
     html += '<div style="flex:1;min-width:0;">';
     html += '<div style="font-size:11px;font-weight:700;color:'+nameColor+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+a.name+'</div>';
     html += '<div style="font-size:9px;color:var(--gray2);">$'+Number(a.initialBalance||0).toLocaleString('en')+'</div>';
-    html += '</div>';
-    if(isActive) html += '<div style="width:6px;height:6px;background:#00e676;border-radius:50%;flex-shrink:0;"></div>';
-    html += '</div>';
+    html += '</div></div>';
+    // Botones editar / eliminar
+    html += '<button onclick="editarCuentaSidebar(\''+a.id+'\')" title="Editar" style="background:none;border:1px solid rgba(77,159,255,.25);color:#4d9fff;border-radius:5px;width:22px;height:22px;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;">✏</button>';
+    if(accounts.length>1) html += '<button onclick="eliminarCuentaSidebar(this,\''+a.id+'\')" title="Eliminar" style="background:none;border:1px solid rgba(255,23,68,.25);color:#ff1744;border-radius:5px;width:22px;height:22px;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;">🗑</button>';
+    html += '</div></div>';
   }
   el.innerHTML = html || '<div style="font-size:10px;color:var(--gray2);padding:4px 2px;">Sin cuentas</div>';
+}
+
+function editarCuentaSidebar(id){
+  // Ir a config y cargar esa cuenta
+  switchAccount(id);
+  showTab('config', document.getElementById('nav-config'));
+  setTimeout(function(){ renderConfig(); showAcctTab('general'); }, 100);
+}
+
+function eliminarCuentaSidebar(btn, id){
+  deleteAccount(btn, id);
+  renderSidebarAccounts();
 }
 
 function seleccionarCuentaSidebar(id){
@@ -2685,15 +2660,11 @@ function abrirFormNuevaCuenta(){
 var _modoNuevaCuenta = false;
 function prepararNuevaCuenta(){
   _modoNuevaCuenta = true;
-  // Limpiar campos del formulario
-  var fields=['acfg-name','acfg-initial','acfg-current','acfg-desc'];
+  var fields=['acfg-name','acfg-initial','acfg-desc'];
   fields.forEach(function(id){var el=g(id);if(el)el.value='';});
-  var typeEl=g('acfg-type');if(typeEl)typeEl.value='normal';
   var currEl=g('acfg-currency');if(currEl)currEl.value='USD';
-  // Actualizar header
   var lbl=g('acct-editing-label');if(lbl)lbl.textContent='Creando nueva cuenta';
   var nm=g('acct-editing-name');if(nm)nm.textContent='(rellena los campos y haz clic en Guardar)';
-  // Ir a la pestaña general
   showAcctTab('general');
   if(typeof toast==='function') toast('Rellena los campos y pulsa Guardar', '#00d4ff');
 }
@@ -2701,28 +2672,27 @@ function prepararNuevaCuenta(){
 /* ── GUARDAR configuración de la cuenta activa (o crear nueva) ── */
 function guardarCuenta(){
   var nameEl = document.getElementById('acfg-name');
-  var typeEl = document.getElementById('acfg-type');
   var currEl = document.getElementById('acfg-currency');
   var initEl = document.getElementById('acfg-initial');
-  var curEl  = document.getElementById('acfg-current');
   var descEl = document.getElementById('acfg-desc');
 
   var nombre = nameEl ? nameEl.value.trim() : '';
   if(!nombre){ if(typeof toast==='function') toast('⚠ Escribe un nombre para la cuenta','#ff1744'); return; }
 
+  // Determinar tipo según toggle de fondeo activo
+  var isFondeo = S.settings.challengeActive;
+  var tipo = isFondeo ? 'fondeo' : 'normal';
+
   if(_modoNuevaCuenta){
-    // ── CREAR NUEVA CUENTA ──
     var bal = parseFloat(initEl&&initEl.value)||10000;
-    var tipo = typeEl ? typeEl.value : 'normal';
     var cur  = currEl ? currEl.value : 'USD';
     var desc = descEl ? descEl.value : '';
     var accounts = getAccounts();
     var newId = 'acct_'+Date.now();
     accounts.push({id:newId, name:nombre, type:tipo, initialBalance:bal, currency:cur, description:desc, icon:'🏦', color:'#8b5cf6'});
     saveAccounts(accounts);
-    saveAccountData(newId, [], {accountSize:bal, assets:S.settings.assets||[], challengeActive:tipo==='fondeo', maxDailyLoss:5, maxTotalLoss:10, profitTarget:10, alertAt:80});
+    saveAccountData(newId, [], {accountSize:bal, assets:S.settings.assets||[], challengeActive:isFondeo, maxDailyLoss:S.settings.maxDailyLoss||5, maxTotalLoss:S.settings.maxTotalLoss||10, profitTarget:S.settings.profitTarget||10, alertAt:80});
     _modoNuevaCuenta = false;
-    // Cambiar a la nueva cuenta automáticamente
     switchAccount(newId);
     renderSidebarAccounts();
     renderConfig();
@@ -2734,28 +2704,26 @@ function guardarCuenta(){
   var id = getActiveId();
   var accounts = getAccounts();
   var idx = accounts.findIndex(function(a){return a.id===id;});
-
   if(idx >= 0){
     accounts[idx].name = nombre;
-    accounts[idx].type = typeEl ? typeEl.value : accounts[idx].type;
+    accounts[idx].type = tipo;
     accounts[idx].currency = currEl ? currEl.value : accounts[idx].currency;
     accounts[idx].initialBalance = parseFloat(initEl&&initEl.value)||accounts[idx].initialBalance;
     accounts[idx].description = descEl ? descEl.value : '';
     saveAccounts(accounts);
   }
 
-  // Guardar settings (capital actual, reglas, pares, fondeo)
-  var capitalActual = parseFloat(curEl&&curEl.value) || S.settings.accountSize;
-  S.settings.accountSize = capitalActual;
+  // Guardar capital y settings
+  var capitalInicial = parseFloat(initEl&&initEl.value) || S.settings.accountSize;
+  S.settings.accountSize = capitalInicial;
+  S.settings.challengeActive = isFondeo;
   saveAccountData(id, S.trades, S.settings);
 
-  // Refrescar UI
   renderSidebarAccounts();
   updateAcctBtn();
   updatePreview();
   renderConfigAccounts();
   refresh();
-
   if(typeof toast==='function') toast('💾 Cuenta guardada correctamente', '#00e676');
 }
 
@@ -3162,6 +3130,7 @@ document.addEventListener('DOMContentLoaded',function(){
   // ── Verificar licencia primero ──
   checkLicenseOnLoad();
   load();
+  initAccounts();
   // Sincronizar desde la nube al abrir
   setTimeout(async function(){
     var synced=await syncFromCloud();
