@@ -413,7 +413,15 @@ tr:hover td{background:rgba(19,24,40,.8)}
     <div class="ni" id="nav-stats" onclick="showTab('stats',this)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="1,12 5,8 8,10 12,5 15,7"/></svg>Estadísticas</div>
     <div class="ni" id="nav-analisis" onclick="showTab('analisis',this)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><line x1="8" y1="4" x2="8" y2="9"/><circle cx="8" cy="11" r=".8" fill="currentColor"/></svg>Análisis</div>
     <div class="ns">Sistema</div>
-    <div class="ni" id="nav-config" onclick="showTab('config',this)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>Cuentas</div>
+    <!-- Cuentas + botón Nueva -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 8px;margin-bottom:2px;">
+      <div class="ni" id="nav-config" onclick="showTab('config',this)" style="flex:1;margin:0;padding:6px 4px;">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>Cuentas
+      </div>
+      <button onclick="abrirFormNuevaCuenta()" title="Nueva cuenta" style="background:var(--green);border:none;color:#000;border-radius:6px;width:20px;height:20px;font-size:14px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;">+</button>
+    </div>
+    <!-- Lista de cuentas en sidebar -->
+    <div id="sb-acct-list" style="padding:0 8px 4px;display:flex;flex-direction:column;gap:3px;max-height:200px;overflow-y:auto;"></div>
     <div style="margin-top:auto;padding:10px 0 4px;border-top:1px solid var(--bdr)">
       <button id="pwa-install-btn" onclick="installPWA()" style="display:none;width:100%;margin-bottom:6px;background:linear-gradient(135deg,rgba(0,212,255,.15),rgba(77,159,255,.1));border:1px solid rgba(0,212,255,.3);color:#00d4ff;border-radius:8px;padding:8px;font-size:10px;font-weight:700;cursor:pointer;letter-spacing:1px;align-items:center;justify-content:center;gap:5px;">📲 INSTALAR APP</button>
       <div style="display:flex;align-items:center;gap:8px;padding:7px 10px">
@@ -709,6 +717,16 @@ tr:hover td{background:rgba(19,24,40,.8)}
 
   <!-- ═══ CUENTAS (CONFIG) — módulo unificado ═══ -->
   <div id="tab-config" class="tsec">
+    <!-- Barra superior: título + botón Guardar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+      <div>
+        <div style="font-size:11px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;" id="acct-editing-label">Configurando cuenta activa</div>
+        <div style="font-size:16px;font-weight:800;color:var(--text);" id="acct-editing-name">—</div>
+      </div>
+      <button onclick="guardarCuenta()" style="background:linear-gradient(135deg,#00c853,#00e676);color:#000;font-weight:800;font-size:12px;padding:10px 24px;border-radius:10px;border:none;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 4px 14px rgba(0,230,118,.3);">
+        💾 Guardar cuenta
+      </button>
+    </div>
     <!-- Sub-tabs de Cuentas — estilo imagen -->
     <div style="display:flex;gap:0;margin-bottom:20px;border-bottom:1px solid var(--bdr);overflow-x:auto;">
       <button class="acct-stab act" id="stab-general" onclick="showAcctTab('general')" style="padding:10px 18px;background:none;border:none;border-bottom:2px solid var(--green);color:var(--green);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .2s;">Información general</button>
@@ -1665,6 +1683,8 @@ function renderConfig(){
   var curf=g('acfg-current');if(curf)curf.value=s.accountSize||0;
   var df=g('acfg-desc');if(df)df.value=acct.description||'';
   var tzf=g('acfg-tz');if(tzf&&acct.timezone)tzf.value=acct.timezone;
+  // Actualizar label del header
+  var lbl=g('acct-editing-name');if(lbl)lbl.textContent=acct.name||'—';
   renderAssets();renderASels();
   renderConfigAccounts();
   renderPairsTags();
@@ -2537,12 +2557,12 @@ function initAccounts(){
   var accounts = getAccounts();
   var activeId = getActiveId();
   if(!accounts.length){
-    // Migrar datos existentes a cuenta "default"
     accounts = [{id:'default', name:'Mi Cuenta Principal', type:'normal', initialBalance: S.settings.accountSize||10000}];
     saveAccounts(accounts);
     if(activeId !== 'default') setActiveId('default');
   }
   updateAcctBtn();
+  renderSidebarAccounts();
 }
 
 function updateAcctBtn(){
@@ -2646,13 +2666,109 @@ function switchAccount(id){
     S.settings = Object.assign({}, defaultCfg);
     loadAccountData(id);
     S.settings.accountSize = acct.initialBalance;
-    // Asegurar que challengeActive es consistente con el tipo de cuenta
     if(!localStorage.getItem('tt_cfg_'+id)) S.settings.challengeActive = acct.type==='fondeo';
   }
   updateAcctBtn();
+  renderSidebarAccounts();
   refresh();
   closeAccounts();
   if(typeof toast==='function') toast('✅ Cuenta: '+acct.name, '#4d9fff');
+}
+
+/* ── SIDEBAR: lista de cuentas ── */
+function renderSidebarAccounts(){
+  var el = document.getElementById('sb-acct-list');
+  if(!el) return;
+  var accounts = getAccounts();
+  var activeId = getActiveId();
+  var html = '';
+  for(var i=0;i<accounts.length;i++){
+    var a = accounts[i];
+    var isActive = a.id === activeId;
+    var col = a.color||'#8b5cf6';
+    var icon = a.icon||'🏦';
+    var bg = isActive ? 'rgba(0,230,118,.1)' : 'rgba(255,255,255,.03)';
+    var bdr = isActive ? 'rgba(0,230,118,.35)' : 'rgba(255,255,255,.06)';
+    var nameColor = isActive ? '#00e676' : 'var(--text2)';
+    html += '<div onclick="seleccionarCuentaSidebar(\''+a.id+'\')" style="display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:8px;cursor:pointer;background:'+bg+';border:1px solid '+bdr+';transition:all .15s;">';
+    html += '<div style="width:22px;height:22px;background:'+col+'33;border:1px solid '+col+'55;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;">'+icon+'</div>';
+    html += '<div style="flex:1;min-width:0;">';
+    html += '<div style="font-size:11px;font-weight:700;color:'+nameColor+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+a.name+'</div>';
+    html += '<div style="font-size:9px;color:var(--gray2);">$'+Number(a.initialBalance||0).toLocaleString('en')+'</div>';
+    html += '</div>';
+    if(isActive) html += '<div style="width:6px;height:6px;background:#00e676;border-radius:50%;flex-shrink:0;"></div>';
+    html += '</div>';
+  }
+  el.innerHTML = html || '<div style="font-size:10px;color:var(--gray2);padding:4px 2px;">Sin cuentas</div>';
+}
+
+function seleccionarCuentaSidebar(id){
+  switchAccount(id);
+  // Ir a pestaña de cuentas y cargar config
+  showTab('config', document.getElementById('nav-config'));
+  setTimeout(function(){ renderConfig(); updatePreview(); renderConfigAccounts(); }, 100);
+}
+
+/* ── NUEVA CUENTA desde sidebar ── */
+function abrirFormNuevaCuenta(){
+  // Mostrar tab config
+  showTab('config', document.getElementById('nav-config'));
+  // Pequeño modal inline rápido
+  var nombre = prompt('Nombre de la nueva cuenta:');
+  if(!nombre || !nombre.trim()) return;
+  var capital = parseFloat(prompt('Capital inicial ($):', '10000'))||10000;
+  var tipo = confirm('¿Es cuenta de Fondeo?\n(Cancelar = Personal)') ? 'fondeo' : 'normal';
+  var accounts = getAccounts();
+  var id = 'acct_'+Date.now();
+  accounts.push({id:id, name:nombre.trim(), type:tipo, initialBalance:capital, currency:'USD', icon:'🏦', color:'#8b5cf6'});
+  saveAccounts(accounts);
+  saveAccountData(id, [], {accountSize:capital, assets:[], challengeActive:tipo==='fondeo', maxDailyLoss:5, maxTotalLoss:10, profitTarget:10, alertAt:80});
+  renderSidebarAccounts();
+  renderConfigAccounts();
+  if(typeof toast==='function') toast('✅ Cuenta creada: '+nombre.trim(), '#00e676');
+}
+
+/* ── GUARDAR configuración de la cuenta activa ── */
+function guardarCuenta(){
+  var id = getActiveId();
+  var accounts = getAccounts();
+  var idx = accounts.findIndex(function(a){return a.id===id;});
+
+  // Leer campos del formulario
+  var nameEl = document.getElementById('acfg-name');
+  var typeEl = document.getElementById('acfg-type');
+  var currEl = document.getElementById('acfg-currency');
+  var initEl = document.getElementById('acfg-initial');
+  var curEl  = document.getElementById('acfg-current');
+  var descEl = document.getElementById('acfg-desc');
+  var tzEl   = document.getElementById('acfg-tz');
+
+  if(nameEl && nameEl.value.trim()) {
+    // Actualizar datos de la cuenta en el array
+    if(idx >= 0){
+      accounts[idx].name = nameEl.value.trim();
+      accounts[idx].type = typeEl ? typeEl.value : accounts[idx].type;
+      accounts[idx].currency = currEl ? currEl.value : accounts[idx].currency;
+      accounts[idx].initialBalance = parseFloat(initEl&&initEl.value)||accounts[idx].initialBalance;
+      accounts[idx].description = descEl ? descEl.value : '';
+      accounts[idx].timezone = tzEl ? tzEl.value : '-5';
+      saveAccounts(accounts);
+    }
+  }
+
+  // Guardar settings (capital actual, reglas, pares, fondeo)
+  var capitalActual = parseFloat(curEl&&curEl.value) || S.settings.accountSize;
+  S.settings.accountSize = capitalActual;
+  saveAccountData(id, S.trades, S.settings);
+
+  // Refrescar UI
+  renderSidebarAccounts();
+  updateAcctBtn();
+  updatePreview();
+  renderConfigAccounts();
+  refresh();
+
+  if(typeof toast==='function') toast('💾 Cuenta guardada correctamente', '#00e676');
 }
 
 function createAccount(){
