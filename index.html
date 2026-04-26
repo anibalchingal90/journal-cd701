@@ -354,13 +354,16 @@ tr:hover td{background:rgba(19,24,40,.8)}
 
 <!-- CONFIRM MODAL -->
 <div class="mo" id="cmo">
-  <div class="mb">
-    <div class="mh"><div class="mt2" id="cmot"></div><button class="mcl" onclick="document.getElementById('cmo').classList.remove('show')">✕</button></div>
-    <div id="cmob" style="color:var(--gray2);font-size:12px;line-height:1.7;margin-bottom:10px"></div>
-    <div id="cmoprev" style="background:var(--bg);border-radius:8px;padding:10px;display:none;margin-bottom:10px;font-size:12px;border:1px solid var(--bdr)"></div>
-    <div style="display:flex;gap:8px">
-      <button class="btn" style="flex:1;justify-content:center" onclick="document.getElementById('cmo').classList.remove('show')">Cancelar</button>
-      <button class="btn btn-r" style="flex:1;justify-content:center" id="cmobtn">Confirmar</button>
+  <div class="mb" style="border:1px solid rgba(255,23,68,.25);box-shadow:0 0 40px rgba(255,23,68,.08);">
+    <div class="mh" style="border-bottom:1px solid var(--bdr);padding-bottom:12px;margin-bottom:14px;">
+      <div class="mt2" id="cmot" style="font-size:15px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:8px;"></div>
+      <button class="mcl" onclick="document.getElementById('cmo').classList.remove('show')" style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;">✕</button>
+    </div>
+    <div id="cmob" style="color:var(--text2);font-size:12px;line-height:1.7;margin-bottom:12px;"></div>
+    <div id="cmoprev" style="background:var(--bg);border-radius:10px;padding:12px 14px;display:none;margin-bottom:14px;font-size:12px;border:1px solid rgba(255,23,68,.2);border-left:3px solid var(--red);"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn" style="flex:1;justify-content:center;padding:10px;" onclick="document.getElementById('cmo').classList.remove('show')">Cancelar</button>
+      <button class="btn btn-r" style="flex:1;justify-content:center;padding:10px;font-weight:800;" id="cmobtn">🗑 Eliminar</button>
     </div>
   </div>
 </div>
@@ -1515,19 +1518,20 @@ function delTrade(id){
     S.trades=S.trades.filter(function(x){return x.id!==id;});
     if(editId===id)cancelEdit();
     save();refresh();toast('Operación eliminada','var(--red)');
-  },prev);
+  },prev,'🗑 Eliminar');
 }
 function delAll(){
   showConfirm('⚠ Borrar TODO el registro','Esta acción eliminará PERMANENTEMENTE todas tus operaciones. No se puede deshacer.',function(){
     S.trades=[];save();refresh();toast('Registro borrado','var(--red)');
-  },null);
+  },null,'⚠ Borrar todo');
 }
 
 // CONFIRM MODAL
-function showConfirm(title,body,fn,prev){
+function showConfirm(title,body,fn,prev,confirmLabel){
   g('cmot').textContent=title;g('cmob').textContent=body;
   var p=g('cmoprev');if(prev){p.innerHTML=prev;p.style.display='block';}else p.style.display='none';
-  g('cmobtn').onclick=function(){fn();g('cmo').classList.remove('show');};
+  var btn=g('cmobtn');btn.textContent=confirmLabel||'Confirmar';
+  btn.onclick=function(){fn();g('cmo').classList.remove('show');};
   g('cmo').classList.add('show');
 }
 
@@ -1656,16 +1660,17 @@ function renderConfigAccounts(){
     html += '<div style="width:32px;height:32px;background:'+col+'33;border:1px solid '+col+'55;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">'+icon+'</div>';
     html += '<div style="flex:1;min-width:0;">';
     html += '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">';
-    if(isActive) html += '<span style="width:6px;height:6px;background:#00e676;border-radius:50%;flex-shrink:0;display:inline-block;"></span>';
+    if(isActive) html += '<span class="active-dot-pulse"></span>';
     html += '<span style="font-size:12px;font-weight:700;color:#f0f0f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;">'+a.name+'</span>';
     html += '<span style="font-size:9px;padding:2px 6px;border-radius:4px;font-weight:700;background:'+(a.type==='fondeo'?'rgba(232,160,32,.15)':'rgba(77,159,255,.12)')+';color:'+(a.type==='fondeo'?'#e8a020':'#4d9fff')+';">'+(a.type==='fondeo'?'FONDEO':'PERSONAL')+'</span>';
+    if(a.type==='fondeo') html += '<span class="fondeo-badge-pulse" style="margin-left:2px;" title="Modo Fondeo">F</span>';
     html += '</div>';
     html += '<div style="font-size:10px;color:#555;margin-top:2px;">$'+Number(a.initialBalance).toLocaleString('en')+' &middot; '+trades.length+' ops &middot; <span style="color:'+pnlCol+';">'+(pnl>=0?'+':'')+pnl.toFixed(2)+'$</span></div>';
     html += '</div>';
     html += '<div style="display:flex;gap:5px;flex-shrink:0;">';
     if(!isActive) html += '<button onclick="switchAccount('+JSON.stringify(a.id)+')" style="background:rgba(0,230,118,.15);border:1px solid rgba(0,230,118,.3);color:#00e676;border-radius:7px;padding:5px 9px;cursor:pointer;font-size:10px;font-weight:700;">Usar</button>';
     html += '<button onclick="editarCuentaSidebar('+JSON.stringify(a.id)+')" style="background:#1e1e1e;border:1px solid #333;color:#4d9fff;border-radius:7px;padding:5px 8px;cursor:pointer;font-size:12px;">&#9998;</button>';
-    if(accounts.length>1) html += '<button onclick="borrarCuentaDirecto('+JSON.stringify(a.id)+','+JSON.stringify(a.name)+')" style="background:#1e1e1e;border:1px solid #333;color:#ff1744;border-radius:7px;padding:5px 8px;cursor:pointer;font-size:12px;">&#128465;</button>';
+    html += '<button onclick="borrarCuentaDirecto('+JSON.stringify(a.id)+','+JSON.stringify(a.name)+')" style="background:#1e1e1e;border:1px solid #333;color:#ff1744;border-radius:7px;padding:5px 8px;cursor:pointer;font-size:12px;">&#128465;</button>';
     html += '</div></div>';
   }
   // Botón para crear nueva cuenta
@@ -1870,10 +1875,22 @@ function closeNewAcctInline(){
 
 
 function togChallenge(){
+  // Preserve current form values before toggle
+  var _prevName=g('acfg-name')&&g('acfg-name').value;
+  var _prevCurr=g('acfg-currency')&&g('acfg-currency').value;
+  var _prevInit=g('acfg-initial')&&g('acfg-initial').value;
+  var _prevDesc=g('acfg-desc')&&g('acfg-desc').value;
   S.settings.challengeActive=!S.settings.challengeActive;
   save();renderConfig();renderDash();renderFondeo();checkAlerts();updatePreview();
+  // Restore form values after re-render
+  if(_prevName&&g('acfg-name'))g('acfg-name').value=_prevName;
+  if(_prevCurr&&g('acfg-currency'))g('acfg-currency').value=_prevCurr;
+  if(_prevInit&&g('acfg-initial'))g('acfg-initial').value=_prevInit;
+  if(_prevDesc&&g('acfg-desc'))g('acfg-desc').value=_prevDesc;
   // Sync both toggles
+  var t=g('ctog');if(t){if(S.settings.challengeActive)t.classList.add('on');else t.classList.remove('on');}
   var t2=g('ctog2');if(t2){if(S.settings.challengeActive)t2.classList.add('on');else t2.classList.remove('on');}
+  updatePreview();
 }
 
 // SORTED
@@ -2631,7 +2648,7 @@ function renderSidebarAccounts(){
     var bdr = isActive ? 'rgba(0,230,118,.4)'  : 'rgba(255,255,255,.08)';
     var nameColor = isActive ? '#00e676' : '#bbbbbb';
     var fondeoLabel = a.type === 'fondeo'
-      ? '<span style="font-size:7px;padding:1px 4px;border-radius:3px;background:rgba(232,160,32,.2);color:#e8a020;font-weight:700;letter-spacing:.5px;">F</span>'
+      ? '<span class="fondeo-badge-pulse" title="Modo Fondeo activo">F</span>'
       : '';
 
     html += '<div style="background:'+bg+';border:1px solid '+bdr+';border-radius:8px;padding:6px 8px;margin-bottom:3px;">';
@@ -2641,9 +2658,9 @@ function renderSidebarAccounts(){
     html += '<div onclick="seleccionarCuentaSidebar(\''+a.id+'\')" style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;cursor:pointer;overflow:hidden;">';
     html += '<div style="width:22px;height:22px;min-width:22px;background:'+col+'33;border:1px solid '+col+'55;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;">'+icon+'</div>';
     html += '<div style="flex:1;overflow:hidden;">';
-    html += '<div style="display:flex;align-items:center;gap:3px;">';
-    if(isActive) html += '<span style="width:5px;height:5px;min-width:5px;background:#00e676;border-radius:50%;display:inline-block;"></span>';
-    html += '<span style="font-size:11px;font-weight:700;color:'+nameColor+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:85px;" title="'+a.name+'">'+a.name+'</span>';
+    html += '<div style="display:flex;align-items:center;gap:4px;">';
+    if(isActive) html += '<span class="active-dot-pulse"></span>';
+    html += '<span style="font-size:11px;font-weight:700;color:'+nameColor+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px;" title="'+a.name+'">'+a.name+'</span>';
     html += fondeoLabel;
     html += '</div>';
     html += '<div style="font-size:9px;color:#666;margin-top:1px;">$'+Number(a.initialBalance||0).toLocaleString('en')+'</div>';
@@ -2652,10 +2669,8 @@ function renderSidebarAccounts(){
     // Botón editar ✏
     html += '<button onclick="event.stopPropagation();editarCuentaSidebar(\''+a.id+'\')" title="Editar" style="flex-shrink:0;background:rgba(77,159,255,.1);border:1px solid rgba(77,159,255,.35);color:#4d9fff;border-radius:5px;width:24px;height:24px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;padding:0;">✏</button>';
 
-    // Botón eliminar 🗑
-    if(accounts.length > 1){
-      html += '<button onclick="event.stopPropagation();borrarCuentaDirecto(\''+a.id+'\',\''+a.name.replace(/'/g,"\\'")+'\')" title="Eliminar" style="flex-shrink:0;background:rgba(255,23,68,.1);border:1px solid rgba(255,23,68,.35);color:#ff1744;border-radius:5px;width:24px;height:24px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;padding:0;">🗑</button>';
-    }
+    // Botón eliminar 🗑 — siempre visible, la lógica de "última cuenta" está en borrarCuentaDirecto
+    html += '<button onclick="event.stopPropagation();borrarCuentaDirecto(\''+a.id+'\',\''+a.name.replace(/'/g,"\\'")+'\')" title="Eliminar" style="flex-shrink:0;background:rgba(255,23,68,.1);border:1px solid rgba(255,23,68,.35);color:#ff1744;border-radius:5px;width:24px;height:24px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;padding:0;">🗑</button>';
 
     html += '</div></div>';
   }
@@ -2705,24 +2720,30 @@ function eliminarCuentaSidebar(btn, id){
 function borrarCuentaDirecto(id, nombre){
   var accounts = getAccounts();
   if(accounts.length<=1){ if(typeof toast==='function') toast('⚠ Necesitas al menos 1 cuenta','#ff1744'); return; }
-  if(!confirm('¿Eliminar la cuenta "'+nombre+'"?\nEsta acción no se puede deshacer.')) return;
-  accounts = accounts.filter(function(a){return a.id!==id;});
-  saveAccounts(accounts);
-  localStorage.removeItem('tt_cfg_'+id);
-  var n=parseInt(localStorage.getItem('tt_n_'+id)||'0');
-  for(var i=0;i<n;i++) localStorage.removeItem('tt_'+id+'_'+i);
-  localStorage.removeItem('tt_n_'+id);
-  if(getActiveId()===id){
-    var nextId = accounts[0].id;
-    setActiveId(nextId);
-    loadAccountData(nextId);
-    _modoNuevaCuenta = false;
-    refresh();
-  }
-  renderSidebarAccounts();
-  renderConfigAccounts();
-  updateAcctBtn();
-  if(typeof toast==='function') toast('🗑 Cuenta "'+nombre+'" eliminada','#ff1744');
+  showConfirm(
+    '🗑 Eliminar cuenta',
+    '¿Seguro que quieres eliminar la cuenta "'+nombre+'"? Todas sus operaciones y datos se perderán permanentemente.',
+    function(){
+      accounts = accounts.filter(function(a){return a.id!==id;});
+      saveAccounts(accounts);
+      localStorage.removeItem('tt_cfg_'+id);
+      var n=parseInt(localStorage.getItem('tt_n_'+id)||'0');
+      for(var i=0;i<n;i++) localStorage.removeItem('tt_'+id+'_'+i);
+      localStorage.removeItem('tt_n_'+id);
+      if(getActiveId()===id){
+        var nextId = accounts[0].id;
+        setActiveId(nextId);
+        loadAccountData(nextId);
+        _modoNuevaCuenta = false;
+        refresh();
+      }
+      renderSidebarAccounts();
+      renderConfigAccounts();
+      updateAcctBtn();
+      if(typeof toast==='function') toast('🗑 Cuenta "'+nombre+'" eliminada','#ff1744');
+    },
+    '<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:22px;">💼</span><span style="font-weight:700;font-size:13px;color:#f0f0f0;">'+nombre+'</span></div>'
+  );
 }
 
 function seleccionarCuentaSidebar(id){
@@ -3419,6 +3440,16 @@ self.addEventListener('fetch', e => {
 
 <!-- ── Efecto de clic global: ripple + sonido ── -->
 <style>
+/* ── Efecto de clic visual en todos los botones ── */
+button:active, [onclick]:active, .ni:active, .cal-nav-btn:active, .rb:active, .tog:active, .acct-color-dot:active {
+  transform: scale(0.94) !important;
+  transition: transform 0.06s ease !important;
+}
+/* ── Animaciones pulsantes para viñetas de cuenta ── */
+@keyframes fondeo-pulse{0%,100%{box-shadow:0 0 0 0 rgba(232,160,32,.7);opacity:1;}50%{box-shadow:0 0 0 5px rgba(232,160,32,0);opacity:.8;}}
+@keyframes active-pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,230,118,.8);opacity:1;}50%{box-shadow:0 0 0 4px rgba(0,230,118,0);opacity:.7;}}
+.fondeo-badge-pulse{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:rgba(232,160,32,.25);border:1px solid #e8a020;color:#e8a020;font-size:8px;font-weight:900;animation:fondeo-pulse 1.6s ease-in-out infinite;flex-shrink:0;}
+.active-dot-pulse{width:7px;height:7px;min-width:7px;background:#00e676;border-radius:50%;display:inline-block;animation:active-pulse 1.4s ease-in-out infinite;flex-shrink:0;}
 .ripple-fx{position:fixed;border-radius:50%;background:rgba(255,255,255,0.18);pointer-events:none;transform:scale(0);animation:ripplePop .45s ease-out forwards;z-index:9999;}
 @keyframes ripplePop{0%{transform:scale(0);opacity:.7;}100%{transform:scale(1);opacity:0;}}
 </style>
@@ -3455,18 +3486,28 @@ self.addEventListener('fetch', e => {
   // Exponer globalmente para uso directo en botones críticos
   window._spawnRipple = spawnRipple;
   window._playClick = playClick;
-  function shouldIgnore(target){
-    var tag = target.tagName;
-    return tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT';
+  function isInteractive(target){
+    // Walk up the DOM to find a clickable element
+    var el = target;
+    while(el && el !== document.body){
+      var tag = el.tagName;
+      if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT') return false;
+      if(tag==='BUTTON'||tag==='A'||el.onclick||el.getAttribute('onclick')) return true;
+      var cursor = window.getComputedStyle(el).cursor;
+      if(cursor==='pointer') return true;
+      el = el.parentElement;
+    }
+    return false;
   }
-  document.addEventListener('click', function(e){
-    if(shouldIgnore(e.target)) return;
+  document.addEventListener('mousedown', function(e){
+    if(e.button!==0) return;
+    if(!isInteractive(e.target)) return;
     spawnRipple(e.clientX, e.clientY);
     playClick();
   }, true);
-  document.addEventListener('touchend', function(e){
-    var t = e.changedTouches[0]; if(!t) return;
-    if(shouldIgnore(e.target)) return;
+  document.addEventListener('touchstart', function(e){
+    var t = e.touches[0]; if(!t) return;
+    if(!isInteractive(e.target)) return;
     spawnRipple(t.clientX, t.clientY);
     playClick();
   }, {passive:true, capture:true});
