@@ -730,11 +730,8 @@ tr:hover td{background:rgba(19,24,40,.8)}
         <div style="font-size:16px;font-weight:800;color:var(--text);" id="acct-editing-name">—</div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button onclick="prepararNuevaCuenta()" style="background:linear-gradient(135deg,rgba(0,212,255,.2),rgba(77,159,255,.1));border:1px solid rgba(0,212,255,.4);color:#00d4ff;font-weight:800;font-size:12px;padding:10px 18px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:7px;">
-          ＋ Nueva cuenta
-        </button>
-        <button onclick="guardarCuenta()" style="background:linear-gradient(135deg,#00c853,#00e676);color:#000;font-weight:800;font-size:12px;padding:10px 24px;border-radius:10px;border:none;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 4px 14px rgba(0,230,118,.3);">
-          💾 Guardar cuenta
+        <button id="btn-guardar-cuenta" onclick="guardarCuenta()" style="background:linear-gradient(135deg,#00c853,#00e676);color:#000;font-weight:800;font-size:12px;padding:10px 24px;border-radius:10px;border:none;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 4px 14px rgba(0,230,118,.3);">
+          💾 Guardar nueva cuenta
         </button>
       </div>
     </div>
@@ -1599,6 +1596,7 @@ function calGoTo(){
 // CONFIG
 function renderConfig(){
   _modoNuevaCuenta = false;
+  actualizarBtnGuardar();
   var s=S.settings;
   var ca=g('ca2');if(ca)ca.value=s.accountSize;
   var ai=g('acct-inp');if(ai)ai.value=s.accountSize;
@@ -1643,7 +1641,6 @@ function renderConfigAccounts(){
   if(!el) return;
   var accounts = getAccounts();
   var activeId = getActiveId();
-  if(!accounts.length){ el.innerHTML=''; return; }
   var html = '';
   for(var i=0;i<accounts.length;i++){
     var a = accounts[i];
@@ -1667,10 +1664,12 @@ function renderConfigAccounts(){
     html += '</div>';
     html += '<div style="display:flex;gap:5px;flex-shrink:0;">';
     if(!isActive) html += '<button onclick="switchAccount('+JSON.stringify(a.id)+')" style="background:rgba(0,230,118,.15);border:1px solid rgba(0,230,118,.3);color:#00e676;border-radius:7px;padding:5px 9px;cursor:pointer;font-size:10px;font-weight:700;">Usar</button>';
-    html += '<button onclick="editAccount('+JSON.stringify(a.id)+')" style="background:#1e1e1e;border:1px solid #333;color:#4d9fff;border-radius:7px;padding:5px 8px;cursor:pointer;font-size:12px;">&#9998;</button>';
+    html += '<button onclick="editarCuentaSidebar('+JSON.stringify(a.id)+')" style="background:#1e1e1e;border:1px solid #333;color:#4d9fff;border-radius:7px;padding:5px 8px;cursor:pointer;font-size:12px;">&#9998;</button>';
     if(accounts.length>1) html += '<button onclick="deleteAccount(this,'+JSON.stringify(a.id)+')" style="background:#1e1e1e;border:1px solid #333;color:#ff1744;border-radius:7px;padding:5px 8px;cursor:pointer;font-size:12px;">&#128465;</button>';
     html += '</div></div>';
   }
+  // Botón para crear nueva cuenta
+  html += '<button onclick="prepararNuevaCuenta()" style="width:100%;margin-top:4px;background:rgba(0,212,255,.08);border:1px dashed rgba(0,212,255,.3);color:#00d4ff;font-weight:700;font-size:11px;padding:9px;border-radius:9px;cursor:pointer;letter-spacing:.5px;">＋ Nueva cuenta</button>';
   el.innerHTML = html;
 }
 // ═══════════════════════════════════════════════════════════
@@ -2466,10 +2465,23 @@ function setActiveId(id){ localStorage.setItem('tt_active', id); }
 function initAccounts(){
   var accounts = getAccounts();
   var activeId = getActiveId();
+  // Eliminar cuenta default ficticia si el usuario nunca la configuró
+  if(accounts.length===1 && accounts[0].id==='default'){
+    var hasTrades = getAccountTrades('default').length > 0;
+    var hasCfg = !!localStorage.getItem('tt_cfg_default');
+    var hasCustomName = accounts[0].name !== 'Mi Cuenta Principal';
+    if(!hasTrades && !hasCfg && !hasCustomName){
+      accounts = [];
+      saveAccounts(accounts);
+    }
+  }
   if(!accounts.length){
-    accounts = [{id:'default', name:'Mi Cuenta Principal', type:'normal', initialBalance: S.settings.accountSize||10000}];
-    saveAccounts(accounts);
-    if(activeId !== 'default') setActiveId('default');
+    updateAcctBtn();
+    renderSidebarAccounts();
+    return;
+  }
+  if(!accounts.find(function(a){return a.id===activeId;})){
+    setActiveId(accounts[0].id);
   }
   updateAcctBtn();
   renderSidebarAccounts();
@@ -2632,9 +2644,18 @@ function eliminarCuentaSidebar(btn, id){
 
 function seleccionarCuentaSidebar(id){
   switchAccount(id);
-  // Ir a pestaña de cuentas y cargar config
-  showTab('config', document.getElementById('nav-config'));
-  setTimeout(function(){ renderConfig(); updatePreview(); renderConfigAccounts(); }, 100);
+  // Solo actualizar datos, no navegar a config
+}
+
+/* ── Actualizar label del botón guardar según modo ── */
+function actualizarBtnGuardar(){
+  var btn = document.getElementById('btn-guardar-cuenta');
+  if(!btn) return;
+  if(_modoNuevaCuenta){
+    btn.innerHTML = '💾 Guardar nueva cuenta';
+  } else {
+    btn.innerHTML = '💾 Guardar cambios';
+  }
 }
 
 /* ── NUEVA CUENTA desde sidebar ── */
@@ -2666,6 +2687,7 @@ function prepararNuevaCuenta(){
   var lbl=g('acct-editing-label');if(lbl)lbl.textContent='Creando nueva cuenta';
   var nm=g('acct-editing-name');if(nm)nm.textContent='(rellena los campos y haz clic en Guardar)';
   showAcctTab('general');
+  actualizarBtnGuardar();
   if(typeof toast==='function') toast('Rellena los campos y pulsa Guardar', '#00d4ff');
 }
 
@@ -2696,6 +2718,7 @@ function guardarCuenta(){
     switchAccount(newId);
     renderSidebarAccounts();
     renderConfig();
+    actualizarBtnGuardar();
     if(typeof toast==='function') toast('✅ Cuenta creada: '+nombre, '#00e676');
     return;
   }
@@ -2815,14 +2838,19 @@ function deleteAccount(btn,id){
   if(accounts.length<=1){ if(typeof toast==='function') toast('⚠ Necesitas al menos 1 cuenta','#ff1744'); return; }
   if(btn && btn.dataset.confirmDelete===id){
     accounts = accounts.filter(function(a){return a.id!==id;});
-  saveAccounts(accounts);
-  // Limpiar datos
-  localStorage.removeItem('tt_cfg_'+id);
+    saveAccounts(accounts);
+    // Limpiar datos
+    localStorage.removeItem('tt_cfg_'+id);
     var n=parseInt(localStorage.getItem('tt_n_'+id)||'0');
     for(var i=0;i<n;i++) localStorage.removeItem('tt_'+id+'_'+i);
     localStorage.removeItem('tt_n_'+id);
-    if(getActiveId()===id) switchAccount(accounts[0].id);
-    else renderAccountsList();
+    if(getActiveId()===id){
+      switchAccount(accounts[0].id);
+    } else {
+      renderSidebarAccounts();
+      renderConfigAccounts();
+    }
+    if(typeof toast==='function') toast('🗑 Cuenta eliminada','#ff1744');
   } else {
     if(btn){ btn.dataset.confirmDelete=id; btn.textContent='Confirmar'; btn.style.color='#ff1744'; btn.style.borderColor='#ff1744'; }
     setTimeout(function(){ if(btn){ btn.dataset.confirmDelete=''; btn.innerHTML='&#128465;'; btn.style.color='#ff1744'; btn.style.borderColor='#333'; }},3000);
