@@ -1590,6 +1590,12 @@ function calGoTo(){
 function renderConfig(){
   actualizarBtnGuardar();
   var s=S.settings;
+  // Leer valores actuales del form y guardarlos en S.settings antes de renderizar
+  // (así no se pierden cambios que el usuario haya escrito pero no guardado)
+  var cfdEl=g('cfd');if(cfdEl&&cfdEl.value!==''){var n=parseFloat(cfdEl.value);if(!isNaN(n))s.maxDailyLoss=n;}
+  var cftEl=g('cft');if(cftEl&&cftEl.value!==''){var n2=parseFloat(cftEl.value);if(!isNaN(n2))s.maxTotalLoss=n2;}
+  var cfgEl=g('cfg');if(cfgEl&&cfgEl.value!==''){var n3=parseFloat(cfgEl.value);if(!isNaN(n3))s.profitTarget=n3;}
+  // Ahora sí actualizar los campos del form con los valores de S.settings
   var ca=g('ca2');if(ca)ca.value=s.accountSize;
   var ai=g('acct-inp');if(ai)ai.value=s.accountSize;
   var cfd=g('cfd');if(cfd)cfd.value=s.maxDailyLoss;
@@ -1605,7 +1611,6 @@ function renderConfig(){
     var cf=g('acfg-currency');if(cf)cf.value=acct.currency||'USD';
     var inf=g('acfg-initial');if(inf)inf.value=acct.initialBalance||s.accountSize||0;
     var df=g('acfg-desc');if(df)df.value=acct.description||'';
-    // Actualizar label del header
     var lbl2=g('acct-editing-label');if(lbl2)lbl2.textContent='Configurando cuenta activa';
     var lbl=g('acct-editing-name');if(lbl)lbl.textContent=acct.name||'—';
   }
@@ -3414,12 +3419,11 @@ self.addEventListener('fetch', e => {
 
 <!-- ── Efecto de clic global: ripple + sonido ── -->
 <style>
-.ripple-fx{position:fixed;border-radius:50%;background:rgba(255,255,255,0.18);pointer-events:none;transform:scale(0);animation:ripplePop .45s ease-out forwards;z-index:99999;}
+.ripple-fx{position:fixed;border-radius:50%;background:rgba(255,255,255,0.18);pointer-events:none;transform:scale(0);animation:ripplePop .45s ease-out forwards;z-index:9999;}
 @keyframes ripplePop{0%{transform:scale(0);opacity:.7;}100%{transform:scale(1);opacity:0;}}
 </style>
 <script>
 (function(){
-  // Sonido de clic via Web Audio API
   var _audioCtx = null;
   function getAudioCtx(){
     if(!_audioCtx) try{ _audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){}
@@ -3440,7 +3444,6 @@ self.addEventListener('fetch', e => {
       osc.stop(ctx.currentTime + 0.08);
     }catch(e){}
   }
-  // Ripple visual
   function spawnRipple(x, y){
     var size = 48;
     var el = document.createElement('div');
@@ -3449,21 +3452,21 @@ self.addEventListener('fetch', e => {
     document.body.appendChild(el);
     el.addEventListener('animationend', function(){ el.remove(); });
   }
-  document.addEventListener('mousedown', function(e){
-    // No ripple en inputs, textareas, selects
-    var tag = e.target.tagName;
-    if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT') return;
+  function shouldIgnore(target){
+    var tag = target.tagName;
+    return tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT';
+  }
+  document.addEventListener('click', function(e){
+    if(shouldIgnore(e.target)) return;
     spawnRipple(e.clientX, e.clientY);
     playClick();
   }, true);
-  document.addEventListener('touchstart', function(e){
-    var t = e.touches[0]; if(!t) return;
-    var tag = e.target.tagName;
-    if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT') return;
+  document.addEventListener('touchend', function(e){
+    var t = e.changedTouches[0]; if(!t) return;
+    if(shouldIgnore(e.target)) return;
     spawnRipple(t.clientX, t.clientY);
     playClick();
   }, {passive:true, capture:true});
 })();
 </script>
-</body>
 </html>
