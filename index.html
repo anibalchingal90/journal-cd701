@@ -1594,12 +1594,13 @@ function calGoTo(){
 function renderConfig(){
   actualizarBtnGuardar();
   var s=S.settings;
-  // En modo nueva cuenta: leer DOM → draft antes de renderizar
-  if(_modoNuevaCuenta) _draftReadDOM();
-  // Leer valores actuales del form y guardarlos en S.settings antes de renderizar
-  var cfdEl=g('cfd');if(cfdEl&&cfdEl.value!==''){var n=parseFloat(cfdEl.value);if(!isNaN(n))s.maxDailyLoss=n;}
-  var cftEl=g('cft');if(cftEl&&cftEl.value!==''){var n2=parseFloat(cftEl.value);if(!isNaN(n2))s.maxTotalLoss=n2;}
-  var cfgEl=g('cfg');if(cfgEl&&cfgEl.value!==''){var n3=parseFloat(cfgEl.value);if(!isNaN(n3))s.profitTarget=n3;}
+  // En modo nueva cuenta: NO leer el DOM, el draft ya fue reseteado
+  // Solo leer DOM si estamos editando una cuenta existente
+  if(!_modoNuevaCuenta){
+    var cfdEl=g('cfd');if(cfdEl&&cfdEl.value!==''){var n=parseFloat(cfdEl.value);if(!isNaN(n))s.maxDailyLoss=n;}
+    var cftEl=g('cft');if(cftEl&&cftEl.value!==''){var n2=parseFloat(cftEl.value);if(!isNaN(n2))s.maxTotalLoss=n2;}
+    var cfgEl=g('cfg');if(cfgEl&&cfgEl.value!==''){var n3=parseFloat(cfgEl.value);if(!isNaN(n3))s.profitTarget=n3;}
+  }
   // Actualizar campos del form con los valores de S.settings
   var ca=g('ca2');if(ca)ca.value=s.accountSize;
   var ai=g('acct-inp');if(ai)ai.value=s.accountSize;
