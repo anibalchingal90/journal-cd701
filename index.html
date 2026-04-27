@@ -1554,23 +1554,42 @@ function getAcctId(){
 }
 
 function syncToCloud(){
+  // ✅ FIX MASTER SYNC: Guarda TODO el estado del cliente bajo su license_key
+  // Un solo registro por licencia contiene: trades activos, settings, lista de cuentas
+  // y un snapshot de todas las cuentas para recuperación completa
   var key = getSyncKey(); if(!key) return;
   clearTimeout(_syncTimeout);
   _syncPending = true;
   _syncTimeout = setTimeout(async function(){
     try{
       var acctId = getAcctId();
-      var rowId = key + '_' + acctId;
       var accounts = (typeof getAccounts==='function') ? getAccounts() : [];
+
+      // Construir snapshot completo de todas las cuentas
+      var allAccountsData = {};
+      accounts.forEach(function(acct){
+        var n = parseInt(localStorage.getItem('tt_n_'+acct.id)||'1');
+        var trades = [];
+        for(var i=0;i<n;i++){
+          var x = localStorage.getItem('tt_'+acct.id+'_'+i);
+          if(x) try{ trades = trades.concat(JSON.parse(x)); }catch(e){}
+        }
+        var cfg = localStorage.getItem('tt_cfg_'+acct.id);
+        var settings = cfg ? JSON.parse(cfg) : {};
+        allAccountsData[acct.id] = { trades: trades, settings: settings, meta: acct };
+      });
+
       var payload = {
-        id: rowId,
+        id: key,                    // ← clave maestra = license_key (1 fila por cliente)
         license_key: key,
-        account_id: acctId,
-        trades: S.trades,
-        settings: S.settings,
-        accounts: accounts,
+        account_id: acctId,         // cuenta activa al momento de guardar
+        trades: S.trades,           // trades de la cuenta activa
+        settings: S.settings,       // settings de la cuenta activa
+        accounts: accounts,         // lista de cuentas
+        all_accounts_data: allAccountsData, // snapshot completo de todas las cuentas
         updated_at: new Date().toISOString()
       };
+
       var res = await fetch(SB_URL + '/rest/v1/' + SB_TABLE, {
         method: 'POST',
         headers: Object.assign({}, sbHeaders(), {'Prefer': 'resolution=merge-duplicates,return=minimal'}),
@@ -1580,9 +1599,28 @@ function syncToCloud(){
         showSyncStatus('☁ Guardado en nube');
         _syncPending = false;
       } else {
-        var err = await res.text();
-        console.warn('Supabase sync error:', res.status, err);
-        showSyncStatus('⚠ Error al guardar');
+        var errText = await res.text();
+        // ✅ Si falla por columna faltante, reintentar sin all_accounts_data
+        if(errText.indexOf('all_accounts_data') !== -1 || res.status === 400){
+          var payloadFallback = Object.assign({}, payload);
+          delete payloadFallback.all_accounts_data;
+          var res2 = await fetch(SB_URL + '/rest/v1/' + SB_TABLE, {
+            method: 'POST',
+            headers: Object.assign({}, sbHeaders(), {'Prefer': 'resolution=merge-duplicates,return=minimal'}),
+            body: JSON.stringify(payloadFallback)
+          });
+          if(res2.ok || res2.status===201 || res2.status===204){
+            showSyncStatus('☁ Guardado en nube');
+            _syncPending = false;
+            console.warn('[TradeTrack] Columna all_accounts_data no existe aún en Supabase. Ejecuta el SQL de migración.');
+          } else {
+            console.warn('Supabase sync error (fallback):', res2.status, await res2.text());
+            showSyncStatus('⚠ Error al guardar');
+          }
+        } else {
+          console.warn('Supabase sync error:', res.status, errText);
+          showSyncStatus('⚠ Error al guardar');
+        }
       }
     }catch(e){
       console.warn('syncToCloud error:', e);
@@ -1592,53 +1630,81 @@ function syncToCloud(){
 }
 
 async function syncFromCloud(){
-  // ✅ FIX SYNC: Trae TODAS las cuentas de la licencia, no solo la activa
-  // Esto garantiza sincronización correcta entre computadora y celular
+  // ✅ FIX MASTER SYNC: Lee TODO el estado del cliente bajo su license_key
+  // Restaura todas las cuentas, trades y settings desde el snapshot en Supabase
   var key = getSyncKey(); if(!key) return false;
   try{
-    var res = await fetch(SB_URL + '/rest/v1/' + SB_TABLE + '?license_key=eq.' + encodeURIComponent(key) + '&select=*', {
-      headers: {
-        'apikey': SB_KEY,
-        'Authorization': 'Bearer ' + SB_KEY
-      }
+    // Buscar por id=key (registro maestro, 1 por licencia)
+    var res = await fetch(SB_URL + '/rest/v1/' + SB_TABLE + '?id=eq.' + encodeURIComponent(key) + '&select=*', {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
     });
     if(!res.ok) return false;
     var rows = await res.json();
+
+    // Compatibilidad: si no hay fila maestra, buscar por license_key (formato viejo)
+    if(!rows || !rows.length){
+      var res2 = await fetch(SB_URL + '/rest/v1/' + SB_TABLE + '?license_key=eq.' + encodeURIComponent(key) + '&select=*', {
+        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+      });
+      if(res2.ok) rows = await res2.json();
+    }
+
     if(!rows || !rows.length) return false;
 
-    // Restaurar TODAS las cuentas al localStorage
-    rows.forEach(function(row){
-      var acctId = row.account_id; if(!acctId) return;
-      var trades = row.trades || [];
-      var settings = row.settings || {};
-      localStorage.setItem('tt_cfg_'+acctId, JSON.stringify(settings));
-      var n = Math.ceil(trades.length/500)||1;
-      localStorage.setItem('tt_n_'+acctId, String(n));
-      for(var i=0;i<n;i++) localStorage.setItem('tt_'+acctId+'_'+i, JSON.stringify(trades.slice(i*500,(i+1)*500)));
-    });
+    var row = rows[0];
+    var cloudAccounts = row.accounts || [];
+    var allData = row.all_accounts_data || {};
 
-    // Restaurar lista de cuentas y seleccionar la activa correctamente
-    var firstRow = rows[0];
-    if(firstRow.accounts && firstRow.accounts.length && typeof saveAccounts==='function'){
-      saveAccounts(firstRow.accounts);
-      var currentActive = localStorage.getItem('tt_active')||'';
-      var validActive = firstRow.accounts.find(function(a){return a.id===currentActive;});
-      if(!validActive) localStorage.setItem('tt_active', firstRow.accounts[0].id);
-    } else if(rows.length){
-      var currentActive2 = localStorage.getItem('tt_active')||'';
-      if(!currentActive2 && rows[0].account_id){
-        localStorage.setItem('tt_active', rows[0].account_id);
+    // 1. Restaurar lista de cuentas
+    if(cloudAccounts.length && typeof saveAccounts==='function'){
+      saveAccounts(cloudAccounts);
+    }
+
+    // 2. Restaurar datos de TODAS las cuentas al localStorage
+    if(Object.keys(allData).length){
+      Object.keys(allData).forEach(function(acctId){
+        var acctData = allData[acctId];
+        var trades = acctData.trades || [];
+        var settings = acctData.settings || {};
+        localStorage.setItem('tt_cfg_'+acctId, JSON.stringify(settings));
+        var n = Math.ceil(trades.length/500)||1;
+        localStorage.setItem('tt_n_'+acctId, String(n));
+        for(var i=0;i<n;i++) localStorage.setItem('tt_'+acctId+'_'+i, JSON.stringify(trades.slice(i*500,(i+1)*500)));
+      });
+    } else if(row.account_id && row.trades){
+      // Formato viejo: solo 1 cuenta guardada
+      var acctId0 = row.account_id;
+      var trades0 = row.trades || [];
+      var settings0 = row.settings || {};
+      localStorage.setItem('tt_cfg_'+acctId0, JSON.stringify(settings0));
+      var n0 = Math.ceil(trades0.length/500)||1;
+      localStorage.setItem('tt_n_'+acctId0, String(n0));
+      for(var i=0;i<n0;i++) localStorage.setItem('tt_'+acctId0+'_'+i, JSON.stringify(trades0.slice(i*500,(i+1)*500)));
+      if(!cloudAccounts.length && typeof saveAccounts==='function'){
+        // Si no habia lista de cuentas, usar account_id como cuenta por defecto
+        localStorage.setItem('tt_active', acctId0);
       }
     }
 
-    // Cargar la cuenta activa en S
-    var id = getAcctId();
+    // 3. Asegurar que activeId apunta a una cuenta válida
+    var savedAccounts = (typeof getAccounts==='function') ? getAccounts() : [];
+    if(savedAccounts.length){
+      var currentActive = localStorage.getItem('tt_active')||'';
+      var validActive = savedAccounts.find(function(a){return a.id===currentActive;});
+      if(!validActive) localStorage.setItem('tt_active', savedAccounts[0].id);
+    }
+
+    // 4. Cargar la cuenta activa en S
+    var id = (typeof getActiveId==='function') ? getActiveId() : (row.account_id||'default');
     var cfg = localStorage.getItem('tt_cfg_'+id);
-    if(cfg) try{ S.settings = Object.assign({}, S.settings, JSON.parse(cfg)); }catch(e2){}
+    if(cfg) try{ S.settings = Object.assign({}, S.settings, JSON.parse(cfg)); }catch(ex){}
     var n2 = parseInt(localStorage.getItem('tt_n_'+id)||'1');
     var t = [];
-    for(var i=0;i<n2;i++){var x=localStorage.getItem('tt_'+id+'_'+i);if(x)try{t=t.concat(JSON.parse(x));}catch(e3){}}
-    if(t.length > 0) S.trades = t;
+    for(var i=0;i<n2;i++){
+      var x = localStorage.getItem('tt_'+id+'_'+i);
+      if(x) try{ t = t.concat(JSON.parse(x)); }catch(ex2){}
+    }
+    S.trades = t; // siempre reemplazar con datos de la nube
 
     return true;
   }catch(e){
@@ -3766,21 +3832,23 @@ document.addEventListener('DOMContentLoaded',function(){
   load();
   migrateData(); // migrar estructura si hay nueva versión
   initAccounts();
-  // ✅ FIX SYNC: Sincronizar desde Supabase al abrir — la nube SIEMPRE tiene prioridad
+  // ✅ FIX MASTER SYNC: Al abrir la app, siempre traer datos de la nube primero
   setTimeout(async function(){
     showSyncStatus('⏳ Sincronizando...');
-    // syncFromCloud ahora trae todas las cuentas y siempre sobreescribe el local
     var synced = await syncFromCloud();
     if(synced){
-      // Reinicializar con los datos de la nube
-      load();
+      // Re-inicializar todo con los datos restaurados de la nube
       initAccounts();
-      render();renderStats();renderAnalysis();
+      if(typeof render==='function') render();
+      if(typeof renderStats==='function') renderStats();
+      if(typeof renderAnalysis==='function') renderAnalysis();
       if(typeof renderSidebarAccounts==='function') renderSidebarAccounts();
-      if(typeof toast==='function') toast('☁ Datos sincronizados desde la nube','#4d9fff');
+      if(typeof refresh==='function') refresh();
+      if(typeof toast==='function') toast('☁ Datos sincronizados','#4d9fff');
     } else {
-      // Sin datos en nube — usar local
-      showSyncStatus('✓ Listo');
+      showSyncStatus('✓ Sin datos en nube — usando local');
+      // Si no hay datos en nube, subir los locales para inicializar
+      if(S.trades.length > 0) syncToCloud();
     }
   }, 800);
   // Setup del-all button safely
