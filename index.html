@@ -1631,6 +1631,7 @@ function renderConfig(){
   } else {
     updatePreview();
   }
+  updateFondeoFieldsState();
 }
 function saveC2(){
   var n=pN(g('ca2').value);
@@ -1671,11 +1672,14 @@ function renderConfigAccounts(){
     html += '<div style="background:'+bg+';border:1px solid '+bdr+';border-radius:10px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px;transition:all .2s;">';
     html += '<div style="width:32px;height:32px;background:'+col+'33;border:1px solid '+col+'55;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">'+icon+'</div>';
     html += '<div style="flex:1;min-width:0;">';
+    // Leer si challengeActive está realmente guardado en el config de esta cuenta
+    var acctCfgRaw = null; try{ acctCfgRaw = JSON.parse(localStorage.getItem('tt_cfg_'+a.id)||'null'); }catch(e){}
+    var acctFondeoActivo = acctCfgRaw ? !!acctCfgRaw.challengeActive : (a.type==='fondeo');
     html += '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">';
     if(isActive) html += '<span class="active-dot-pulse"></span>';
     html += '<span style="font-size:12px;font-weight:700;color:#f0f0f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;">'+a.name+'</span>';
-    html += '<span style="font-size:9px;padding:2px 6px;border-radius:4px;font-weight:700;background:'+(a.type==='fondeo'?'rgba(232,160,32,.15)':'rgba(77,159,255,.12)')+';color:'+(a.type==='fondeo'?'#e8a020':'#4d9fff')+';">'+(a.type==='fondeo'?'FONDEO':'PERSONAL')+'</span>';
-    if(a.type==='fondeo') html += '<span class="fondeo-badge-pulse" style="margin-left:2px;" title="Modo Fondeo">F</span>';
+    html += '<span style="font-size:9px;padding:2px 6px;border-radius:4px;font-weight:700;background:'+(acctFondeoActivo?'rgba(232,160,32,.15)':'rgba(77,159,255,.12)')+';color:'+(acctFondeoActivo?'#e8a020':'#4d9fff')+';">'+(acctFondeoActivo?'FONDEO':'PERSONAL')+'</span>';
+    if(acctFondeoActivo) html += '<span class="fondeo-badge-pulse" style="margin-left:2px;" title="Modo Fondeo">F</span>';
     html += '</div>';
     html += '<div style="font-size:10px;color:#555;margin-top:2px;">$'+Number(a.initialBalance).toLocaleString('en')+' &middot; '+trades.length+' ops &middot; <span style="color:'+pnlCol+';">'+(pnl>=0?'+':'')+pnl.toFixed(2)+'$</span></div>';
     html += '</div>';
@@ -1752,9 +1756,22 @@ function renderRulesSummary(){
 }
 
 function updateRuleEquivalents(){
-  var s=S.settings; var acc=s.accountSize||10000;
-  var rle=g('rule-loss-equiv'); if(rle) rle.textContent='= $'+(acc*(s.maxTotalLoss||10)/100).toLocaleString('en');
-  var rpe=g('rule-profit-equiv'); if(rpe) rpe.textContent='= $'+(acc*(s.profitTarget||10)/100).toLocaleString('en');
+  // Leer valores actuales del DOM (o draft si modo nueva cuenta)
+  var lossPct, profitPct, capitalBase;
+  if(_modoNuevaCuenta){
+    _draftReadDOM();
+    lossPct   = parseFloat(_draft.maxTotalLoss)  || 10;
+    profitPct = parseFloat(_draft.profitTarget)  || 10;
+    capitalBase = parseFloat(_draft.initial) || 0;
+  } else {
+    var cftEl = g('cft'); lossPct   = cftEl   ? (parseFloat(cftEl.value)   || S.settings.maxTotalLoss  || 10) : (S.settings.maxTotalLoss  || 10);
+    var cfgEl = g('cfg'); profitPct = cfgEl   ? (parseFloat(cfgEl.value)   || S.settings.profitTarget || 10) : (S.settings.profitTarget || 10);
+    var initEl = g('acfg-initial'); capitalBase = initEl ? (parseFloat(initEl.value) || S.settings.accountSize || 10000) : (S.settings.accountSize || 10000);
+  }
+  var lossAmt   = capitalBase * lossPct   / 100;
+  var profitAmt = capitalBase * profitPct / 100;
+  var rle=g('rule-loss-equiv');   if(rle)   rle.textContent   = '= -$'+lossAmt.toLocaleString('en');
+  var rpe=g('rule-profit-equiv'); if(rpe)   rpe.textContent   = '= $'+profitAmt.toLocaleString('en');
 }
 
 function saveRuleExtra(){
@@ -1787,7 +1804,7 @@ function saveAcctConfig(){
     S.settings.accountSize=pN(init.value);
     var ai=g('acct-inp');if(ai)ai.value=S.settings.accountSize;
   }
-  save();updateAcctBtn();renderConfigAccounts();updatePreview();checkAlerts();
+  save();updateAcctBtn();renderConfigAccounts();updatePreview();checkAlerts();updateRuleEquivalents();
 }
 
 function saveC2fromConfig(){
@@ -1832,7 +1849,20 @@ function updatePreview(){
   });
 }
 
-function refreshFondeoSwitch(){
+function updateFondeoFieldsState(){
+  var active = _modoNuevaCuenta ? !!_draft.challengeActive : !!S.settings.challengeActive;
+  var ids = ['cft','cfg','cfd','cfal-rule'];
+  ids.forEach(function(id){
+    var el = g(id); if(!el) return;
+    el.disabled = !active;
+    el.style.opacity = active ? '1' : '0.4';
+    el.style.cursor = active ? '' : 'not-allowed';
+  });
+  // Also gray out the labels/spans around them
+  var ruleCard = g('cft') && g('cft').closest ? g('cft').closest('.card') : null;
+}
+
+
   updatePreview();
 }
 
@@ -1900,6 +1930,7 @@ function togChallenge(){
     S.settings.challengeActive = _draft.challengeActive;
     _draftWriteDOM();
     _updatePreviewDraft();
+    updateFondeoFieldsState();
     return;
   }
   // En modo edición de cuenta existente: guardar campos antes de re-render
@@ -1916,6 +1947,7 @@ function togChallenge(){
   var t=g('ctog');if(t){if(S.settings.challengeActive)t.classList.add('on');else t.classList.remove('on');}
   var t2=g('ctog2');if(t2){if(S.settings.challengeActive)t2.classList.add('on');else t2.classList.remove('on');}
   updatePreview();
+  updateFondeoFieldsState();
 }
 
 // SORTED
@@ -2028,9 +2060,12 @@ function renderDash(){
   ];
   g('dash-kpis').innerHTML=hkpis.map(function(k){return'<div class="kcard '+k.cls+'"><div class="klbl">'+k.l+'</div><div class="kval" style="color:'+k.c+'">'+k.v+'</div>'+(k.sub?'<div class="ksub">'+k.sub+'</div>':'')+'</div>';}).join('');
 
-  // Barra inteligente única
-  var ddw=g('dd-wrap');if(ddw)ddw.style.display=s.challengeActive?'block':'none';
-  if(s.challengeActive){
+  // Barra inteligente única — leer challengeActive desde el config guardado de la cuenta activa
+  var _activeIdDD = getActiveId();
+  var _activeCfgDD = null; try{ _activeCfgDD = JSON.parse(localStorage.getItem('tt_cfg_'+_activeIdDD)||'null'); }catch(e){}
+  var _ddFondeoOn = _activeCfgDD ? !!_activeCfgDD.challengeActive : !!s.challengeActive;
+  var ddw=g('dd-wrap');if(ddw)ddw.style.display=_ddFondeoOn?'block':'none';
+  if(_ddFondeoOn){
     var profPct = s.accountSize ? (to.totalPnl/s.accountSize)*100 : 0;
     var isWinning = profPct >= 0;
     var barPct, barCol, barLabel, limitLabel, sublabel, leftLabel, goalText;
@@ -2669,7 +2704,9 @@ function renderSidebarAccounts(){
     var bg  = isActive ? 'rgba(0,230,118,.12)' : 'rgba(255,255,255,.03)';
     var bdr = isActive ? 'rgba(0,230,118,.4)'  : 'rgba(255,255,255,.08)';
     var nameColor = isActive ? '#00e676' : '#bbbbbb';
-    var fondeoLabel = a.type === 'fondeo'
+    var _sbCfg = null; try{ _sbCfg = JSON.parse(localStorage.getItem('tt_cfg_'+a.id)||'null'); }catch(e){}
+    var _sbFondeoActivo = _sbCfg ? !!_sbCfg.challengeActive : (a.type==='fondeo');
+    var fondeoLabel = _sbFondeoActivo
       ? '<span class="fondeo-badge-pulse" title="Modo Fondeo activo">F</span>'
       : '';
 
@@ -2979,9 +3016,16 @@ function guardarCuenta(){
 
   renderSidebarAccounts();
   updateAcctBtn();
-  updatePreview();
   renderConfigAccounts();
   refresh();
+  // Resetear form a modo nueva cuenta para poder registrar una nueva cuenta
+  _modoNuevaCuenta = true;
+  _draft = {name:'',currency:'USD',initial:'',desc:'',color:'#8b5cf6',icon:'🏦',challengeActive:false,maxDailyLoss:5,maxTotalLoss:10,profitTarget:10};
+  _selectedColor='#8b5cf6'; _selectedIcon='🏦';
+  _draftWriteDOM();
+  actualizarBtnGuardar();
+  _updatePreviewDraft();
+  updateFondeoFieldsState();
   if(typeof toast==='function') toast('💾 Cuenta guardada correctamente', '#00e676');
 }
 
