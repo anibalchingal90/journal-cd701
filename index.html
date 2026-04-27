@@ -765,7 +765,7 @@ tr:hover td{background:rgba(19,24,40,.8)}
             <div class="fg">
               <label class="fl">Capital inicial</label>
               <div style="display:flex;gap:6px;">
-                <input type="number" id="acfg-initial" class="fi" placeholder="25000" style="flex:1" oninput="saveAcctConfig()">
+                <input type="number" id="acfg-initial" class="fi" placeholder="25000" style="flex:1" oninput="saveAcctConfig();updateRuleEquivalents()">
                 <span style="background:var(--card2);border:1px solid var(--bdr);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--gray2);white-space:nowrap;">USD</span>
               </div>
             </div>
@@ -2054,7 +2054,7 @@ function renderDash(){
 
   // Barra inteligente única
   var _cfgDD=null;try{_cfgDD=JSON.parse(localStorage.getItem('tt_cfg_'+getActiveId())||'null');}catch(e){}
-  var _fondeoDD=_cfgDD?!!_cfgDD.challengeActive:!!s.challengeActive;
+  var _fondeoDD=_cfgDD?(_cfgDD.challengeActive===true):false;
   var ddw=g('dd-wrap');if(ddw)ddw.style.display=_fondeoDD?'block':'none';
   if(_fondeoDD){
     var profPct = s.accountSize ? (to.totalPnl/s.accountSize)*100 : 0;
@@ -2696,7 +2696,7 @@ function renderSidebarAccounts(){
     var bdr = isActive ? 'rgba(0,230,118,.4)'  : 'rgba(255,255,255,.08)';
     var nameColor = isActive ? '#00e676' : '#bbbbbb';
     var _c2=null;try{_c2=JSON.parse(localStorage.getItem('tt_cfg_'+a.id)||'null');}catch(e){}
-    var fondeoLabel = (_c2&&_c2.challengeActive)
+    var fondeoLabel = (_c2&&_c2.challengeActive===true&&a.type==='fondeo')
       ? '<span class="fondeo-badge-pulse" title="Modo Fondeo activo">F</span>'
       : '';
 
@@ -2976,11 +2976,12 @@ function guardarCuenta(){
       challengeActive:isFondeo, maxDailyLoss:mdl,
       maxTotalLoss:mtl, profitTarget:pt, alertAt:80
     });
-    // Resetear draft para la próxima cuenta
+    // Resetear draft y S.settings para la próxima cuenta
     _draft = {name:'',currency:'USD',initial:'',desc:'',color:'#8b5cf6',icon:'🏦',challengeActive:false,maxDailyLoss:5,maxTotalLoss:10,profitTarget:10};
     _selectedColor='#8b5cf6'; _selectedIcon='🏦';
+    S.settings = {accountSize:10000,assets:[].concat(DEF_ASSETS),challengeActive:false,maxDailyLoss:5,maxTotalLoss:10,profitTarget:10,alertAt:80};
     _modoNuevaCuenta = true;
-    _draftWriteDOM();
+    renderConfig();
     actualizarBtnGuardar();
     renderSidebarAccounts();
     updateAcctBtn();
