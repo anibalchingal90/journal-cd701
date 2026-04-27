@@ -1137,12 +1137,44 @@ var FB_COL = 'licenses';
 var EMPRESA = 'CD701';
 var FB_BASE = 'https://firestore.googleapis.com/v1/projects/' + FB_PROJECT + '/databases/(default)/documents/' + FB_COL;
 
-function getDeviceId() {
-  var id = localStorage.getItem('tt_did');
-  if (!id) {
-    id = 'D' + Date.now().toString(36) + Math.random().toString(36).substr(2,8);
-    localStorage.setItem('tt_did', id);
+function getDeviceFingerprint() {
+  // Genera una huella estable basada en características del hardware/navegador
+  // Sobrevive al borrado de caché porque usa propiedades del dispositivo, no almacenamiento
+  var nav = window.navigator;
+  var screen = window.screen;
+  var parts = [
+    nav.userAgent || '',
+    nav.language || '',
+    nav.platform || '',
+    (nav.hardwareConcurrency || 0).toString(),
+    (nav.deviceMemory || 0).toString(),
+    screen.width + 'x' + screen.height,
+    screen.colorDepth || 0,
+    Intl.DateTimeFormat().resolvedOptions().timeZone || '',
+    nav.vendor || '',
+    (nav.maxTouchPoints || 0).toString()
+  ];
+  var raw = parts.join('|');
+  // Hash simple pero consistente
+  var hash = 0;
+  for (var i = 0; i < raw.length; i++) {
+    var chr = raw.charCodeAt(i);
+    hash = ((hash << 5) - hash) + chr;
+    hash |= 0;
   }
+  return 'FP' + Math.abs(hash).toString(36).toUpperCase();
+}
+
+function getDeviceId() {
+  // ✅ FIX FINGERPRINT: Combina fingerprint (estable ante borrado de caché)
+  // con un ID guardado en localStorage como respaldo secundario
+  var fp = getDeviceFingerprint();
+  var stored = localStorage.getItem('tt_did');
+  // Si el stored empieza con el fingerprint, usarlo tal cual (mismo dispositivo)
+  if (stored && stored.startsWith(fp)) return stored;
+  // Si no hay stored o es de otro dispositivo, crear nuevo ID basado en fingerprint
+  var id = fp + '_' + Math.random().toString(36).substr(2,4).toUpperCase();
+  localStorage.setItem('tt_did', id);
   return id;
 }
 
@@ -1231,6 +1263,7 @@ async function checkLicenseOnLoad() {
     if (!stored || !stored.key) { showLicOverlay('⚠ Sin internet. Conéctate para verificar tu licencia.'); return; }
   }
 
+  startLicensePolling(); // ✅ FIX REVOKE: Verificación periódica para detectar revocaciones/resets
   hideLicOverlay();
   // La sincronización de datos la maneja el bloque DOMContentLoaded
 }
@@ -1316,6 +1349,7 @@ async function activateLicense() {
       lastCheck: Date.now()
     }));
 
+    startLicensePolling(); // ✅ FIX REVOKE: Verificación periódica activa
     hideLicOverlay();
 
     setTimeout(async function() {
@@ -1558,41 +1592,55 @@ function syncToCloud(){
 }
 
 async function syncFromCloud(){
+  // ✅ FIX SYNC: Trae TODAS las cuentas de la licencia, no solo la activa
+  // Esto garantiza sincronización correcta entre computadora y celular
   var key = getSyncKey(); if(!key) return false;
   try{
-    var acctId = getAcctId();
-    var rowId = key + '_' + acctId;
-    var res = await fetch(SB_URL + '/rest/v1/' + SB_TABLE + '?id=eq.' + encodeURIComponent(rowId) + '&select=*', {
+    var res = await fetch(SB_URL + '/rest/v1/' + SB_TABLE + '?license_key=eq.' + encodeURIComponent(key) + '&select=*', {
       headers: {
         'apikey': SB_KEY,
         'Authorization': 'Bearer ' + SB_KEY
       }
     });
     if(!res.ok) return false;
-    var data = await res.json();
-    if(!data || !data.length) return false;
-    var row = data[0];
-    var cloudTrades = row.trades || [];
-    var cloudSettings = row.settings || null;
-    var cloudAccounts = row.accounts || null;
-    // Merge: use cloud data if it has more or equal trades
-    // ✅ FIX: Siempre traer datos de la nube si existen, no solo si son mayores
-    if(cloudTrades.length > 0 || S.trades.length === 0){
-      S.trades = cloudTrades;
-      if(cloudSettings) S.settings = Object.assign({}, S.settings, cloudSettings);
-      // Save to localStorage as cache
-      var id = getAcctId();
-      localStorage.setItem('tt_cfg_'+id, JSON.stringify(S.settings));
-      var n = Math.ceil(S.trades.length/500)||1;
-      localStorage.setItem('tt_n_'+id, String(n));
-      for(var i=0;i<n;i++) localStorage.setItem('tt_'+id+'_'+i, JSON.stringify(S.trades.slice(i*500,(i+1)*500)));
-      // Restore accounts if available
-      if(cloudAccounts && cloudAccounts.length && typeof saveAccounts==='function'){
-        saveAccounts(cloudAccounts);
+    var rows = await res.json();
+    if(!rows || !rows.length) return false;
+
+    // Restaurar TODAS las cuentas al localStorage
+    rows.forEach(function(row){
+      var acctId = row.account_id; if(!acctId) return;
+      var trades = row.trades || [];
+      var settings = row.settings || {};
+      localStorage.setItem('tt_cfg_'+acctId, JSON.stringify(settings));
+      var n = Math.ceil(trades.length/500)||1;
+      localStorage.setItem('tt_n_'+acctId, String(n));
+      for(var i=0;i<n;i++) localStorage.setItem('tt_'+acctId+'_'+i, JSON.stringify(trades.slice(i*500,(i+1)*500)));
+    });
+
+    // Restaurar lista de cuentas y seleccionar la activa correctamente
+    var firstRow = rows[0];
+    if(firstRow.accounts && firstRow.accounts.length && typeof saveAccounts==='function'){
+      saveAccounts(firstRow.accounts);
+      var currentActive = localStorage.getItem('tt_active')||'';
+      var validActive = firstRow.accounts.find(function(a){return a.id===currentActive;});
+      if(!validActive) localStorage.setItem('tt_active', firstRow.accounts[0].id);
+    } else if(rows.length){
+      var currentActive2 = localStorage.getItem('tt_active')||'';
+      if(!currentActive2 && rows[0].account_id){
+        localStorage.setItem('tt_active', rows[0].account_id);
       }
-      return true;
     }
-    return false;
+
+    // Cargar la cuenta activa en S
+    var id = getAcctId();
+    var cfg = localStorage.getItem('tt_cfg_'+id);
+    if(cfg) try{ S.settings = Object.assign({}, S.settings, JSON.parse(cfg)); }catch(e2){}
+    var n2 = parseInt(localStorage.getItem('tt_n_'+id)||'1');
+    var t = [];
+    for(var i=0;i<n2;i++){var x=localStorage.getItem('tt_'+id+'_'+i);if(x)try{t=t.concat(JSON.parse(x));}catch(e3){}}
+    if(t.length > 0) S.trades = t;
+
+    return true;
   }catch(e){
     console.warn('syncFromCloud error:', e);
     return false;
@@ -1641,6 +1689,65 @@ async function syncAllAccounts(){
   }catch(e){
     console.warn('syncAllAccounts error:', e);
   }
+}
+
+// ✅ FIX REVOKE: Polling periódico — verifica la licencia cada 60s mientras la app está abierta
+// Esto garantiza que si el admin revoca o resetea, el usuario queda bloqueado INMEDIATAMENTE
+var _licCheckInterval = null;
+function startLicensePolling(){
+  if(_licCheckInterval) clearInterval(_licCheckInterval);
+  _licCheckInterval = setInterval(async function(){
+    var stored = null;
+    try { stored = JSON.parse(localStorage.getItem('ttlic') || 'null'); } catch(e) {}
+    if(!stored || !stored.key){
+      clearInterval(_licCheckInterval);
+      _licCheckInterval = null;
+      showLicOverlay();
+      return;
+    }
+    try{
+      var res = await fetch(FB_BASE + '/' + stored.key + '?key=' + FB_KEY);
+      if(!res.ok){
+        clearInterval(_licCheckInterval);
+        _licCheckInterval = null;
+        localStorage.removeItem('ttlic');
+        showLicOverlay('⚠ Licencia no encontrada. Contacta a tu revendedor.');
+        return;
+      }
+      var data = await res.json();
+      var f = data.fields || {};
+      // Si fue REVOCADA → bloquear
+      if(f.active && f.active.booleanValue === false){
+        clearInterval(_licCheckInterval);
+        _licCheckInterval = null;
+        localStorage.setItem('ttlic_revoked_key', stored.key);
+        localStorage.removeItem('ttlic');
+        showLicOverlay('❌ Tu licencia fue revocada. Contacta a quien te vendió el producto.');
+        return;
+      }
+      // Si fue RESETEADA → el deviceId ya no está en la lista autorizada → expulsar
+      var deviceId = getDeviceId();
+      var authorizedDevices = [];
+      if(f.devices && f.devices.arrayValue && f.devices.arrayValue.values){
+        authorizedDevices = f.devices.arrayValue.values.map(function(v){return v.stringValue||'';}).filter(Boolean);
+      } else if(f.lastDevice && f.lastDevice.stringValue){
+        authorizedDevices = [f.lastDevice.stringValue];
+      }
+      if(authorizedDevices.length > 0 && authorizedDevices.indexOf(deviceId) === -1){
+        clearInterval(_licCheckInterval);
+        _licCheckInterval = null;
+        localStorage.removeItem('ttlic');
+        showLicOverlay('⚠ Esta licencia fue reseteada por el administrador. Vuelve a ingresar tu código para continuar.');
+        return;
+      }
+      // Todo OK — actualizar lastCheck
+      stored.lastCheck = Date.now();
+      localStorage.setItem('ttlic', JSON.stringify(stored));
+    }catch(e){
+      // Sin internet — no bloquear, solo ignorar
+      console.log('[TradeTrack] Polling sin conexión, se reintentará.');
+    }
+  }, 60000); // cada 60 segundos
 }
 
 function showSyncStatus(msg){
@@ -3659,20 +3766,23 @@ document.addEventListener('DOMContentLoaded',function(){
   load();
   migrateData(); // migrar estructura si hay nueva versión
   initAccounts();
-  // Sincronizar TODAS las cuentas desde Supabase al abrir
+  // ✅ FIX SYNC: Sincronizar desde Supabase al abrir — la nube SIEMPRE tiene prioridad
   setTimeout(async function(){
     showSyncStatus('⏳ Sincronizando...');
-    await syncAllAccounts();
-    // FIX: Reinicializar cuentas con los datos restaurados de la nube
-    initAccounts();
+    // syncFromCloud ahora trae todas las cuentas y siempre sobreescribe el local
     var synced = await syncFromCloud();
     if(synced){
+      // Reinicializar con los datos de la nube
+      load();
+      initAccounts();
       render();renderStats();renderAnalysis();
+      if(typeof renderSidebarAccounts==='function') renderSidebarAccounts();
       if(typeof toast==='function') toast('☁ Datos sincronizados desde la nube','#4d9fff');
     } else {
+      // Sin datos en nube — usar local
       showSyncStatus('✓ Listo');
     }
-  },500);
+  }, 800);
   // Setup del-all button safely
   var dab=g('del-all-btn');
   if(dab)dab.onclick=function(){delAll();};
