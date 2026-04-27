@@ -336,7 +336,7 @@ tr:hover td{background:rgba(19,24,40,.8)}
 <!-- ── DRAWER MÁS ── -->
 <div id="mob-drawer" onclick="this.classList.remove('open')">
   <div id="mob-drawer-inner" onclick="event.stopPropagation()">
-    <button class="mni-big" onclick="resetFormYActivos();showTab('config',document.getElementById('nav-config'));mniAct('config');document.getElementById('mob-drawer').classList.remove('open')">
+    <button class="mni-big" onclick="showTab('config',document.getElementById('nav-config'));mniAct('config');document.getElementById('mob-drawer').classList.remove('open')">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
       Cuentas
     </button>
@@ -417,7 +417,7 @@ tr:hover td{background:rgba(19,24,40,.8)}
     <div class="ni" id="nav-analisis" onclick="showTab('analisis',this)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><line x1="8" y1="4" x2="8" y2="9"/><circle cx="8" cy="11" r=".8" fill="currentColor"/></svg>Análisis</div>
     <div class="ns">Sistema</div>
     <!-- Cuentas -->
-    <div class="ni" id="nav-config" onclick="resetFormYActivos();showTab('config',this)">
+    <div class="ni" id="nav-config" onclick="showTab('config',this)">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>Cuentas
     </div>
     <!-- Lista de cuentas en sidebar -->
@@ -785,7 +785,8 @@ tr:hover td{background:rgba(19,24,40,.8)}
             <input type="text" id="nai" class="fi" placeholder="Ej: BTCUSD" style="flex:1;text-transform:uppercase;" onkeydown="if(event.key==='Enter')addAsset()">
             <button class="btn btn-g" onclick="addAsset()">+ Agregar</button>
           </div>
-
+          <div style="font-size:9px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Pares disponibles</div>
+          <div id="alist" style="display:flex;flex-wrap:wrap;gap:5px;max-height:160px;overflow-y:auto;"></div>
         </div>
 
       </div>
@@ -953,7 +954,8 @@ tr:hover td{background:rgba(19,24,40,.8)}
             <input type="text" id="nai-p" class="fi" placeholder="Ej: BTCUSD" style="flex:1;text-transform:uppercase;" onkeydown="if(event.key==='Enter'){g('nai').value=this.value;addAsset();}">
             <button class="btn btn-g" onclick="g('nai').value=g('nai-p').value;addAsset();g('nai-p').value='';">+ Agregar</button>
           </div>
-
+          <div style="font-size:9px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Pares disponibles</div>
+          <div id="alist-p" style="display:flex;flex-wrap:wrap;gap:5px;max-height:200px;overflow-y:auto;"></div>
         </div>
         <div class="card" style="width:260px;flex-shrink:0;">
           <div class="card-hdr" style="color:var(--gold);border-color:rgba(255,200,77,.2)">Pares activos</div>
@@ -1469,17 +1471,6 @@ function cancelEdit(){
   g('form-title').textContent='Nueva Operación';g('form-icon').textContent='+';
   g('form-hdr').style.color='var(--green)';
   renderDayDetail();
-}
-function resetFormYActivos(){
-  // Limpiar formulario de nueva operación
-  cancelEdit();
-  // Restaurar activos a los predeterminados
-  S.settings.assets=[].concat(DEF_ASSETS);
-  save();
-  renderAssets();
-  renderASels();
-  renderPairsTags&&renderPairsTags();
-  updatePreview&&updatePreview();
 }
 function saveTrade(){
   var date=g('f-date').value, pnl=pN(g('f-pnl').value);
