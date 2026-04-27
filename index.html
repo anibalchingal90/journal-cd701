@@ -776,18 +776,6 @@ tr:hover td{background:rgba(19,24,40,.8)}
           </div>
         </div>
 
-        <!-- Pares que operas (en columna 1 debajo) -->
-        <div class="card">
-          <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:4px;">Pares que operas</div>
-          <div style="font-size:11px;color:var(--gray2);margin-bottom:12px;">Selecciona los pares de divisas que deseas operar en esta cuenta.</div>
-          <div id="pairs-tags" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;min-height:36px;padding:8px;background:var(--bg);border:1px solid var(--bdr);border-radius:8px;"></div>
-          <div style="display:flex;gap:7px;margin-bottom:10px;">
-            <input type="text" id="nai" class="fi" placeholder="Ej: BTCUSD" style="flex:1;text-transform:uppercase;" onkeydown="if(event.key==='Enter')addAsset()">
-            <button class="btn btn-g" onclick="addAsset()">+ Agregar</button>
-          </div>
-          <div style="font-size:9px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Pares disponibles</div>
-          <div id="alist" style="display:flex;flex-wrap:wrap;gap:5px;max-height:160px;overflow-y:auto;"></div>
-        </div>
 
       </div>
 
@@ -857,13 +845,7 @@ tr:hover td{background:rgba(19,24,40,.8)}
                 <span style="font-size:11px;color:var(--gray2);background:var(--card2);border:1px solid var(--bdr);padding:8px 10px;border-radius:8px;">%</span>
               </div>
             </div>
-            <div class="fg">
-              <label class="fl">Pérdida máxima total</label>
-              <div style="display:flex;gap:6px;align-items:center;">
-                <input type="number" id="cfal-rule" class="fi" style="flex:1;" placeholder="10" oninput="saveRuleExtra()">
-                <span style="font-size:11px;color:var(--gray2);background:var(--card2);border:1px solid var(--bdr);padding:8px 10px;border-radius:8px;">%</span>
-              </div>
-            </div>
+
           </div>
         </div>
 
@@ -1319,6 +1301,19 @@ function showAlert(msg,col){
   b.style.background=col+'22';b.style.borderColor=col;t.style.color=col;t.textContent=msg;b.classList.add('show');
 }
 var _alertaWarningMostrada = false;
+var _alerta3PctMostrada = false;
+var _alerta3PctTimer = null;
+var _MSGS_3PCT = [
+  '🟡 PRECAUCIÓN — Zona de riesgo crítico: solo te quedan {M}% de margen antes del límite de pérdida. Opera con máxima disciplina.',
+  '🟡 ALERTA DE GESTIÓN — Tu drawdown está a {M}% del límite permitido ({L}%). Evalúa reducir exposición o pausar operaciones.',
+  '🟡 RIESGO ELEVADO — Has consumido la mayor parte del margen. Margen restante: {M}%. Prioriza la preservación del capital.',
+  '🟡 ZONA DE PELIGRO — Quedan solo {M}% de margen disponible. Una operación en falso puede comprometer la cuenta fondeo.',
+  '🟡 CONTROL DE RIESGO — Margen crítico: {M}% restante. Revisa tu tamaño de posición y considera una pausa estratégica.',
+];
+function _getMensaje3Pct(margen,limite){
+  var idx=Math.floor(Math.random()*_MSGS_3PCT.length);
+  return _MSGS_3PCT[idx].replace('{M}',margen.toFixed(2)).replace('{L}',limite);
+}
 function checkAlerts(){
   var s=S.settings;if(!s.challengeActive||!S.trades.length){closeAlert();return;}
   var total=S.trades.reduce(function(a,t){return a+(t.pnl||0);},0);
@@ -1332,14 +1327,26 @@ function checkAlerts(){
   else if(s.maxDailyLoss&&tdp<=-s.maxDailyLoss) showAlert('⚠ LÍMITE DIARIO ALCANZADO — Pérdida hoy: '+Math.abs(tdp).toFixed(2)+'% (límite: '+s.maxDailyLoss+'%)','#ff8c42');
   // Alerta verde: objetivo de ganancia alcanzado
   else if(s.profitTarget&&pct>=s.profitTarget) showAlert('🎉 ¡OBJETIVO ALCANZADO! — Ganancia: +'+pct.toFixed(2)+'% (meta: '+s.profitTarget+'%)','#00e676');
+  // Alerta amarilla crítica: a 3% o menos del límite (temporal 6-7 seg, mensaje rotativo)
+  else if(pct<0&&margen<=3&&!_alerta3PctMostrada){
+    _alerta3PctMostrada=true;
+    var msg=_getMensaje3Pct(margen,s.maxTotalLoss);
+    showAlert(msg,'#f5c518');
+    clearTimeout(_alerta3PctTimer);
+    var dur=6000+Math.floor(Math.random()*1001);
+    _alerta3PctTimer=setTimeout(function(){closeAlert();},dur);
+  }
   // Alerta amarilla: a 4% o menos del límite (solo una vez)
-  else if(pct<0&&margen<=4&&!_alertaWarningMostrada){
+  else if(pct<0&&margen<=4&&margen>3&&!_alertaWarningMostrada){
     _alertaWarningMostrada=true;
     showAlert('⚠ ADVERTENCIA — Estás a '+margen.toFixed(2)+'% del límite de pérdida ('+s.maxTotalLoss+'%)','#f5c518');
     setTimeout(function(){closeAlert();},7000);
   } else if(margen>4){
     _alertaWarningMostrada=false;
+    _alerta3PctMostrada=false;
     closeAlert();
+  } else if(margen>3){
+    _alerta3PctMostrada=false;
   } else {
     closeAlert();
   }
@@ -2020,7 +2027,14 @@ function showTab(id,el){
   if(id==='analisis')renderA();
   if(id==='registro'){renderCalSels();renderCal();renderMonthSummary();renderMonthStats();renderDayDetail();}
   if(id==='config'){
-    // Siempre limpiar y poner en modo nueva cuenta al entrar
+    // Recargar siempre los datos guardados de la cuenta activa (descartar cambios no guardados)
+    var _cfgActiveId = (typeof getActiveId==='function') ? getActiveId() : '';
+    if(_cfgActiveId){
+      var _cfgSaved = null;
+      try{_cfgSaved = JSON.parse(localStorage.getItem('tt_cfg_'+_cfgActiveId)||'null');}catch(e){}
+      if(_cfgSaved) S.settings = Object.assign({}, S.settings, _cfgSaved);
+    }
+    // Limpiar y poner en modo nueva cuenta
     _modoNuevaCuenta = true;
     _draft = {name:'',currency:'USD',initial:'',desc:'',color:'#8b5cf6',icon:'🏦',challengeActive:false,maxDailyLoss:5,maxTotalLoss:10,profitTarget:10};
     _selectedColor='#8b5cf6'; _selectedIcon='🏦';
@@ -3000,6 +3014,10 @@ function guardarCuenta(){
   }
 
   // ── ACTUALIZAR CUENTA EXISTENTE ──
+  // Leer siempre los valores del DOM para no depender del oninput
+  var cftEl=g('cft'); if(cftEl&&cftEl.value!==''){var _mtl=parseFloat(cftEl.value);if(!isNaN(_mtl))S.settings.maxTotalLoss=_mtl;}
+  var cfgEl=g('cfg'); if(cfgEl&&cfgEl.value!==''){var _pt=parseFloat(cfgEl.value);if(!isNaN(_pt))S.settings.profitTarget=_pt;}
+  var cfdEl=g('cfd'); if(cfdEl&&cfdEl.value!==''){var _mdl=parseFloat(cfdEl.value);if(!isNaN(_mdl))S.settings.maxDailyLoss=_mdl;}
   var idx = accounts.findIndex(function(a){return a.id===activeId;});
   if(idx >= 0){
     accounts[idx].name = nombre;
