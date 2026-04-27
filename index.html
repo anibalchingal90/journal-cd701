@@ -10,190 +10,259 @@
 <meta name="apple-mobile-web-app-title" content="CD701 Journal">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Cursos Digitales 701 — Journal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;800;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0a0a0a;--sb:#0f0f0f;--card:#141414;--card2:#181818;--card3:#1c1c1c;
-  --bdr:#2a2a2a;--bdr2:#3a3a3a;--bdr3:#4a4a4a;
-  --green:#4d9fff;--green2:#1565c0;--gd:rgba(77,159,255,.08);--gd2:rgba(77,159,255,.04);
-  --red:#ff1744;--red2:#d50000;--rd:rgba(255,23,68,.1);--rd2:rgba(255,23,68,.05);
-  --blue:#e8a020;--blue2:#0099cc;--blueglow:rgba(0,212,255,.15);
-  --gold:#00d4ff;--purp:#ce93d8;--cyan:#00e5ff;--org:#ff6d00;
-  --gray:#555555;--gray2:#909090;--text:#f0f0f0;--text2:#bbbbbb;
-  --glow-g:0 0 24px rgba(77,159,255,.3);--glow-r:0 0 20px rgba(255,23,68,.3);
-  --glow-b:0 0 20px rgba(0,212,255,.2);--glow-gold:0 0 20px rgba(0,212,255,.2);
+  --bg:#07091a;--bg2:#0a0d20;--sb:#080b1c;--card:#0e1229;--card2:#111627;--card3:#151a30;
+  --bdr:#1e2545;--bdr2:#2a3260;--bdr3:#3a4470;
+  --green:#00e5b0;--green2:#00a87a;--gd:rgba(0,229,176,.08);--gd2:rgba(0,229,176,.04);
+  --red:#ff3860;--red2:#cc1a40;--rd:rgba(255,56,96,.1);--rd2:rgba(255,56,96,.05);
+  --blue:#4361ee;--blue2:#3451d1;--blueglow:rgba(67,97,238,.15);
+  --gold:#f7c948;--purp:#c084fc;--cyan:#00cfff;--org:#ff7043;
+  --gray:#3a4060;--gray2:#7a85a8;--text:#e8ecf8;--text2:#a8b4d8;
+  --glow-g:0 0 28px rgba(0,229,176,.25);--glow-r:0 0 22px rgba(255,56,96,.3);
+  --glow-b:0 0 22px rgba(67,97,238,.3);--glow-gold:0 0 22px rgba(247,201,72,.25);
+  --accent:#6366f1;--accent2:#4f46e5;
 }
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;display:flex;min-height:100vh;font-size:13px;overflow-x:hidden}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',system-ui,sans-serif;display:flex;min-height:100vh;font-size:13px;overflow-x:hidden}
 /* SCROLLBAR */
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:2px}
-/* SCANLINE OVERLAY */
-body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.04) 2px,rgba(0,0,0,.04) 4px);pointer-events:none;z-index:9999}
+::-webkit-scrollbar-thumb:hover{background:var(--bdr3)}
+/* NOISE TEXTURE OVERLAY */
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.5}
+/* GRID BACKGROUND */
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(67,97,238,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(67,97,238,.04) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
 
 /* SIDEBAR */
-.sb{width:200px;background:var(--sb);border-right:1px solid var(--bdr);flex-shrink:0;display:flex;flex-direction:column;position:relative}
-.sb::after{content:'';position:absolute;right:0;top:0;bottom:0;width:1px;background:linear-gradient(180deg,transparent,#4d9fff,#00d4ff,transparent)}
-.logo{padding:18px 16px 14px;border-bottom:1px solid var(--bdr)}
-.logo-icon{width:34px;height:34px;background:linear-gradient(135deg,var(--green2),var(--green));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#000;flex-shrink:0;box-shadow:var(--glow-g);border:1px solid var(--green2)}
-.logo-name{font-size:13px;font-weight:800;letter-spacing:2px;background:linear-gradient(90deg,var(--green),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.logo-sub{color:var(--gray2);font-size:9px;margin-top:1px;letter-spacing:1px}
-.ns{padding:10px 14px 4px;color:var(--gray);font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:2px}
-.ni{display:flex;align-items:center;gap:9px;padding:9px 14px;border-radius:8px;margin:1px 6px;cursor:pointer;color:var(--gray2);font-size:12px;transition:all .2s;border:1px solid transparent;position:relative}
-.ni:hover{background:var(--card);color:var(--text);border-color:var(--bdr)}
-.ni.act{background:linear-gradient(90deg,rgba(0,230,118,.10),rgba(0,230,118,.02));color:var(--green);border-color:rgba(0,230,118,.25);box-shadow:inset 3px 0 0 var(--green)}
-.ni svg{width:14px;height:14px;flex-shrink:0}
+.sb{width:220px;background:var(--sb);border-right:1px solid var(--bdr);flex-shrink:0;display:flex;flex-direction:column;position:relative;z-index:10}
+.sb::after{content:'';position:absolute;right:0;top:0;bottom:0;width:1px;background:linear-gradient(180deg,transparent,rgba(67,97,238,.6),rgba(99,102,241,.4),transparent);pointer-events:none}
+.logo{padding:20px 18px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:12px}
+.logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--accent2),var(--accent));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;flex-shrink:0;box-shadow:var(--glow-b);border:1px solid rgba(99,102,241,.4);position:relative;overflow:hidden}
+.logo-icon::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.2),transparent)}
+.logo-name{font-family:'Exo 2',sans-serif;font-size:11px;font-weight:900;letter-spacing:2.5px;background:linear-gradient(90deg,#e8ecf8,var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo-sub{color:var(--gray2);font-size:8px;margin-top:2px;letter-spacing:2px;font-family:'JetBrains Mono',monospace}
+.ns{padding:12px 16px 4px;color:var(--gray);font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:2.5px;font-family:'Exo 2',sans-serif}
+.ni{display:flex;align-items:center;gap:10px;padding:9px 16px;border-radius:9px;margin:1px 8px;cursor:pointer;color:var(--gray2);font-size:12px;font-weight:500;transition:all .2s;border:1px solid transparent;position:relative;font-family:'DM Sans',sans-serif}
+.ni:hover{background:rgba(67,97,238,.1);color:var(--text);border-color:rgba(67,97,238,.2)}
+.ni.act{background:linear-gradient(90deg,rgba(67,97,238,.18),rgba(67,97,238,.06));color:#818cf8;border-color:rgba(99,102,241,.35);font-weight:600}
+.ni.act::before{content:'';position:absolute;left:0;top:4px;bottom:4px;width:3px;background:linear-gradient(180deg,var(--accent),var(--cyan));border-radius:0 3px 3px 0}
+.ni svg{width:15px;height:15px;flex-shrink:0;opacity:.8}
+.ni.act svg{opacity:1}
 /* MAIN */
-.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
-.topbar{background:var(--sb);border-bottom:1px solid var(--bdr);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:relative}
-.topbar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#4d9fff,#00d4ff,transparent)}
-.page-title{font-size:16px;font-weight:800;background:linear-gradient(90deg,var(--text),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.page-sub{color:var(--gray2);font-size:10px;margin-top:1px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;position:relative;z-index:1}
+.topbar{background:rgba(8,11,28,.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--bdr);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:relative}
+.topbar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(67,97,238,.5),rgba(0,207,255,.3),transparent)}
+.page-title{font-size:20px;font-weight:800;font-family:'Exo 2',sans-serif;background:linear-gradient(90deg,var(--text),#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-0.5px}
+.page-sub{color:var(--gray2);font-size:11px;margin-top:2px}
 /* BUTTONS */
-.btn{border-radius:7px;padding:7px 13px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--bdr2);transition:all .2s;display:inline-flex;align-items:center;gap:5px;font-family:inherit;background:var(--card2);color:var(--text2)}
-.btn:hover{border-color:var(--bdr3);color:var(--text);transform:translateY(-1px)}
+.btn{border-radius:8px;padding:7px 14px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--bdr2);transition:all .2s;display:inline-flex;align-items:center;gap:5px;font-family:'DM Sans',inherit;background:var(--card2);color:var(--text2);letter-spacing:.3px}
+.btn:hover{border-color:var(--bdr3);color:var(--text);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.3)}
 .btn:active{transform:translateY(0)}
-.btn-g{background:linear-gradient(135deg,#0a3d7a,var(--green));border-color:var(--green);color:#fff;font-weight:700;box-shadow:var(--glow-g)}
-.btn-g:hover{box-shadow:0 0 30px rgba(77,159,255,.35);color:#fff}
+.btn-g{background:linear-gradient(135deg,var(--accent2),var(--accent));border-color:var(--accent);color:#fff;font-weight:700;box-shadow:var(--glow-b)}
+.btn-g:hover{box-shadow:0 0 32px rgba(99,102,241,.5);color:#fff}
 .btn-r{background:linear-gradient(135deg,var(--red2),var(--red));border-color:var(--red);color:#fff;box-shadow:var(--glow-r)}
-.btn-gold{background:linear-gradient(135deg,rgba(0,212,255,.2),rgba(0,212,255,.1));border-color:rgba(0,212,255,.4);color:#00d4ff}
-.btn-gold:hover{background:linear-gradient(135deg,rgba(0,212,255,.3),rgba(0,212,255,.15));box-shadow:var(--glow-gold)}
-.btn-blue{background:linear-gradient(135deg,rgba(77,159,255,.2),rgba(0,212,255,.1));border-color:rgba(77,159,255,.4);color:var(--blue)}
+.btn-gold{background:linear-gradient(135deg,rgba(247,201,72,.15),rgba(247,201,72,.08));border-color:rgba(247,201,72,.35);color:var(--gold)}
+.btn-gold:hover{background:linear-gradient(135deg,rgba(247,201,72,.25),rgba(247,201,72,.12));box-shadow:var(--glow-gold)}
+.btn-blue{background:linear-gradient(135deg,rgba(67,97,238,.2),rgba(0,207,255,.1));border-color:rgba(67,97,238,.4);color:#818cf8}
+.btn-new-op{background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;color:#fff;font-weight:700;padding:9px 18px;border-radius:10px;font-size:12px;letter-spacing:.5px;box-shadow:0 4px 20px rgba(99,102,241,.4);transition:all .2s;cursor:pointer;display:inline-flex;align-items:center;gap:7px;font-family:'Exo 2',sans-serif}
+.btn-new-op:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.5)}
+.btn-new-op:active{transform:translateY(0)}
 /* CONTENT */
-.content{flex:1;overflow-y:auto;padding:18px 22px}
+.content{flex:1;overflow-y:auto;padding:20px 24px}
 /* TAB SECTIONS */
 .tsec{display:none}.tsec.act{display:block}
 /* CARDS */
-.card{background:var(--card);border-radius:12px;border:1px solid var(--bdr);padding:15px;position:relative;overflow:hidden}
-.card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(232,160,32,.018),transparent);pointer-events:none}
-.card-hdr{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;padding-bottom:9px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:7px}
+.card{background:var(--card);border-radius:14px;border:1px solid var(--bdr);padding:16px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(99,102,241,.04),transparent 60%);pointer-events:none}
+.card-hdr{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:7px;font-family:'Exo 2',sans-serif}
 /* KPI ROW */
-.krow{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px}
-.kcard{background:var(--card);border-radius:11px;border:1px solid var(--bdr);padding:13px;flex:1;min-width:88px;text-align:center;position:relative;overflow:hidden;transition:all .2s}
-.kcard:hover{border-color:var(--bdr2)}
+.krow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.kcard{background:var(--card);border-radius:12px;border:1px solid var(--bdr);padding:14px;flex:1;min-width:90px;text-align:center;position:relative;overflow:hidden;transition:all .25s}
+.kcard:hover{border-color:var(--bdr2);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3)}
 .kcard::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
 .kcard.g::after{background:linear-gradient(90deg,transparent,var(--green),transparent)}
 .kcard.r::after{background:linear-gradient(90deg,transparent,var(--red),transparent)}
 .kcard.b::after{background:linear-gradient(90deg,transparent,var(--blue),transparent)}
 .kcard.gold::after{background:linear-gradient(90deg,transparent,var(--gold),transparent)}
-.klbl{font-size:8px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
-.kval{font-size:19px;font-weight:700;line-height:1}
+.klbl{font-size:8px;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:5px;font-family:'Exo 2',sans-serif}
+.kval{font-size:20px;font-weight:800;line-height:1;font-family:'Exo 2',sans-serif}
 .ksub{font-size:9px;color:var(--gray2);margin-top:3px}
 /* G2 */
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
 /* CHART */
 .cw{position:relative;height:170px;margin-top:8px}
 /* FORM */
-.fg{margin-bottom:11px}
-.fl{display:block;font-size:9px;font-weight:700;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
-.fi{width:100%;background:var(--bg);color:var(--text);border:1px solid var(--bdr);border-radius:8px;padding:8px 10px;font-size:12px;outline:none;font-family:inherit;transition:border-color .2s;-webkit-appearance:none}
-.fi:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(77,159,255,.1)}
-.fi-lg{font-size:17px;font-weight:700;padding:10px}
+.fg{margin-bottom:12px}
+.fl{display:block;font-size:9px;font-weight:700;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:5px;font-family:'Exo 2',sans-serif}
+.fi{width:100%;background:var(--bg2);color:var(--text);border:1px solid var(--bdr);border-radius:9px;padding:9px 11px;font-size:12px;outline:none;font-family:'DM Sans',inherit;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none}
+.fi:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.12)}
+.fi-lg{font-size:18px;font-weight:700;padding:11px;font-family:'Exo 2',sans-serif}
 .fg2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.rbw{display:flex;gap:6px}
-.rb{flex:1;padding:9px;border-radius:8px;border:1px solid var(--bdr);background:var(--bg);color:var(--gray2);font-size:11px;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;font-family:inherit}
+.rbw{display:flex;gap:7px}
+.rb{flex:1;padding:10px;border-radius:9px;border:1px solid var(--bdr);background:var(--bg2);color:var(--gray2);font-size:11px;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;font-family:'Exo 2',sans-serif;letter-spacing:.5px}
 .rb.atp{border-color:var(--green);background:var(--gd);color:var(--green);box-shadow:var(--glow-g)}
 .rb.asl{border-color:var(--red);background:var(--rd);color:var(--red);box-shadow:var(--glow-r)}
-.rb.abuy{border-color:var(--blue);background:var(--blueglow);color:var(--blue)}
-.rb.asell{border-color:var(--gold);background:rgba(255,200,77,.08);color:#00d4ff}
-/* CALENDAR */
-.cal-layout{display:flex;gap:14px}
-.cal-main{flex:1;min-width:0}
-.cal-side{width:252px;flex-shrink:0;display:flex;flex-direction:column;gap:11px}
-.cal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
-.cal-nav-btn{background:var(--card);border:1px solid var(--bdr);color:var(--text2);border-radius:7px;width:28px;height:28px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all .2s}
-.cal-nav-btn:hover{border-color:var(--blue);color:var(--blue)}
-.cal-month{font-size:14px;font-weight:800;min-width:10px;text-align:center;background:linear-gradient(90deg,var(--text),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.msum{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px}
-.msc{background:var(--card);border-radius:9px;padding:9px;border:1px solid var(--bdr);text-align:center;position:relative;overflow:hidden}
-.msc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:var(--color,var(--bdr))}
-.msl{font-size:8px;color:var(--gray2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px}
-.msv{font-size:13px;font-weight:700}
+.rb.abuy{border-color:var(--accent);background:var(--blueglow);color:#818cf8}
+.rb.asell{border-color:var(--gold);background:rgba(247,201,72,.08);color:var(--gold)}
+/* CALENDAR LAYOUT */
+.cal-layout{display:grid;grid-template-columns:1fr 280px;gap:16px}
+.cal-main{min-width:0}
+.cal-side{display:flex;flex-direction:column;gap:12px}
+.cal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.cal-nav-btn{background:var(--card);border:1px solid var(--bdr);color:var(--text2);border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.cal-nav-btn:hover{border-color:var(--accent);color:#818cf8;background:rgba(99,102,241,.1)}
+/* BOTTOM KPI BAR */
+.msum{display:flex;gap:0;background:linear-gradient(135deg,rgba(14,18,41,.95),rgba(10,14,32,.98));border:1px solid var(--bdr);border-radius:14px;overflow:hidden;margin-bottom:16px;backdrop-filter:blur(10px)}
+.msc{flex:1;padding:14px 16px;text-align:center;position:relative;border-right:1px solid var(--bdr)}
+.msc:last-child{border-right:none}
+.msl{font-size:8px;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px;font-family:'Exo 2',sans-serif}
+.msv{font-size:15px;font-weight:800;font-family:'Exo 2',sans-serif}
+.msc-icon{font-size:16px;margin-bottom:4px;display:block}
 /* CAL GRID */
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
-.cal-dow{text-align:center;font-size:8px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:1px;padding:5px 0 7px}
-.cal-cell{background:var(--card);border-radius:8px;min-height:76px;padding:7px;cursor:pointer;border:1px solid var(--bdr);transition:all .2s;position:relative;overflow:hidden}
-.cal-cell:hover{border-color:var(--bdr2);transform:scale(1.01)}
-.cal-cell.other{opacity:.2;cursor:default;pointer-events:none}
-.cal-cell.today{border-color:var(--blue)!important;box-shadow:0 0 10px rgba(77,159,255,.2)}
-.cal-cell.sel{border-color:var(--gold)!important;box-shadow:0 0 10px rgba(255,200,77,.2)!important}
-.cal-cell.all-tp{background:linear-gradient(135deg,rgba(0,229,160,.18),rgba(0,229,160,.06))!important;border-color:rgba(0,229,160,.5)!important}
-.cal-cell.all-sl{background:linear-gradient(135deg,rgba(255,77,106,.18),rgba(255,77,106,.06))!important;border-color:rgba(255,77,106,.5)!important}
-.cal-cell.mix-win{background:linear-gradient(135deg,rgba(0,229,160,.1),rgba(0,229,160,.04))!important;border-color:rgba(0,229,160,.3)!important}
-.cal-cell.mix-loss{background:linear-gradient(135deg,rgba(255,77,106,.1),rgba(255,77,106,.04))!important;border-color:rgba(255,77,106,.3)!important}
-.cdn{font-size:10px;font-weight:700;color:var(--gray2);margin-bottom:4px}
-.cal-cell.today .cdn{color:var(--blue)}
-.cpnl{font-size:10px;font-weight:700;border-radius:5px;padding:2px 5px;display:inline-block;margin-bottom:3px}
-.cpnl.pos{background:rgba(0,229,160,.15);color:var(--green)}
-.cpnl.neg{background:rgba(255,77,106,.15);color:var(--red)}
-.ccnt{font-size:8px;color:var(--gray2);display:flex;align-items:center;gap:3px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-dow{text-align:center;font-size:8px;font-weight:700;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;padding:6px 0 8px;font-family:'Exo 2',sans-serif}
+.cal-cell{background:var(--card);border-radius:10px;min-height:82px;padding:8px;cursor:pointer;border:1px solid var(--bdr);transition:all .22s;position:relative;overflow:hidden}
+.cal-cell::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.02),transparent);pointer-events:none}
+.cal-cell:hover{border-color:var(--bdr2);transform:scale(1.02);box-shadow:0 4px 20px rgba(0,0,0,.3);z-index:2}
+.cal-cell.other{opacity:.15;cursor:default;pointer-events:none}
+.cal-cell.today{border-color:rgba(67,97,238,.6)!important;box-shadow:0 0 16px rgba(67,97,238,.2)}
+.cal-cell.sel{border-color:rgba(247,201,72,.6)!important;box-shadow:0 0 16px rgba(247,201,72,.2)!important}
+.cal-cell.all-tp{background:linear-gradient(135deg,rgba(0,229,176,.16),rgba(0,229,176,.05))!important;border-color:rgba(0,229,176,.4)!important}
+.cal-cell.all-sl{background:linear-gradient(135deg,rgba(255,56,96,.16),rgba(255,56,96,.05))!important;border-color:rgba(255,56,96,.4)!important}
+.cal-cell.mix-win{background:linear-gradient(135deg,rgba(0,229,176,.09),rgba(0,229,176,.03))!important;border-color:rgba(0,229,176,.25)!important}
+.cal-cell.mix-loss{background:linear-gradient(135deg,rgba(255,56,96,.09),rgba(255,56,96,.03))!important;border-color:rgba(255,56,96,.25)!important}
+.cdn{font-size:11px;font-weight:700;color:var(--gray2);margin-bottom:5px;font-family:'Exo 2',sans-serif}
+.cal-cell.today .cdn{color:#818cf8}
+.cal-cell.sel .cdn{color:var(--gold)}
+.cpnl{font-size:11px;font-weight:800;border-radius:6px;padding:2px 6px;display:inline-block;margin-bottom:4px;font-family:'Exo 2',sans-serif}
+.cpnl.pos{background:rgba(0,229,176,.15);color:var(--green)}
+.cpnl.neg{background:rgba(255,56,96,.15);color:var(--red)}
+.ccnt{font-size:9px;color:var(--gray2);display:flex;align-items:center;gap:3px}
 .dot{width:5px;height:5px;border-radius:50%;display:inline-block}
 .dot-g{background:var(--green)}.dot-r{background:var(--red)}
 /* TABLE */
 .tw{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:11px}
-th{text-align:left;color:var(--gray2);font-weight:700;font-size:8px;padding:9px 10px;text-transform:uppercase;letter-spacing:1px;background:var(--card);border-bottom:1px solid var(--bdr)}
-td{padding:8px 10px;border-bottom:1px solid rgba(30,38,64,.6)}
-tr:hover td{background:rgba(19,24,40,.8)}
-.btp{background:rgba(0,229,160,.12);color:var(--green);padding:2px 8px;border-radius:5px;font-weight:700;font-size:10px;border:1px solid rgba(0,229,160,.2)}
-.bsl{background:rgba(255,77,106,.12);color:var(--red);padding:2px 8px;border-radius:5px;font-weight:700;font-size:10px;border:1px solid rgba(255,77,106,.2)}
-.bbuy{background:rgba(77,159,255,.12);color:var(--blue);padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700}
-.bsell{background:rgba(255,200,77,.12);color:var(--gold);padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:11px;font-family:'DM Sans',sans-serif}
+th{text-align:left;color:var(--gray2);font-weight:700;font-size:8px;padding:10px 11px;text-transform:uppercase;letter-spacing:1.5px;background:var(--card);border-bottom:1px solid var(--bdr);font-family:'Exo 2',sans-serif}
+td{padding:9px 11px;border-bottom:1px solid rgba(30,37,64,.5)}
+tr:hover td{background:rgba(14,18,41,.8)}
+.btp{background:rgba(0,229,176,.12);color:var(--green);padding:2px 8px;border-radius:5px;font-weight:700;font-size:10px;border:1px solid rgba(0,229,176,.2)}
+.bsl{background:rgba(255,56,96,.12);color:var(--red);padding:2px 8px;border-radius:5px;font-weight:700;font-size:10px;border:1px solid rgba(255,56,96,.2)}
+.bbuy{background:rgba(67,97,238,.12);color:#818cf8;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700}
+.bsell{background:rgba(247,201,72,.12);color:var(--gold);padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700}
 .pp{color:var(--green);font-weight:700}.pn{color:var(--red);font-weight:700}
 .wg{color:var(--green)}.wb{color:var(--red)}
-.icon-btn{background:none;border:1px solid var(--bdr);border-radius:5px;color:var(--gray2);cursor:pointer;width:25px;height:25px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;transition:all .2s;font-family:inherit}
-.icon-btn.edit:hover{border-color:var(--blue);color:var(--blue);background:var(--blueglow)}
+.icon-btn{background:none;border:1px solid var(--bdr);border-radius:6px;color:var(--gray2);cursor:pointer;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;transition:all .2s;font-family:inherit}
+.icon-btn.edit:hover{border-color:var(--accent);color:#818cf8;background:var(--blueglow)}
 .icon-btn.del:hover{border-color:var(--red);color:var(--red);background:var(--rd)}
 /* DD BAR */
 .ddbar{background:var(--bdr);border-radius:99px;height:12px;overflow:hidden;margin:6px 0;position:relative}
-.ddbar::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,255,255,.05),transparent);pointer-events:none}
+.ddbar::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,255,255,.06),transparent);pointer-events:none}
 .ddfill{height:100%;border-radius:99px;transition:width .5s,background .5s;position:relative}
 .ddfill::after{content:'';position:absolute;top:0;left:0;right:0;height:50%;background:rgba(255,255,255,.15);border-radius:99px}
 /* TOGGLE */
-.tog{position:relative;width:42px;height:22px;background:var(--bdr);border-radius:99px;border:none;cursor:pointer;transition:background .2s;flex-shrink:0}
-.tog.on{background:var(--green2);box-shadow:0 0 10px rgba(0,229,160,.3)}
-.tthumb{position:absolute;top:3px;left:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:left .2s;box-shadow:0 1px 4px rgba(0,0,0,.4)}
-.tog.on .tthumb{left:23px}
+.tog{position:relative;width:44px;height:23px;background:var(--bdr);border-radius:99px;border:none;cursor:pointer;transition:background .2s;flex-shrink:0}
+.tog.on{background:linear-gradient(90deg,var(--accent2),var(--accent));box-shadow:0 0 12px rgba(99,102,241,.4)}
+.tthumb{position:absolute;top:3px;left:3px;width:17px;height:17px;background:#fff;border-radius:50%;transition:left .2s;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.tog.on .tthumb{left:24px}
 /* STAT ROW */
-.sr{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(30,38,64,.5)}
+.sr{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(30,37,64,.5)}
 .sr:last-child{border-bottom:none}
 .sl2{font-size:11px;color:var(--gray2)}
-.sv{font-size:12px;font-weight:700}
+.sv{font-size:12px;font-weight:700;font-family:'Exo 2',sans-serif}
 /* ALERT */
 #abanner{display:none;padding:9px 18px;border-bottom:2px solid;font-weight:700;font-size:12px;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0}
 #abanner.show{display:flex}
 /* TOAST */
-#toast{position:fixed;bottom:18px;right:18px;background:var(--card);border:1px solid var(--bdr2);border-radius:10px;padding:10px 16px;font-size:12px;font-weight:600;z-index:99999;display:none;box-shadow:0 4px 30px rgba(0,0,0,.6);min-width:200px}
+#toast{position:fixed;bottom:20px;right:20px;background:var(--card2);border:1px solid var(--bdr2);border-radius:12px;padding:12px 18px;font-size:12px;font-weight:600;z-index:99999;display:none;box-shadow:0 8px 40px rgba(0,0,0,.6);min-width:220px}
 /* MODAL */
-.mo{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:10000;display:none;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto;backdrop-filter:blur(4px)}
+.mo{position:fixed;inset:0;background:rgba(5,7,18,.9);z-index:10000;display:none;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto;backdrop-filter:blur(8px)}
 .mo.show{display:flex}
-.mb{background:var(--card);border-radius:14px;padding:22px;max-width:450px;width:100%;border:1px solid var(--bdr2);margin:auto;box-shadow:0 0 60px rgba(77,159,255,.1)}
-.mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-.mt2{font-weight:700;font-size:14px;color:#00d4ff}
-.mcl{background:none;border:none;color:var(--gray2);cursor:pointer;font-size:20px;line-height:1;transition:color .2s}
+.mb{background:var(--card);border-radius:16px;padding:24px;max-width:460px;width:100%;border:1px solid var(--bdr2);margin:auto;box-shadow:0 0 80px rgba(99,102,241,.15)}
+.mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.mt2{font-weight:800;font-size:15px;color:var(--cyan);font-family:'Exo 2',sans-serif}
+.mcl{background:none;border:none;color:var(--gray2);cursor:pointer;font-size:22px;line-height:1;transition:color .2s}
 .mcl:hover{color:var(--text)}
 /* TROW */
-.trow{background:var(--bg);border-radius:8px;padding:9px 11px;margin-bottom:5px;border:1px solid var(--bdr);display:flex;align-items:center;gap:8px;transition:all .2s}
-.trow:hover{border-color:var(--bdr2)}
-.trow.editing{border-color:var(--gold);box-shadow:0 0 8px rgba(255,200,77,.15)}
+.trow{background:var(--bg2);border-radius:10px;padding:10px 12px;margin-bottom:5px;border:1px solid var(--bdr);display:flex;align-items:center;gap:8px;transition:all .22s}
+.trow:hover{border-color:var(--bdr2);background:var(--card)}
+.trow.editing{border-color:rgba(247,201,72,.5);box-shadow:0 0 12px rgba(247,201,72,.12)}
 /* NOTES WITH LINKS */
 .note-text{font-size:10px;color:var(--gray2);margin-top:4px;line-height:1.6}
-.note-link{display:flex;align-items:center;gap:5px;background:var(--blueglow);border:1px solid rgba(77,159,255,.2);border-radius:5px;padding:3px 7px;margin-top:3px;font-size:10px;color:var(--blue);cursor:pointer;text-decoration:none;transition:all .2s;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.note-link:hover{background:rgba(77,159,255,.2);border-color:rgba(77,159,255,.4)}
-.note-img{max-width:100%;border-radius:7px;margin-top:5px;border:1px solid var(--bdr);cursor:pointer}
+.note-link{display:flex;align-items:center;gap:5px;background:var(--blueglow);border:1px solid rgba(67,97,238,.25);border-radius:6px;padding:3px 8px;margin-top:3px;font-size:10px;color:#818cf8;cursor:pointer;text-decoration:none;transition:all .2s;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.note-link:hover{background:rgba(99,102,241,.2);border-color:rgba(99,102,241,.4)}
+.note-img{max-width:100%;border-radius:8px;margin-top:5px;border:1px solid var(--bdr);cursor:pointer}
 /* INSIGHT */
 .ir{display:flex;gap:7px;margin-top:8px;flex-wrap:wrap}
-.ib{flex:1;min-width:100px;border-radius:8px;padding:8px 10px;border:1px solid}
+.ib{flex:1;min-width:100px;border-radius:9px;padding:9px 10px;border:1px solid}
 .il{font-size:8px;color:var(--gray2);margin-bottom:3px;text-transform:uppercase;letter-spacing:.7px}
-.iv{font-size:13px;font-weight:700}
+.iv{font-size:13px;font-weight:700;font-family:'Exo 2',sans-serif}
 /* BURN */
-.bc{background:rgba(255,77,106,.06);border:1px solid rgba(255,77,106,.2);border-radius:8px;padding:9px 11px;margin-bottom:5px;display:flex;justify-content:space-between;align-items:center}
+.bc{background:rgba(255,56,96,.06);border:1px solid rgba(255,56,96,.2);border-radius:9px;padding:10px 12px;margin-bottom:5px;display:flex;justify-content:space-between;align-items:center}
 /* FILTER BAR */
-.fbar{background:var(--card);border-radius:10px;padding:12px;border:1px solid var(--bdr);margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.fbar{background:var(--card);border-radius:11px;padding:12px;border:1px solid var(--bdr);margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 /* BADGE PREMIUM */
-.premium-badge{background:linear-gradient(90deg,var(--gold),var(--org));color:#000;font-size:7px;font-weight:900;padding:2px 6px;border-radius:4px;letter-spacing:1px;text-transform:uppercase}
-@media(max-width:900px){.cal-layout{flex-direction:column}.cal-side{width:100%}.g2{grid-template-columns:1fr}.msum{grid-template-columns:repeat(2,1fr)}}
+.premium-badge{background:linear-gradient(90deg,var(--accent),var(--cyan));color:#fff;font-size:7px;font-weight:900;padding:2px 7px;border-radius:4px;letter-spacing:1px;text-transform:uppercase;font-family:'Exo 2',sans-serif}
+/* OPS HEADER BAR */
+.ops-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.ops-view-btns{display:flex;background:var(--card2);border:1px solid var(--bdr);border-radius:10px;padding:3px;gap:2px}
+.ops-view-btn{border:none;background:transparent;color:var(--gray2);padding:6px 12px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;font-family:'Exo 2',sans-serif;display:flex;align-items:center;gap:5px}
+.ops-view-btn.act{background:var(--card3);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.ops-view-btn svg{width:13px;height:13px}
+/* RIGHT PANEL - TRADE DETAIL */
+#trade-detail-panel{position:fixed;right:-400px;top:0;bottom:0;width:380px;background:rgba(8,11,28,.97);border-left:1px solid var(--bdr);z-index:200;transition:right .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;backdrop-filter:blur(20px);overflow:hidden}
+#trade-detail-panel.open{right:0;box-shadow:-8px 0 60px rgba(0,0,0,.5)}
+#trade-detail-panel::before{content:'';position:absolute;left:0;top:0;bottom:0;width:1px;background:linear-gradient(180deg,transparent,rgba(99,102,241,.5),rgba(0,207,255,.3),transparent)}
+.tdp-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--bdr);flex-shrink:0}
+.tdp-title{font-family:'Exo 2',sans-serif;font-size:14px;font-weight:800;color:var(--text)}
+.tdp-close{background:none;border:1px solid var(--bdr);border-radius:7px;color:var(--gray2);cursor:pointer;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .2s}
+.tdp-close:hover{border-color:var(--red);color:var(--red)}
+.tdp-body{flex:1;overflow-y:auto;padding:16px 18px}
+.trade-badge{display:inline-flex;align-items:center;gap:5px;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;font-family:'Exo 2',sans-serif}
+.trade-badge.win{background:rgba(0,229,176,.15);border:1px solid rgba(0,229,176,.3);color:var(--green)}
+.trade-badge.loss{background:rgba(255,56,96,.15);border:1px solid rgba(255,56,96,.3);color:var(--red)}
+.tdp-pnl{font-family:'Exo 2',sans-serif;font-size:24px;font-weight:900}
+.tdp-pnl.pos{color:var(--green);text-shadow:0 0 20px rgba(0,229,176,.4)}
+.tdp-pnl.neg{color:var(--red);text-shadow:0 0 20px rgba(255,56,96,.4)}
+.tdp-info-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:14px 0;padding:14px;background:var(--card);border-radius:12px;border:1px solid var(--bdr)}
+.tdp-info-item{text-align:center}
+.tdp-info-label{font-size:8px;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px;font-family:'Exo 2',sans-serif}
+.tdp-info-val{font-size:14px;font-weight:700;color:var(--text);font-family:'Exo 2',sans-serif}
+.tdp-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(30,37,64,.4)}
+.tdp-row:last-child{border-bottom:none}
+.tdp-row-icon{width:28px;height:28px;border-radius:7px;background:var(--card2);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.tdp-row-label{font-size:9px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;font-family:'Exo 2',sans-serif}
+.tdp-row-val{font-size:12px;color:var(--text);font-weight:500;font-family:'DM Sans',sans-serif}
+.tdp-section{margin-top:14px}
+.tdp-section-title{font-size:9px;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;font-family:'Exo 2',sans-serif;display:flex;align-items:center;gap:6px;justify-content:space-between}
+.tdp-tag{display:inline-flex;align-items:center;gap:4px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;padding:4px 9px;font-size:10px;color:var(--text2);font-weight:600;margin:2px;font-family:'Exo 2',sans-serif}
+/* DAY DETAIL TABLE */
+.day-ops-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px}
+.day-ops-table th{text-align:left;color:var(--gray2);font-weight:700;font-size:8px;padding:7px 10px;text-transform:uppercase;letter-spacing:1.2px;border-bottom:1px solid var(--bdr);font-family:'Exo 2',sans-serif}
+.day-ops-table td{padding:8px 10px;border-bottom:1px solid rgba(30,37,64,.4);cursor:pointer;transition:background .15s}
+.day-ops-table tr:hover td{background:rgba(99,102,241,.06)}
+.day-ops-table tr.sel-row td{background:rgba(247,201,72,.06);border-color:rgba(247,201,72,.2)}
+/* Overlay when panel is open */
+#tdp-overlay{display:none;position:fixed;inset:0;z-index:199;background:transparent}
+#tdp-overlay.show{display:block}
+/* SCROLLBAR for panel */
+#trade-detail-panel::-webkit-scrollbar{width:3px}
+/* RIPPLE */
+.ripple{position:fixed;border-radius:50%;background:rgba(99,102,241,.3);transform:scale(0);animation:ripple-anim .5s ease-out;pointer-events:none;z-index:99999}
+@keyframes ripple-anim{to{transform:scale(4);opacity:0}}
+/* GLOW PULSE on win */
+@keyframes win-pulse{0%,100%{box-shadow:0 0 0 rgba(0,229,176,0)}50%{box-shadow:0 0 30px rgba(0,229,176,.4)}}
+.win-pulse{animation:win-pulse .6s ease}
+/* SLIDE IN */
+@keyframes slide-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.slide-in{animation:slide-in .25s ease}
+
+@media(max-width:900px){.cal-layout{grid-template-columns:1fr}.cal-side{width:100%}.g2{grid-template-columns:1fr}.msum{flex-wrap:wrap}.msc{min-width:45%}}
 
 /* ── MOBILE NAV BAR (oculto en desktop) ── */
 #mob-nav{display:none}
@@ -405,28 +474,48 @@ tr:hover td{background:rgba(19,24,40,.8)}
 
 <!-- SIDEBAR -->
 <div class="sb">
-  <div class="logo" style="display:flex;align-items:center;gap:10px">
-    <div class="logo-icon" style="font-size:18px;background:linear-gradient(135deg,#1565c0,#00d4ff);color:#fff;">🚀</div>
-    <div><div class="logo-name" style="background:linear-gradient(90deg,#4d9fff,#00d4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:11px;">CURSOS DIGITALES</div><div class="logo-sub" style="color:#00d4ff;letter-spacing:2px;">701 JOURNAL</div></div>
-  </div>
-  <div style="padding:6px;flex:1;display:flex;flex-direction:column">
-    <div class="ns">Principal</div>
-    <div class="ni act" id="nav-dash" onclick="showTab('dash',this)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>Dashboard</div>
-    <div class="ni" id="nav-registro" onclick="showTab('registro',this)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="14" height="12" rx="1.5"/><line x1="1" y1="5" x2="15" y2="5"/><line x1="5" y1="5" x2="5" y2="14"/></svg>Registro</div>
-    <div class="ni" id="nav-stats" onclick="showTab('stats',this)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="1,12 5,8 8,10 12,5 15,7"/></svg>Estadísticas</div>
-    <div class="ni" id="nav-analisis" onclick="showTab('analisis',this)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><line x1="8" y1="4" x2="8" y2="9"/><circle cx="8" cy="11" r=".8" fill="currentColor"/></svg>Análisis</div>
-    <div class="ns">Sistema</div>
-    <!-- Cuentas -->
-    <div class="ni" id="nav-config" onclick="showTab('config',this)">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>Cuentas
+  <div class="logo">
+    <div class="logo-icon">⚡</div>
+    <div>
+      <div class="logo-name">TRADER JOURNAL</div>
+      <div class="logo-sub">CD701 PLATFORM</div>
     </div>
-    <!-- Lista de cuentas en sidebar -->
-    <div id="sb-acct-list" style="padding:0 8px 4px;display:flex;flex-direction:column;gap:3px;max-height:200px;overflow-y:auto;"></div>
+  </div>
+  <div style="padding:8px;flex:1;display:flex;flex-direction:column;overflow-y:auto">
+    <div class="ns">Principal</div>
+    <div class="ni act" id="nav-dash" onclick="showTab('dash',this)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1.2"/><rect x="9" y="1" width="6" height="6" rx="1.2"/><rect x="1" y="9" width="6" height="6" rx="1.2"/><rect x="9" y="9" width="6" height="6" rx="1.2"/></svg>Dashboard
+    </div>
+    <div class="ni" id="nav-registro" onclick="showTab('registro',this)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.5" y="2" width="13" height="12" rx="1.5"/><line x1="1.5" y1="5.5" x2="14.5" y2="5.5"/><line x1="5" y1="5.5" x2="5" y2="14"/></svg>Operaciones
+    </div>
+    <div class="ni" id="nav-registro-cal" onclick="showTab('registro',document.getElementById('nav-registro'));setLogView('cal')">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2.5" width="14" height="12" rx="1.5"/><line x1="1" y1="6" x2="15" y2="6"/><line x1="5" y1="1" x2="5" y2="4"/><line x1="11" y1="1" x2="11" y2="4"/></svg>Calendario
+    </div>
+    <div class="ni" id="nav-analisis" onclick="showTab('analisis',this)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="1,13 4.5,8 7.5,10.5 11,5 15,7.5"/><polyline points="11,5 15,5 15,7.5"/></svg>Análisis
+    </div>
+    <div class="ni" id="nav-stats" onclick="showTab('stats',this)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="9" width="3" height="6" rx=".8"/><rect x="6" y="5" width="3" height="10" rx=".8"/><rect x="11" y="2" width="3" height="13" rx=".8"/></svg>Estadísticas
+    </div>
+    <div class="ns" style="margin-top:6px">Herramientas</div>
+    <div class="ni" id="nav-config" onclick="showTab('config',this)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M2.9 2.9l1.4 1.4M11.7 11.7l1.4 1.4M2.9 13.1l1.4-1.4M11.7 4.3l1.4-1.4"/></svg>Ajustes
+    </div>
+    <!-- Lista de cuentas -->
+    <div style="margin-top:8px;padding:8px 0 4px;border-top:1px solid var(--bdr)">
+      <div class="ns" style="padding-top:6px">Cuentas</div>
+      <div id="sb-acct-list" style="display:flex;flex-direction:column;gap:3px;max-height:200px;overflow-y:auto;padding:0 2px"></div>
+    </div>
+    <!-- Bottom user area -->
     <div style="margin-top:auto;padding:10px 0 4px;border-top:1px solid var(--bdr)">
-      <button id="pwa-install-btn" onclick="installPWA()" style="display:none;width:100%;margin-bottom:6px;background:linear-gradient(135deg,rgba(0,212,255,.15),rgba(77,159,255,.1));border:1px solid rgba(0,212,255,.3);color:#00d4ff;border-radius:8px;padding:8px;font-size:10px;font-weight:700;cursor:pointer;letter-spacing:1px;align-items:center;justify-content:center;gap:5px;">📲 INSTALAR APP</button>
-      <div style="display:flex;align-items:center;gap:8px;padding:7px 10px">
-        <div style="width:28px;height:28px;background:linear-gradient(135deg,var(--blue),var(--cyan));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800">TP</div>
-        <div><div style="font-size:11px;font-weight:600;color:var(--text)">Trader Pro</div><span class="premium-badge">PRO</span></div>
+      <button id="pwa-install-btn" onclick="installPWA()" style="display:none;width:100%;margin-bottom:8px;background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(67,97,238,.1));border:1px solid rgba(99,102,241,.3);color:#818cf8;border-radius:9px;padding:8px;font-size:10px;font-weight:700;cursor:pointer;letter-spacing:1px;align-items:center;justify-content:center;gap:5px;font-family:'Exo 2',sans-serif;">📲 INSTALAR APP</button>
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--card2);border-radius:10px;border:1px solid var(--bdr)">
+        <div style="width:32px;height:32px;background:linear-gradient(135deg,var(--accent2),var(--cyan));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;font-family:'Exo 2',sans-serif;flex-shrink:0">T</div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text);font-family:'Exo 2',sans-serif">Trader Pro</div>
+          <span class="premium-badge">PRO</span>
+        </div>
       </div>
     </div>
   </div>
@@ -490,181 +579,93 @@ tr:hover td{background:rgba(19,24,40,.8)}
 
   <!-- ═══ REGISTRO ═══ -->
   <div id="tab-registro" class="tsec">
-    <div class="msum" id="msum"></div>
-    <div class="cal-layout">
-      <div class="cal-main">
-        <div class="cal-hdr">
-          <div style="display:flex;align-items:center;gap:7px">
-            <button class="cal-nav-btn" onclick="calNav(-1)">◀</button>
-            <!-- Dropdowns for year/month -->
-            <select id="cal-yr-sel" class="fi" style="width:auto;padding:4px 8px;font-size:11px;font-weight:700" onchange="calGoTo()"></select>
-            <select id="cal-mo-sel" class="fi" style="width:auto;padding:4px 8px;font-size:11px;font-weight:700" onchange="calGoTo()"></select>
-            <button class="cal-nav-btn" onclick="calNav(1)">▶</button>
-            <button class="btn" style="padding:4px 10px;font-size:10px" onclick="calToday()">Hoy</button>
-          </div>
-          <div style="display:flex;gap:4px">
-            <button class="btn" id="vbtn-cal" onclick="setLogView('cal')">📅 Cal.</button>
-            <button class="btn" id="vbtn-tbl" onclick="setLogView('tbl')">📋 Tabla</button>
-          </div>
-        </div>
-        <div id="log-cal">
-          <div class="cal-grid" id="cal-grid"></div>
-          <div style="display:flex;gap:12px;margin-top:10px;padding:8px 12px;background:var(--card);border-radius:8px;border:1px solid var(--bdr)">
-            <span style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--gray2)"><span style="width:10px;height:10px;border-radius:3px;background:rgba(0,229,160,.25);border:1px solid var(--green);display:inline-block"></span>Solo TP</span>
-            <span style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--gray2)"><span style="width:10px;height:10px;border-radius:3px;background:rgba(255,77,106,.25);border:1px solid var(--red);display:inline-block"></span>Solo SL</span>
-            <span style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--gray2)"><span class="dot dot-g"></span>TP mixto</span>
-            <span style="display:flex;align-items:center;gap=5px;font-size:10px;color:var(--gray2)"><span class="dot dot-r"></span>SL mixto</span>
-          </div>
-          <div id="day-detail" class="card" style="display:none;margin-top:11px">
-            <div class="card-hdr" style="color:var(--gold);border-color:rgba(255,200,77,.2)"><span id="day-detail-title"></span></div>
-            <div id="day-trades"></div>
-          </div>
-        </div>
-        <div id="log-tbl" style="display:none">
-          <!-- Filtros de tabla -->
-          <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px;padding:10px;background:var(--card);border-radius:10px;border:1px solid var(--bdr);">
-            <select id="f-filter-asset" class="fi" style="width:auto;padding:5px 8px;font-size:11px" onchange="renderTable()">
-              <option value="">Todos los activos</option>
-            </select>
-            <select id="f-filter-session" class="fi" style="width:auto;padding:5px 8px;font-size:11px" onchange="renderTable()">
-              <option value="">Todas sesiones</option>
-              <option>Asia</option><option>Londres</option><option>Nueva York</option><option>Londres+NY</option>
-            </select>
-            <select id="f-filter-tf" class="fi" style="width:auto;padding:5px 8px;font-size:11px" onchange="renderTable()">
-              <option value="">Todos TF</option>
-              <option>M1</option><option>M5</option><option>M15</option><option>M30</option>
-              <option>H1</option><option>H4</option><option>D1</option>
-            </select>
-            <select id="f-filter-result" class="fi" style="width:auto;padding:5px 8px;font-size:11px" onchange="renderTable()">
-              <option value="">TP y SL</option>
-              <option value="TP">Solo TP</option><option value="SL">Solo SL</option>
-            </select>
-            <button class="btn" style="padding:5px 10px;font-size:10px;" onclick="clearTableFilters()">✕ Limpiar</button>
-          </div>
-          <div class="card" style="padding:0;overflow:hidden">
-            <div class="tw"><table id="tlog">
-              <thead><tr><th>#</th><th>Fecha</th><th>Hora</th><th>Activo</th><th>Dir</th><th>Res.</th><th>P&L</th><th>RR</th><th>TF</th><th>Sesión</th><th>Estrategia</th><th>Etiquetas</th><th>✏🗑</th></tr></thead>
-              <tbody></tbody>
-            </table></div>
-          </div>
-        </div>
+    <!-- TOOLBAR -->
+    <div class="ops-toolbar">
+      <div class="ops-view-btns">
+        <button class="ops-view-btn act" id="vbtn-cal" onclick="setLogView('cal')">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2.5" width="14" height="12" rx="1.5"/><line x1="1" y1="6" x2="15" y2="6"/><line x1="5" y1="1" x2="5" y2="4"/><line x1="11" y1="1" x2="11" y2="4"/></svg>Calendario
+        </button>
+        <button class="ops-view-btn" id="vbtn-tbl" onclick="setLogView('tbl')">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="14" height="12" rx="1.5"/><line x1="1" y1="5.5" x2="15" y2="5.5"/><line x1="5.5" y1="5.5" x2="5.5" y2="14"/></svg>Tabla
+        </button>
+        <button class="ops-view-btn" id="vbtn-stats" onclick="showTab('stats',document.getElementById('nav-stats'))">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="1,13 4.5,8 7.5,10.5 11,5 15,7.5"/></svg>Estadísticas
+        </button>
       </div>
-      <!-- FORM SIDE -->
-      <div class="cal-side">
-        <div class="card" id="op-form">
-          <div class="card-hdr" style="color:var(--green);border-color:rgba(0,229,160,.2)" id="form-hdr"><span id="form-icon">+</span> <span id="form-title">Nueva Operación</span></div>
-          <div class="fg"><label class="fl">Fecha</label>
-            <div style="display:flex;gap:6px">
-              <select id="f-day" class="fi" style="flex:1" onchange="buildDateFromParts()"><option value="">Día</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
-              <select id="f-month" class="fi" style="flex:1.5" onchange="buildDateFromParts()">
-                <option value="">Mes</option>
-                <option value="01">Enero</option><option value="02">Febrero</option><option value="03">Marzo</option>
-                <option value="04">Abril</option><option value="05">Mayo</option><option value="06">Junio</option>
-                <option value="07">Julio</option><option value="08">Agosto</option><option value="09">Septiembre</option>
-                <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
-              </select>
-              <select id="f-year" class="fi" style="flex:1" onchange="buildDateFromParts()"><option value="">Año</option><option value="2000">2000</option><option value="2001">2001</option><option value="2002">2002</option><option value="2003">2003</option><option value="2004">2004</option><option value="2005">2005</option><option value="2006">2006</option><option value="2007">2007</option><option value="2008">2008</option><option value="2009">2009</option><option value="2010">2010</option><option value="2011">2011</option><option value="2012">2012</option><option value="2013">2013</option><option value="2014">2014</option><option value="2015">2015</option><option value="2016">2016</option><option value="2017">2017</option><option value="2018">2018</option><option value="2019">2019</option><option value="2020">2020</option><option value="2021">2021</option><option value="2022">2022</option><option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026"  selected>2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option><option value="2031">2031</option><option value="2032">2032</option><option value="2033">2033</option><option value="2034">2034</option><option value="2035">2035</option><option value="2036">2036</option><option value="2037">2037</option><option value="2038">2038</option><option value="2039">2039</option><option value="2040">2040</option><option value="2041">2041</option><option value="2042">2042</option><option value="2043">2043</option><option value="2044">2044</option><option value="2045">2045</option><option value="2046">2046</option><option value="2047">2047</option><option value="2048">2048</option><option value="2049">2049</option><option value="2050">2050</option></select><input type="number" id="f-year-custom" class="fi" placeholder="Otro año" min="2000" max="2099" style="flex:1;margin-top:4px;display:none" onchange="setCustomYear(this.value)">
-            </div>
-            <input type="hidden" id="f-date">
-            <div style="text-align:right;margin-top:3px">
-              <a id="f-year-custom-lnk" href="#" onclick="toggleCustomYear();return false;" 
-                style="font-size:9px;color:var(--blue);text-decoration:none">✎ Año personalizado</a>
-            </div>
-          </div>
-          <div class="fg2" style="margin-bottom:10px">
-            <div><label class="fl">Hora</label>
-              <div style="display:flex;gap:4px">
-                <select id="f-hour" class="fi" style="flex:1" onchange="buildTimeFromParts()"><option value="00">00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08" selected>08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option></select>
-                <select id="f-min" class="fi" style="flex:1" onchange="buildTimeFromParts()"><option value="00" selected>00</option><option value="05">05</option><option value="10">10</option><option value="15">15</option><option value="20">20</option><option value="25">25</option><option value="30">30</option><option value="35">35</option><option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="55">55</option></select>
-              </div>
-              <input type="hidden" id="f-time" value="08:00">
-            </div>
-            <div><label class="fl">Activo</label><select id="f-asset" class="fi"></select></div>
-          </div>
-          <div class="fg">
-            <label class="fl">Resultado</label>
-            <div class="rbw">
-              <button class="rb atp" id="btn-tp" onclick="setR('TP')">✓ TP</button>
-              <button class="rb" id="btn-sl" onclick="setR('SL')">✕ SL</button>
-            </div>
-          </div>
-          <div class="fg">
-            <label class="fl">Dirección</label>
-            <div class="rbw">
-              <button class="rb abuy" id="btn-buy" onclick="setDir('BUY')">▲ BUY</button>
-              <button class="rb" id="btn-sell" onclick="setDir('SELL')">▼ SELL</button>
-            </div>
-          </div>
-          <div class="fg">
-            <label class="fl">P&L en USD (negativo = pérdida)</label>
-            <input type="text" inputmode="decimal" id="f-pnl" class="fi fi-lg" placeholder="ej: 210.50 ó -45.20" oninput="onPI()">
-            <div id="pnl-prev" style="font-size:10px;font-weight:600;min-height:14px;margin-top:3px"></div>
-          </div>
-          <div class="fg">
-            <label class="fl">Estrategia</label>
-            <select id="f-strategy" class="fi">
-              <option value="">— Ninguna —</option>
-              <option>ICT / SMC</option><option>Order Blocks</option><option>FVG</option>
-              <option>BOS / ChoCH</option><option>Liquidity Sweep</option><option>Scalping</option>
-              <option>Breaker Block</option><option>IFVG</option><option>Mitigation</option><option>Otra</option>
-            </select>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            <div class="fg" style="margin:0">
-              <label class="fl">Timeframe</label>
-              <select id="f-tf" class="fi">
-                <option value="">—</option>
-                <option>M1</option><option>M5</option><option>M15</option><option>M30</option>
-                <option>H1</option><option>H4</option><option>D1</option><option>W1</option>
-              </select>
-            </div>
-            <div class="fg" style="margin:0">
-              <label class="fl">Sesión</label>
-              <select id="f-session" class="fi">
-                <option value="">—</option>
-                <option>Asia</option><option>Londres</option><option>Nueva York</option>
-                <option>Londres+NY</option><option>Pre-Mercado</option>
-              </select>
-            </div>
-          </div>
-          <div class="fg">
-            <label class="fl">RR (Riesgo/Beneficio)</label>
-            <input type="number" id="f-rr" class="fi" step="0.1" min="0" placeholder="Ej: 2.5">
-          </div>
-          <div class="fg">
-            <label class="fl">Etiquetas</label>
-            <div id="tag-input-wrap" style="background:var(--bg2,#0f1520);border:1px solid var(--bdr);border-radius:8px;padding:7px 10px;min-height:38px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;cursor:text;" onclick="document.getElementById('f-tag-input').focus()">
-              <div id="tags-display" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
-              <input id="f-tag-input" type="text" placeholder="Añadir etiqueta..." style="border:none;background:transparent;color:var(--text);font-size:12px;outline:none;min-width:100px;flex:1;" onkeydown="handleTagInput(event)">
-            </div>
-            <div style="font-size:9px;color:var(--gray2,#555);margin-top:3px">Escribe y presiona Enter o coma para añadir</div>
-            <input type="hidden" id="f-tags" value="">
-          </div>
-          <div class="fg">
-            <label class="fl">Notas / Links de imágenes</label>
-            <textarea id="f-notes" class="fi" rows="3" placeholder="Escribe notas o pega links de TradingView...&#10;https://prnt.sc/... abrirá como enlace externo"></textarea>
-            <div style="font-size:9px;color:var(--blue);margin-top:3px">Los links se mostrarán como viñetas clicables</div>
-          </div>
-          <div style="display:flex;gap:7px;margin-top:5px">
-            <button class="btn btn-r" id="btn-cancel" style="display:none;flex:1;justify-content:center" onclick="cancelEdit()">✕ Cancelar</button>
-            <button class="btn btn-g" id="btn-save" style="flex:1;justify-content:center" onclick="if(window._spawnRipple)window._spawnRipple(event.clientX,event.clientY);if(window._playClick)window._playClick();saveTrade()">💾 Registrar operación</button>
-          </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+        <!-- Navegación mes -->
+        <div style="display:flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--bdr);border-radius:10px;padding:4px 10px">
+          <button class="cal-nav-btn" style="border:none;background:none;width:22px;height:22px" onclick="calNav(-1)">◀</button>
+          <select id="cal-yr-sel" class="fi" style="width:auto;padding:4px 6px;font-size:11px;font-weight:700;border:none;background:transparent" onchange="calGoTo()"></select>
+          <select id="cal-mo-sel" class="fi" style="width:auto;padding:4px 6px;font-size:11px;font-weight:700;border:none;background:transparent" onchange="calGoTo()"></select>
+          <button class="cal-nav-btn" style="border:none;background:none;width:22px;height:22px" onclick="calNav(1)">▶</button>
+          <button class="btn" style="padding:4px 10px;font-size:10px;border:none;background:rgba(99,102,241,.15);color:#818cf8" onclick="calToday()">Hoy</button>
         </div>
-        <!-- Month stats -->
-        <div class="card">
-          <div class="card-hdr" style="color:var(--cyan);border-color:rgba(0,212,255,.2)">📊 Stats del mes</div>
-          <div style="font-size:9px;color:var(--gray2);margin-bottom:8px;letter-spacing:.5px" id="mstat-month"></div>
-          <div id="mstat-rows"></div>
+        <select id="f-filter-asset-cal" class="fi" style="width:auto;padding:7px 10px;font-size:11px;background:var(--card2)" onchange="renderCal()">
+          <option value="">Todos los pares</option>
+        </select>
+        <button class="btn-new-op" onclick="openNewOpPanel()">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><line x1="8" y1="1" x2="8" y2="15"/><line x1="1" y1="8" x2="15" y2="8"/></svg>
+          Nueva operación
+        </button>
+      </div>
+    </div>
+
+    <!-- BOTTOM KPI BAR -->
+    <div class="msum" id="msum"></div>
+
+    <!-- CALENDAR VIEW -->
+    <div id="log-cal">
+      <div class="cal-grid" id="cal-grid"></div>
+      <!-- LEGEND -->
+      <div style="display:flex;gap:14px;margin-top:10px;padding:8px 14px;background:var(--card);border-radius:10px;border:1px solid var(--bdr)">
+        <span style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--gray2)"><span style="width:10px;height:10px;border-radius:3px;background:rgba(0,229,176,.2);border:1px solid var(--green);display:inline-block"></span>Solo TP</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--gray2)"><span style="width:10px;height:10px;border-radius:3px;background:rgba(255,56,96,.2);border:1px solid var(--red);display:inline-block"></span>Solo SL</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--gray2)"><span class="dot dot-g"></span>Mixto TP</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--gray2)"><span class="dot dot-r"></span>Mixto SL</span>
+      </div>
+      <!-- DAY DETAIL -->
+      <div id="day-detail" style="display:none;margin-top:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span id="day-detail-title" style="font-family:'Exo 2',sans-serif;font-size:14px;font-weight:800;color:var(--text)"></span>
+            <span id="day-detail-pnl" style="font-family:'Exo 2',sans-serif;font-size:14px;font-weight:700"></span>
+          </div>
+          <button class="btn" style="padding:5px 12px;font-size:10px" onclick="g('day-detail').style.display='none';selDay=null;renderCal()">✕ Cerrar</button>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <table class="day-ops-table" id="day-ops-table">
+            <thead><tr><th>Hora</th><th>Par</th><th>Dirección</th><th>TF</th><th>Resultado</th><th>P&L</th><th>RR</th><th>Notas</th><th></th></tr></thead>
+            <tbody id="day-trades"></tbody>
+          </table>
         </div>
       </div>
     </div>
-    <!-- ── REGISTRO DE DATOS ── -->
-    <div style="margin-top:20px;padding-top:18px;border-top:1px solid var(--bdr);">
-      <div style="font-size:10px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">⚠ Registro de datos</div>
-      <div class="card" style="border-color:rgba(255,23,68,.2);background:rgba(255,23,68,.03);">
-        <div style="font-size:12px;font-weight:800;color:var(--red);margin-bottom:5px;">Eliminar registro de esta cuenta</div>
-        <div style="font-size:11px;color:var(--gray2);margin-bottom:12px;">Borra permanentemente todas las operaciones de la cuenta activa. No se puede deshacer.</div>
-        <button class="btn btn-r" id="del-all-btn" onclick="delAll()" style="justify-content:center;font-size:11px;padding:8px 18px;">🗑 Borrar todo el registro de esta cuenta</button>
+
+    <!-- TABLE VIEW -->
+    <div id="log-tbl" style="display:none">
+      <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px;padding:10px;background:var(--card);border-radius:12px;border:1px solid var(--bdr)">
+        <select id="f-filter-asset" class="fi" style="width:auto;padding:5px 8px;font-size:11px" onchange="renderTable()"><option value="">Todos los activos</option></select>
+        <select id="f-filter-session" class="fi" style="width:auto;padding:5px 8px;font-size:11px" onchange="renderTable()"><option value="">Todas sesiones</option><option>Asia</option><option>Londres</option><option>Nueva York</option><option>Londres+NY</option></select>
+        <select id="f-filter-tf" class="fi" style="width:auto;padding:5px 8px;font-size:11px" onchange="renderTable()"><option value="">Todos TF</option><option>M1</option><option>M5</option><option>M15</option><option>M30</option><option>H1</option><option>H4</option><option>D1</option></select>
+        <select id="f-filter-result" class="fi" style="width:auto;padding:5px 8px;font-size:11px" onchange="renderTable()"><option value="">TP y SL</option><option value="TP">Solo TP</option><option value="SL">Solo SL</option></select>
+        <button class="btn" style="padding:5px 10px;font-size:10px" onclick="clearTableFilters()">✕ Limpiar</button>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div class="tw"><table id="tlog">
+          <thead><tr><th>#</th><th>Fecha</th><th>Hora</th><th>Activo</th><th>Dir</th><th>Res.</th><th>P&L</th><th>RR</th><th>TF</th><th>Sesión</th><th>Estrategia</th><th>Etiquetas</th><th>✏🗑</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- DELETE ZONE -->
+    <div style="margin-top:24px;padding-top:18px;border-top:1px solid var(--bdr)">
+      <div style="font-size:9px;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;font-family:'Exo 2',sans-serif">⚠ Zona de peligro</div>
+      <div class="card" style="border-color:rgba(255,56,96,.2);background:rgba(255,56,96,.03)">
+        <div style="font-size:12px;font-weight:800;color:var(--red);margin-bottom:5px;font-family:'Exo 2',sans-serif">Eliminar registro de esta cuenta</div>
+        <div style="font-size:11px;color:var(--gray2);margin-bottom:12px">Borra permanentemente todas las operaciones de la cuenta activa. No se puede deshacer.</div>
+        <button class="btn btn-r" id="del-all-btn" onclick="delAll()" style="justify-content:center;font-size:11px;padding:8px 18px">🗑 Borrar todo el registro de esta cuenta</button>
       </div>
     </div>
   </div>
@@ -1197,6 +1198,8 @@ async function checkLicenseOnLoad() {
   try {
     var res = await fetch(FB_BASE + '/' + stored.key + '?key=' + FB_KEY);
     if (!res.ok) {
+      // FIX: Guardar la key — si recibe código nuevo, puede recuperar sus datos de Supabase
+      localStorage.setItem('ttlic_revoked_key', stored.key);
       localStorage.removeItem('ttlic');
       showLicOverlay('⚠ Licencia no encontrada. Contacta a tu revendedor.');
       return;
@@ -1355,27 +1358,29 @@ async function activateLicense() {
     setTimeout(async function() {
       var synced = await syncFromCloud();
       if (!synced) {
-        // ✅ FIX: Intentar recuperar datos de licencia anterior (revocada o cambiada)
+        // Intentar recuperar datos de licencia anterior (revocada o cambiada)
         var oldKey = localStorage.getItem('ttlic_revoked_key');
         if (oldKey && oldKey !== code) {
           try {
-            var res2 = await fetch(SB_URL + '/rest/v1/' + SB_TABLE + '?license_key=eq.' + encodeURIComponent(oldKey) + '&select=*', {
+            // Buscar la fila maestra del código anterior (arquitectura: 1 fila por cliente, id=license_key)
+            var res2 = await fetch(SB_URL + '/rest/v1/' + SB_TABLE + '?or=(id.eq.' + encodeURIComponent(oldKey) + ',license_key.eq.' + encodeURIComponent(oldKey) + ')&select=*&limit=1', {
               headers: {'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY}
             });
             if (res2.ok) {
               var rows2 = await res2.json();
               if (rows2 && rows2.length) {
-                // Reasignar los datos a la nueva clave de licencia
-                for (var ri = 0; ri < rows2.length; ri++) {
-                  var oldRow = rows2[ri];
-                  var newAcctId = oldRow.account_id || 'default';
-                  var newRowId = code + '_' + newAcctId;
-                  await fetch(SB_URL + '/rest/v1/' + SB_TABLE, {
-                    method: 'POST',
-                    headers: Object.assign({}, sbHeaders(), {'Prefer': 'resolution=merge-duplicates,return=minimal'}),
-                    body: JSON.stringify(Object.assign({}, oldRow, {id: newRowId, license_key: code, updated_at: new Date().toISOString()}))
-                  });
-                }
+                var oldRow = rows2[0];
+                // FIX: Crear la nueva fila con id=code (formato correcto de la nueva arquitectura)
+                // NO usar code + '_' + account_id — eso es el formato viejo y syncFromCloud no lo encuentra
+                await fetch(SB_URL + '/rest/v1/' + SB_TABLE, {
+                  method: 'POST',
+                  headers: Object.assign({}, sbHeaders(), {'Prefer': 'resolution=merge-duplicates,return=minimal'}),
+                  body: JSON.stringify(Object.assign({}, oldRow, {
+                    id: code,               // ← clave maestra = nuevo código de licencia
+                    license_key: code,
+                    updated_at: new Date().toISOString()
+                  }))
+                });
                 synced = await syncFromCloud();
                 if (synced) {
                   render(); renderStats(); renderAnalysis();
@@ -1561,7 +1566,7 @@ function syncToCloud(){
   var key = getSyncKey(); if(!key) return;
   clearTimeout(_syncTimeout);
   _syncPending = true;
-  _syncTimeout = setTimeout(async function(){
+  _syncTimeout = setTimeout(async function(){ // FIX: reducido de 1500ms a 400ms
     try{
       var acctId = getAcctId();
       var accounts = (typeof getAccounts==='function') ? getAccounts() : [];
@@ -1578,7 +1583,9 @@ function syncToCloud(){
         }
         var cfg = localStorage.getItem(pfx+'cfg_'+acct.id);
         var settings = cfg ? JSON.parse(cfg) : {};
-        allAccountsData[acct.id] = { trades: trades, settings: settings, meta: acct };
+        var notasRaw = localStorage.getItem(pfx+'notas_'+acct.id);
+        var notas = notasRaw ? JSON.parse(notasRaw) : [];
+        allAccountsData[acct.id] = { trades: trades, settings: settings, meta: acct, notas: notas };
       });
 
       var payload = {
@@ -1628,7 +1635,7 @@ function syncToCloud(){
       console.warn('syncToCloud error:', e);
       showSyncStatus('⚠ Sin conexión');
     }
-  }, 1500);
+  }, 400); // FIX: reducido de 1500ms a 400ms
 }
 
 async function syncFromCloud(){
@@ -1636,20 +1643,12 @@ async function syncFromCloud(){
   // Restaura todas las cuentas, trades y settings desde el snapshot en Supabase
   var key = getSyncKey(); if(!key) return false;
   try{
-    // Buscar por id=key (registro maestro, 1 por licencia)
-    var res = await fetch(SB_URL + '/rest/v1/' + SB_TABLE + '?id=eq.' + encodeURIComponent(key) + '&select=*', {
+    // FIX: Un solo fetch usando OR — elimina el doble viaje de red
+    var res = await fetch(SB_URL + '/rest/v1/' + SB_TABLE + '?or=(id.eq.' + encodeURIComponent(key) + ',license_key.eq.' + encodeURIComponent(key) + ')&select=*&limit=1', {
       headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
     });
     if(!res.ok) return false;
     var rows = await res.json();
-
-    // Compatibilidad: si no hay fila maestra, buscar por license_key (formato viejo)
-    if(!rows || !rows.length){
-      var res2 = await fetch(SB_URL + '/rest/v1/' + SB_TABLE + '?license_key=eq.' + encodeURIComponent(key) + '&select=*', {
-        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
-      });
-      if(res2.ok) rows = await res2.json();
-    }
 
     if(!rows || !rows.length) return false;
 
@@ -1669,7 +1668,9 @@ async function syncFromCloud(){
         var acctData = allData[acctId];
         var trades = acctData.trades || [];
         var settings = acctData.settings || {};
+        var notas = acctData.notas || [];
         localStorage.setItem(pfx2+'cfg_'+acctId, JSON.stringify(settings));
+        localStorage.setItem(pfx2+'notas_'+acctId, JSON.stringify(notas));
         var n = Math.ceil(trades.length/500)||1;
         localStorage.setItem(pfx2+'n_'+acctId, String(n));
         for(var i=0;i<n;i++) localStorage.setItem(pfx2+acctId+'_'+i, JSON.stringify(trades.slice(i*500,(i+1)*500)));
@@ -1716,47 +1717,9 @@ async function syncFromCloud(){
 }
 
 async function syncAllAccounts(){
-  // Sync all accounts from cloud
-  var key = getSyncKey(); if(!key) return;
-  try{
-    var res = await fetch(SB_URL + '/rest/v1/' + SB_TABLE + '?license_key=eq.' + encodeURIComponent(key) + '&select=*', {
-      headers: {'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY}
-    });
-    if(!res.ok) return;
-    var rows = await res.json();
-    if(!rows || !rows.length) return;
-    // Restore each account's data to localStorage
-    rows.forEach(function(row){
-      var acctId = row.account_id;
-      if(!acctId) return;
-      var trades = row.trades || [];
-      var settings = row.settings || {};
-      var pfxSAA = getLicensePrefix();
-      localStorage.setItem(pfxSAA+'cfg_'+acctId, JSON.stringify(settings));
-      var n = Math.ceil(trades.length/500)||1;
-      localStorage.setItem(pfxSAA+'n_'+acctId, String(n));
-      for(var i=0;i<n;i++) localStorage.setItem(pfxSAA+acctId+'_'+i, JSON.stringify(trades.slice(i*500,(i+1)*500)));
-    });
-    // Restore accounts list from first row
-    var firstRow = rows[0];
-    var pfxSAA2 = getLicensePrefix();
-    if(firstRow.accounts && firstRow.accounts.length && typeof saveAccounts==='function'){
-      saveAccounts(firstRow.accounts);
-      var currentActive = localStorage.getItem(pfxSAA2+'active')||'';
-      var validActive = firstRow.accounts.find(function(a){return a.id===currentActive;});
-      if(!validActive){
-        localStorage.setItem(pfxSAA2+'active', firstRow.accounts[0].id);
-      }
-    } else if(rows.length){
-      var currentActive2 = localStorage.getItem(pfxSAA2+'active')||'';
-      if(!currentActive2 && rows[0].account_id){
-        localStorage.setItem(pfxSAA2+'active', rows[0].account_id);
-      }
-    }
-    showSyncStatus('☁ Todo sincronizado');
-  }catch(e){
-    console.warn('syncAllAccounts error:', e);
-  }
+  // NUEVA ARQUITECTURA: 1 fila por cliente en Supabase.
+  // Esta función delega a syncFromCloud que maneja todo correctamente.
+  return await syncFromCloud();
 }
 
 // ✅ FIX REVOKE: Polling periódico — verifica la licencia cada 60s mientras la app está abierta
@@ -1804,6 +1767,8 @@ function startLicensePolling(){
       if(authorizedDevices.length > 0 && authorizedDevices.indexOf(deviceId) === -1){
         clearInterval(_licCheckInterval);
         _licCheckInterval = null;
+        // FIX: Guardar la key antes de limpiar — si el admin le da un código nuevo, los datos se recuperan
+        localStorage.setItem('ttlic_revoked_key', stored.key);
         localStorage.removeItem('ttlic');
         showLicOverlay('⚠ Esta licencia fue reseteada por el administrador. Vuelve a ingresar tu código para continuar.');
         return;
@@ -2401,7 +2366,7 @@ function renderNotes(notes){
 }
 
 // TABS
-var TAB_INFO={dash:{title:'Dashboard',sub:'Resumen general'},registro:{title:'Registro de Operaciones',sub:'Toca un día para agregar, editar o eliminar'},stats:{title:'Estadísticas',sub:'Análisis por año'},analisis:{title:'Análisis Avanzado',sub:'Patrones, rachas y filtros'},fondeo:{title:'Modo Fondeo',sub:'Seguimiento de cuentas prop'},config:{title:'Configuración de la cuenta',sub:'Gestión de cuentas de trading'}};
+var TAB_INFO={dash:{title:'Dashboard',sub:'Resumen general de rendimiento'},registro:{title:'Operaciones',sub:'Registra, analiza y mejora cada una de tus operaciones'},stats:{title:'Estadísticas',sub:'Análisis profundo de rendimiento'},analisis:{title:'Análisis Avanzado',sub:'Patrones, rachas y filtros avanzados'},fondeo:{title:'Modo Fondeo',sub:'Seguimiento de cuentas prop firm'},config:{title:'Ajustes',sub:'Configuración de cuentas y preferencias'}};
 function showTab(id,el){
   ['dash','registro','stats','analisis','fondeo','config'].forEach(function(t){
     var el2=g('tab-'+t);if(el2)el2.classList.remove('act');
@@ -3849,7 +3814,7 @@ document.addEventListener('DOMContentLoaded',function(){
   migrateData(); // migrar estructura si hay nueva versión
   initAccounts();
   // ✅ FIX MASTER SYNC: Al abrir la app, siempre traer datos de la nube primero
-  setTimeout(async function(){
+  setTimeout(async function(){ // FIX: reducido de 800ms a 150ms
     showSyncStatus('⏳ Sincronizando...');
     var synced = await syncFromCloud();
     if(synced){
@@ -3866,7 +3831,7 @@ document.addEventListener('DOMContentLoaded',function(){
       // Si no hay datos en nube, subir los locales para inicializar
       if(S.trades.length > 0) syncToCloud();
     }
-  }, 800);
+  }, 150); // FIX: reducido de 800ms a 150ms
   // Setup del-all button safely
   var dab=g('del-all-btn');
   if(dab)dab.onclick=function(){delAll();};
@@ -3951,20 +3916,33 @@ document.addEventListener('DOMContentLoaded',function(){
     });
   };
 
-  // Service Worker para modo offline
+  // Service Worker para modo offline + actualizaciones automáticas
   if('serviceWorker' in navigator){
+    // FIX: CACHE atado a APP_VERSION — cuando subas cambios, el caché viejo se elimina solo
     var swCode = `
-const CACHE = 'cd701-v1';
+const CACHE = 'cd701-v` + APP_VERSION + `';
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./'])));
   self.skipWaiting();
 });
 self.addEventListener('activate', e => {
+  // Eliminar cachés de versiones anteriores
   e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));
   self.clients.claim();
 });
 self.addEventListener('fetch', e => {
-  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).catch(()=>caches.match('./'))));
+  // FIX: Network-first — siempre intenta traer la versión más nueva de la red
+  // Si no hay internet, cae al caché para modo offline
+  if(e.request.method !== 'GET') return;
+  e.respondWith(
+    fetch(e.request).then(function(r){
+      var clone = r.clone();
+      caches.open(CACHE).then(function(c){ c.put(e.request, clone); });
+      return r;
+    }).catch(function(){
+      return caches.match(e.request);
+    })
+  );
 });
 `;
     var swBlob = new Blob([swCode], {type:'text/javascript'});
@@ -4092,6 +4070,334 @@ button:active, [onclick]:active, .ni:active, .cal-nav-btn:active, .rb:active, .t
     playClick();
   }, {passive:true, capture:true});
 })();
+</script>
+
+<!-- TRADE DETAIL RIGHT PANEL -->
+<div id="trade-detail-panel">
+  <div class="tdp-hdr">
+    <span class="tdp-title" id="tdp-title">Operación</span>
+    <button class="tdp-close" onclick="closeTDP()">✕</button>
+  </div>
+  <div class="tdp-body" id="tdp-body">
+    <div style="text-align:center;padding:40px 0;color:var(--gray2)">Selecciona una operación</div>
+  </div>
+</div>
+<div id="tdp-overlay" onclick="closeTDP()"></div>
+
+<!-- NEW OPERATION PANEL (modal) -->
+<div id="new-op-modal" class="mo">
+  <div class="mb" style="max-width:520px">
+    <div class="mh">
+      <span class="mt2" id="form-title-modal">✦ Nueva Operación</span>
+      <button class="mcl" onclick="closeNewOpPanel()">✕</button>
+    </div>
+    <div class="fg"><label class="fl">Fecha</label>
+      <div style="display:flex;gap:6px">
+        <select id="f-day" class="fi" style="flex:1" onchange="buildDateFromParts()"><option value="">Día</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
+        <select id="f-month" class="fi" style="flex:1.5" onchange="buildDateFromParts()">
+          <option value="">Mes</option><option value="01">Enero</option><option value="02">Febrero</option><option value="03">Marzo</option><option value="04">Abril</option><option value="05">Mayo</option><option value="06">Junio</option><option value="07">Julio</option><option value="08">Agosto</option><option value="09">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+        </select>
+        <select id="f-year" class="fi" style="flex:1" onchange="buildDateFromParts()"><option value="">Año</option><option value="2022">2022</option><option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option></select>
+        <input type="number" id="f-year-custom" class="fi" placeholder="Año" min="2000" max="2099" style="flex:1;display:none" onchange="setCustomYear(this.value)">
+      </div>
+      <input type="hidden" id="f-date">
+      <div style="text-align:right;margin-top:3px"><a id="f-year-custom-lnk" href="#" onclick="toggleCustomYear();return false;" style="font-size:9px;color:#818cf8;text-decoration:none">✎ Año personalizado</a></div>
+    </div>
+    <div class="fg2" style="margin-bottom:12px">
+      <div><label class="fl">Hora</label>
+        <div style="display:flex;gap:4px">
+          <select id="f-hour" class="fi" style="flex:1" onchange="buildTimeFromParts()"><option value="00">00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08" selected>08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option></select>
+          <select id="f-min" class="fi" style="flex:1" onchange="buildTimeFromParts()"><option value="00" selected>00</option><option value="05">05</option><option value="10">10</option><option value="15">15</option><option value="20">20</option><option value="25">25</option><option value="30">30</option><option value="35">35</option><option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="55">55</option></select>
+        </div>
+        <input type="hidden" id="f-time" value="08:00">
+      </div>
+      <div><label class="fl">Activo</label><select id="f-asset" class="fi"></select></div>
+    </div>
+    <div class="fg">
+      <label class="fl">Resultado</label>
+      <div class="rbw">
+        <button class="rb atp" id="btn-tp" onclick="setR('TP')">✓ TP</button>
+        <button class="rb" id="btn-sl" onclick="setR('SL')">✕ SL</button>
+      </div>
+    </div>
+    <div class="fg">
+      <label class="fl">Dirección</label>
+      <div class="rbw">
+        <button class="rb abuy" id="btn-buy" onclick="setDir('BUY')">▲ BUY</button>
+        <button class="rb" id="btn-sell" onclick="setDir('SELL')">▼ SELL</button>
+      </div>
+    </div>
+    <div class="fg">
+      <label class="fl">P&L en USD (negativo = pérdida)</label>
+      <input type="text" inputmode="decimal" id="f-pnl" class="fi fi-lg" placeholder="ej: 210.50 ó -45.20" oninput="onPI()">
+      <div id="pnl-prev" style="font-size:10px;font-weight:600;min-height:14px;margin-top:3px"></div>
+    </div>
+    <div class="fg2" style="margin-bottom:12px">
+      <div class="fg" style="margin:0"><label class="fl">Estrategia</label>
+        <select id="f-strategy" class="fi"><option value="">— Ninguna —</option><option>ICT / SMC</option><option>Order Blocks</option><option>FVG</option><option>BOS / ChoCH</option><option>Liquidity Sweep</option><option>Scalping</option><option>Breaker Block</option><option>IFVG</option><option>Mitigation</option><option>Otra</option></select>
+      </div>
+      <div class="fg" style="margin:0"><label class="fl">RR (Riesgo/Beneficio)</label>
+        <input type="number" id="f-rr" class="fi" step="0.1" min="0" placeholder="Ej: 2.5">
+      </div>
+    </div>
+    <div class="fg2" style="margin-bottom:12px">
+      <div class="fg" style="margin:0"><label class="fl">Timeframe</label>
+        <select id="f-tf" class="fi"><option value="">—</option><option>M1</option><option>M5</option><option>M15</option><option>M30</option><option>H1</option><option>H4</option><option>D1</option><option>W1</option></select>
+      </div>
+      <div class="fg" style="margin:0"><label class="fl">Sesión</label>
+        <select id="f-session" class="fi"><option value="">—</option><option>Asia</option><option>Londres</option><option>Nueva York</option><option>Londres+NY</option><option>Pre-Mercado</option></select>
+      </div>
+    </div>
+    <div class="fg">
+      <label class="fl">Etiquetas</label>
+      <div id="tag-input-wrap" style="background:var(--bg2);border:1px solid var(--bdr);border-radius:9px;padding:7px 10px;min-height:38px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;cursor:text" onclick="document.getElementById('f-tag-input').focus()">
+        <div id="tags-display" style="display:flex;flex-wrap:wrap;gap:4px"></div>
+        <input id="f-tag-input" type="text" placeholder="Añadir etiqueta..." style="border:none;background:transparent;color:var(--text);font-size:12px;outline:none;min-width:100px;flex:1" onkeydown="handleTagInput(event)">
+      </div>
+      <input type="hidden" id="f-tags" value="">
+    </div>
+    <div class="fg">
+      <label class="fl">Notas / Links</label>
+      <textarea id="f-notes" class="fi" rows="3" placeholder="Escribe notas o pega links de TradingView..."></textarea>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:6px">
+      <button class="btn btn-r" id="btn-cancel" style="display:none;flex:1;justify-content:center" onclick="cancelEdit();closeNewOpPanel()">✕ Cancelar</button>
+      <button class="btn btn-g" id="btn-save" style="flex:1;justify-content:center;padding:11px" onclick="if(window._spawnRipple)window._spawnRipple(event.clientX,event.clientY);if(window._playClick)window._playClick();saveTrade();closeNewOpPanel()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M13 2H5L2 5v9a1 1 0 001 1h10a1 1 0 001-1V3a1 1 0 00-1-1z"/><polyline points="5,2 5,7 11,7"/><polyline points="11,11 8,14 5,11"/></svg>
+        Registrar operación
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  PREMIUM UI — PANEL DERECHO + SONIDOS + EFECTOS
+// ════════════════════════════════════════════════════════
+
+// ── Sonidos Web Audio API ─────────────────────────────
+var _audioCtx = null;
+function _getAudio(){ if(!_audioCtx) try{_audioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){} return _audioCtx; }
+
+function _playTone(freq, type, duration, gainVal, delay){
+  var ctx = _getAudio(); if(!ctx) return;
+  var osc = ctx.createOscillator();
+  var gain = ctx.createGain();
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.type = type || 'sine';
+  osc.frequency.setValueAtTime(freq, ctx.currentTime + (delay||0));
+  gain.gain.setValueAtTime(gainVal||0.15, ctx.currentTime + (delay||0));
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (delay||0) + duration);
+  osc.start(ctx.currentTime + (delay||0));
+  osc.stop(ctx.currentTime + (delay||0) + duration);
+}
+
+window._playClick = function(){
+  _playTone(800, 'sine', 0.06, 0.08);
+};
+
+window._playTP = function(){
+  // Chime ascendente para TP
+  _playTone(523, 'sine', 0.15, 0.12, 0);
+  _playTone(659, 'sine', 0.15, 0.12, 0.1);
+  _playTone(784, 'sine', 0.2, 0.12, 0.2);
+};
+
+window._playSL = function(){
+  // Tono descendente suave para SL
+  _playTone(300, 'sine', 0.2, 0.1, 0);
+  _playTone(220, 'sine', 0.25, 0.08, 0.15);
+};
+
+// ── Ripple effect ─────────────────────────────────────
+window._spawnRipple = function(x, y){
+  var r = document.createElement('div');
+  r.className = 'ripple';
+  var size = 80;
+  r.style.cssText = 'left:'+(x-size/2)+'px;top:'+(y-size/2)+'px;width:'+size+'px;height:'+size+'px;';
+  document.body.appendChild(r);
+  setTimeout(function(){ r.remove(); }, 600);
+};
+
+// ── Open/Close new op panel ───────────────────────────
+window.openNewOpPanel = function(){
+  window._playClick();
+  document.getElementById('new-op-modal').classList.add('show');
+};
+window.closeNewOpPanel = function(){
+  document.getElementById('new-op-modal').classList.remove('show');
+};
+
+// ── Trade detail right panel ──────────────────────────
+var _currentTrade = null;
+
+window.openTDP = function(trade){
+  _currentTrade = trade;
+  var panel = document.getElementById('trade-detail-panel');
+  var overlay = document.getElementById('tdp-overlay');
+  var body = document.getElementById('tdp-body');
+  var title = document.getElementById('tdp-title');
+  window._playClick();
+
+  var isWin = trade.result === 'TP';
+  var pnl = trade.pnl || 0;
+  var noteHtml = (typeof renderNotes === 'function') ? renderNotes(trade.notes||'') : (trade.notes||'');
+  var tags = (trade.tags||'').split(',').filter(function(t){return t.trim();});
+
+  title.textContent = 'Operación — ' + (trade.asset||'—');
+
+  body.innerHTML =
+    '<div class="slide-in">' +
+    // Badge + PnL
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">' +
+      '<span class="trade-badge '+(isWin?'win':'loss')+'">'+(isWin?'✓ Ganadora (TP)':'✕ Perdedora (SL)')+'</span>' +
+      '<span class="tdp-pnl '+(pnl>=0?'pos':'neg')+'">'+(pnl>=0?'+$':'-$')+Math.abs(pnl).toFixed(2)+'</span>' +
+    '</div>' +
+    // Asset + prices
+    '<div style="background:var(--card);border-radius:12px;border:1px solid var(--bdr);padding:14px;margin-bottom:12px">' +
+      '<div style="font-size:16px;font-weight:900;font-family:\'Exo 2\',sans-serif;color:var(--text);margin-bottom:10px">'+( trade.asset||'—')+'</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;text-align:center">' +
+        _tdpStat('P&L', (pnl>=0?'+$':'-$')+Math.abs(pnl).toFixed(2), pnl>=0?'var(--green)':'var(--red)') +
+        _tdpStat('TF', trade.tf||'—', 'var(--text)') +
+        _tdpStat('RR', trade.rr ? trade.rr+'R' : '—', 'var(--cyan)') +
+        _tdpStat('Sesión', trade.session||'—', 'var(--gold)') +
+      '</div>' +
+    '</div>' +
+    // Details list
+    '<div style="margin-bottom:14px">' +
+      _tdpRow('📅', 'Fecha', trade.date||'—') +
+      _tdpRow('🕐', 'Hora', trade.time||'—') +
+      _tdpRow('📊', 'Cuenta', (typeof getAccounts==='function'?getAccounts().find(function(a){return a.id===(typeof getActiveId==='function'?getActiveId():'');})||{name:'—'}:{name:'—'}).name) +
+      _tdpRow('🎯', 'Estrategia', trade.strategy||'—') +
+      _tdpRow('📈', 'Dirección', trade.direction||'—') +
+    '</div>' +
+    // Notes
+    (trade.notes ? '<div class="tdp-section"><div class="tdp-section-title">Notas</div><div style="font-size:11px;color:var(--text2);line-height:1.7;background:var(--card);border-radius:9px;padding:10px;border:1px solid var(--bdr)">'+noteHtml+'</div></div>' : '') +
+    // Tags
+    (tags.length ? '<div class="tdp-section" style="margin-top:12px"><div class="tdp-section-title">Etiquetas</div><div>'+tags.map(function(t){return'<span class="tdp-tag">'+t.trim()+'</span>';}).join('')+'</div></div>' : '') +
+    // Edit/Delete buttons
+    '<div style="display:flex;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid var(--bdr)">' +
+      '<button class="btn" style="flex:1;justify-content:center" onclick="editTrade('+trade.id+');openNewOpPanel();closeTDP()">✏ Editar</button>' +
+      '<button class="btn btn-r" style="flex:1;justify-content:center" onclick="delTrade('+trade.id+');closeTDP()">🗑 Eliminar</button>' +
+    '</div>' +
+    '</div>';
+
+  panel.classList.add('open');
+  overlay.classList.add('show');
+};
+
+function _tdpStat(label, val, color){
+  return '<div><div style="font-size:8px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;font-family:\'Exo 2\',sans-serif">'+label+'</div><div style="font-size:13px;font-weight:800;color:'+color+';font-family:\'Exo 2\',sans-serif">'+val+'</div></div>';
+}
+function _tdpRow(icon, label, val){
+  return '<div class="tdp-row"><div class="tdp-row-icon">'+icon+'</div><div style="flex:1"><div class="tdp-row-label">'+label+'</div><div class="tdp-row-val">'+val+'</div></div></div>';
+}
+
+window.closeTDP = function(){
+  document.getElementById('trade-detail-panel').classList.remove('open');
+  document.getElementById('tdp-overlay').classList.remove('show');
+  _currentTrade = null;
+};
+
+// ── Override renderDayDetail to use new premium table ──
+var _origRenderDayDetail = window.renderDayDetail;
+window.renderDayDetail = function(){
+  var detail = g('day-detail'); if(!detail) return;
+  if(!selDay){ detail.style.display='none'; return; }
+  var mo = String(calMonth+1).padStart(2,'0'), dy = String(selDay).padStart(2,'0');
+  var ds = calYear+'-'+mo+'-'+dy;
+  var dt = S.trades.filter(function(t){return t.date===ds;}).sort(function(a,b){return(a.time||'').localeCompare(b.time||'');});
+  var titleEl = g('day-detail-title');
+  if(titleEl) titleEl.textContent = String(selDay).padStart(2,'0')+' '+MONTHS[calMonth]+' '+calYear+' — '+dt.length+' operación'+(dt.length!==1?'es':'');
+  var dayPnl = dt.reduce(function(x,t){return x+(t.pnl||0);},0);
+  var pnlEl = g('day-detail-pnl');
+  if(pnlEl){ pnlEl.textContent = (dayPnl>=0?'+$':'-$')+Math.abs(dayPnl).toFixed(2); pnlEl.style.color = dayPnl>=0?'var(--green)':'var(--red)'; }
+  detail.style.display = 'block';
+  var tbody = g('day-trades'); if(!tbody) return;
+  if(!dt.length){
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--gray2);padding:20px">Sin operaciones este día. Usa el botón Nueva operación.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = dt.map(function(t){
+    var isWin = t.result==='TP';
+    return '<tr onclick="openTDP('+JSON.stringify(t).replace(/'/g,"&#39;")+');window._playClick()" style="cursor:pointer">' +
+      '<td style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--gray2)">'+(t.time||'—')+'</td>' +
+      '<td style="font-weight:800;font-size:12px;font-family:\'Exo 2\',sans-serif;color:var(--text)">'+(t.asset||'—')+'</td>' +
+      '<td><span class="'+(t.direction==='BUY'?'bbuy':'bsell')+'">'+( t.direction==='BUY'?'▲ Long':'▼ Short')+'</span></td>' +
+      '<td><span style="font-size:10px;background:rgba(99,102,241,.12);color:#818cf8;padding:2px 6px;border-radius:4px">'+(t.tf||'—')+'</span></td>' +
+      '<td><span class="'+(isWin?'btp':'bsl')+'">'+t.result+'</span></td>' +
+      '<td style="font-weight:700;font-family:\'Exo 2\',sans-serif;color:'+(isWin?'var(--green)':'var(--red)')+';">'+(t.pnl>=0?'+$':'-$')+Math.abs(t.pnl||0).toFixed(2)+'</td>' +
+      '<td style="font-size:11px;color:var(--cyan);font-family:\'Exo 2\',sans-serif">'+(t.rr?t.rr+'R':'—')+'</td>' +
+      '<td style="font-size:10px;color:var(--gray2);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(t.notes||'').replace(/<[^>]*>/g,'').substring(0,50)+'</td>' +
+      '<td style="white-space:nowrap">' +
+        '<button class="icon-btn edit" onclick="event.stopPropagation();editTrade('+t.id+');openNewOpPanel()" title="Editar">✏</button>' +
+        '<button class="icon-btn del" onclick="event.stopPropagation();delTrade('+t.id+')" title="Eliminar" style="margin-left:3px">🗑</button>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
+};
+
+// ── Override renderMonthSummary for premium KPI bar ───
+window.renderMonthSummary = function(){
+  var el = g('msum'); if(!el) return;
+  var yrS = String(calYear), mS = String(calMonth+1).padStart(2,'0');
+  var ft = S.trades.filter(function(t){return t.date&&t.date.startsWith(yrS+'-'+mS);});
+  var tp = ft.filter(function(t){return t.result==='TP';}).length;
+  var sl = ft.filter(function(t){return t.result==='SL';}).length;
+  var pnl = ft.reduce(function(a,t){return a+(t.pnl||0);},0);
+  var wr = ft.length ? (tp/ft.length*100).toFixed(1) : 0;
+  var tpp = ft.filter(function(t){return t.result==='TP';}).reduce(function(a,t){return a+(t.pnl||0);},0);
+  var slp = ft.filter(function(t){return t.result==='SL';}).reduce(function(a,t){return a+(t.pnl||0);},0);
+  var pf = slp<0 ? Math.abs(tpp/slp).toFixed(2) : '∞';
+
+  el.innerHTML = [
+    {icon:'📊',label:'Operaciones',val:String(ft.length),color:'var(--text)'},
+    {icon:'✅',label:'Ganadoras',val:tp+' ('+wr+'%)',color:'var(--green)'},
+    {icon:'❌',label:'Perdedoras',val:sl+' ('+(ft.length?(sl/ft.length*100).toFixed(1):0)+'%)',color:'var(--red)'},
+    {icon:'💰',label:'Resultado neto',val:(pnl>=0?'+$':'-$')+Math.abs(pnl).toFixed(2),color:pnl>=0?'var(--green)':'var(--red)'},
+    {icon:'🎯',label:'Win Rate',val:wr+'%',color:'var(--cyan)'},
+    {icon:'⚡',label:'Profit Factor',val:String(pf),color:'var(--gold)'}
+  ].map(function(item){
+    return '<div class="msc">'+
+      '<span class="msc-icon">'+item.icon+'</span>'+
+      '<div class="msl">'+item.label+'</div>'+
+      '<div class="msv" style="color:'+item.color+'">'+item.val+'</div>'+
+    '</div>';
+  }).join('');
+};
+
+// ── Override setLogView to update new buttons ─────────
+var _origSetLogView = window.setLogView;
+window.setLogView = function(v){
+  logView = v;
+  var cal = g('log-cal'), tbl = g('log-tbl');
+  if(cal) cal.style.display = v==='cal'?'block':'none';
+  if(tbl) tbl.style.display = v==='tbl'?'block':'none';
+  var bcal = g('vbtn-cal'), btbl = g('vbtn-tbl');
+  if(bcal) bcal.className = 'ops-view-btn'+(v==='cal'?' act':'');
+  if(btbl) btbl.className = 'ops-view-btn'+(v==='tbl'?' act':'');
+  if(v==='tbl') renderTable();
+};
+
+// ── Play sounds on save ───────────────────────────────
+var _origSaveTrade = window.saveTrade;
+if(typeof _origSaveTrade === 'function'){
+  window.saveTrade = function(){
+    var result = document.getElementById('btn-tp') && document.getElementById('btn-tp').classList.contains('atp') ? 'TP' : 'SL';
+    _origSaveTrade();
+    setTimeout(function(){
+      if(result === 'TP') window._playTP(); else window._playSL();
+    }, 100);
+  };
+}
+
+// ── Add ripple to all .btn-new-op clicks ──────────────
+document.addEventListener('click', function(e){
+  var btn = e.target.closest('.btn-new-op,.btn-g');
+  if(btn && btn.id !== 'btn-save') window._playClick && window._playClick();
+});
+
+console.log('[TradeTrack] 🚀 Premium UI cargado');
 </script>
 
 <!--
