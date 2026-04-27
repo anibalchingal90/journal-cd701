@@ -1162,7 +1162,6 @@ async function checkLicenseOnLoad() {
   try { stored = JSON.parse(localStorage.getItem('ttlic') || 'null'); } catch(e) {}
   if (!stored || !stored.key) { showLicOverlay(); return; }
 
-  // ══ Verificación INSTANTÁNEA cada vez que se abre ══
   try {
     var res = await fetch(FB_BASE + '/' + stored.key + '?key=' + FB_KEY);
     if (!res.ok) {
@@ -1180,31 +1179,42 @@ async function checkLicenseOnLoad() {
       return;
     }
 
-    var deviceId = localStorage.getItem('tt_did') || '';
-    var lastDevice = (f.lastDevice && f.lastDevice.stringValue) || '';
+    var deviceId = getDeviceId();
     var maxActivations = parseInt((f.maxActivations && f.maxActivations.integerValue) || '2');
-    var activations = parseInt((f.activations && f.activations.integerValue) || '0');
 
-    // ✅ FIX: Solo bloquear si el dispositivo es diferente Y no hay cupo disponible
-    if (lastDevice && lastDevice !== deviceId && activations >= maxActivations) {
-      localStorage.removeItem('ttlic');
-      showLicOverlay('⚠ Esta licencia alcanzó el límite de dispositivos. Contacta soporte.');
-      return;
+    // ✅ NUEVO: Leer lista de dispositivos autorizados (array en Firebase)
+    var authorizedDevices = [];
+    if (f.devices && f.devices.arrayValue && f.devices.arrayValue.values) {
+      authorizedDevices = f.devices.arrayValue.values.map(function(v){ return v.stringValue || ''; });
+    } else if (f.lastDevice && f.lastDevice.stringValue) {
+      // Compatibilidad con licencias antiguas que solo tienen lastDevice
+      authorizedDevices = [f.lastDevice.stringValue];
     }
 
-    // ✅ FIX: Si es un dispositivo nuevo con cupo, registrarlo automáticamente
-    if (deviceId && lastDevice !== deviceId && activations < maxActivations) {
-      var newCount = activations + 1;
+    var isAuthorized = authorizedDevices.indexOf(deviceId) !== -1;
+
+    if (!isAuthorized) {
+      if (authorizedDevices.length >= maxActivations) {
+        // Sin cupo — dispositivo no autorizado
+        localStorage.removeItem('ttlic');
+        showLicOverlay('⚠ Esta licencia ya está activada en ' + maxActivations + ' dispositivo(s). Contacta soporte para agregar este dispositivo.');
+        return;
+      }
+      // Hay cupo — registrar este dispositivo en la lista
+      authorizedDevices.push(deviceId);
+      var devValues = authorizedDevices.map(function(d){ return {stringValue: d}; });
       var patchUrl = FB_BASE + '/' + stored.key + '?key=' + FB_KEY
-        + '&updateMask.fieldPaths=lastDevice'
-        + '&updateMask.fieldPaths=activations';
+        + '&updateMask.fieldPaths=devices'
+        + '&updateMask.fieldPaths=activations'
+        + '&updateMask.fieldPaths=lastDevice';
       await fetch(patchUrl, {
         method: 'PATCH',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
           fields: {
-            lastDevice: {stringValue: deviceId},
-            activations: {integerValue: String(newCount)}
+            devices: {arrayValue: {values: devValues}},
+            activations: {integerValue: String(authorizedDevices.length)},
+            lastDevice: {stringValue: deviceId}
           }
         })
       });
@@ -1214,14 +1224,13 @@ async function checkLicenseOnLoad() {
     localStorage.setItem('ttlic', JSON.stringify(stored));
 
   } catch(e) {
-    // Sin internet — permitir acceso si ya tenía licencia guardada
     console.log('[TradeTrack] Sin conexión — usando licencia local');
-    if (!stored.key) { showLicOverlay('⚠ Sin internet. Conectate para verificar tu licencia.'); return; }
+    if (!stored || !stored.key) { showLicOverlay('⚠ Sin internet. Conéctate para verificar tu licencia.'); return; }
   }
 
   hideLicOverlay();
 
-  // ✅ FIX: Sincronizar datos desde la nube automáticamente al abrir en cualquier dispositivo
+  // ✅ Sincronizar datos desde la nube al abrir en cualquier dispositivo
   setTimeout(async function() {
     try {
       var synced = await syncFromCloud();
@@ -1251,13 +1260,11 @@ async function activateLicense() {
 
     if (res.status === 404) {
       errEl.textContent = '❌ Código no encontrado. Verifica que lo escribiste bien.';
-      loadEl.style.display = 'none'; btn.disabled = false; btn.style.opacity = '1';
-      return;
+      loadEl.style.display = 'none'; btn.disabled = false; btn.style.opacity = '1'; return;
     }
     if (!res.ok) {
       errEl.textContent = '⚠ Error al conectar. Verifica tu internet e intenta de nuevo.';
-      loadEl.style.display = 'none'; btn.disabled = false; btn.style.opacity = '1';
-      return;
+      loadEl.style.display = 'none'; btn.disabled = false; btn.style.opacity = '1'; return;
     }
 
     var data = await res.json();
@@ -1265,28 +1272,37 @@ async function activateLicense() {
 
     if (!f.active || f.active.booleanValue === false) {
       errEl.textContent = '❌ Este código está desactivado. Contacta a tu revendedor.';
-      loadEl.style.display = 'none'; btn.disabled = false; btn.style.opacity = '1';
-      return;
+      loadEl.style.display = 'none'; btn.disabled = false; btn.style.opacity = '1'; return;
     }
 
     var deviceId = getDeviceId();
-    var curActivations = parseInt((f.activations && f.activations.integerValue) || '0');
     var maxActivations = parseInt((f.maxActivations && f.maxActivations.integerValue) || '2');
-    var lastDevice = (f.lastDevice && f.lastDevice.stringValue) || '';
-    var alreadyThisDevice = (lastDevice === deviceId);
 
-    if (!alreadyThisDevice && curActivations >= maxActivations) {
-      errEl.textContent = '⚠ Código ya activado en otro dispositivo. Contacta soporte para transferirlo.';
-      loadEl.style.display = 'none'; btn.disabled = false; btn.style.opacity = '1';
-      return;
+    // ✅ Leer lista de dispositivos autorizados
+    var authorizedDevices = [];
+    if (f.devices && f.devices.arrayValue && f.devices.arrayValue.values) {
+      authorizedDevices = f.devices.arrayValue.values.map(function(v){ return v.stringValue || ''; });
+    } else if (f.lastDevice && f.lastDevice.stringValue) {
+      authorizedDevices = [f.lastDevice.stringValue];
     }
 
-    // Registrar activación en Firebase
-    var newCount = alreadyThisDevice ? curActivations : curActivations + 1;
+    var isAuthorized = authorizedDevices.indexOf(deviceId) !== -1;
+
+    if (!isAuthorized) {
+      if (authorizedDevices.length >= maxActivations) {
+        errEl.textContent = '⚠ Este código ya está activado en ' + maxActivations + ' dispositivo(s). Contacta soporte para transferirlo.';
+        loadEl.style.display = 'none'; btn.disabled = false; btn.style.opacity = '1'; return;
+      }
+      authorizedDevices.push(deviceId);
+    }
+
+    // Registrar en Firebase
+    var devValues = authorizedDevices.map(function(d){ return {stringValue: d}; });
     var patchUrl = FB_BASE + '/' + code + '?key=' + FB_KEY
       + '&updateMask.fieldPaths=activatedAt'
       + '&updateMask.fieldPaths=lastDevice'
-      + '&updateMask.fieldPaths=activations';
+      + '&updateMask.fieldPaths=activations'
+      + '&updateMask.fieldPaths=devices';
 
     await fetch(patchUrl, {
       method: 'PATCH',
@@ -1295,12 +1311,12 @@ async function activateLicense() {
         fields: {
           activatedAt: {timestampValue: new Date().toISOString()},
           lastDevice: {stringValue: deviceId},
-          activations: {integerValue: String(newCount)}
+          activations: {integerValue: String(authorizedDevices.length)},
+          devices: {arrayValue: {values: devValues}}
         }
       })
     });
 
-    // Guardar licencia localmente
     localStorage.setItem('ttlic', JSON.stringify({
       key: code,
       reseller: (f.reseller && f.reseller.stringValue) || '',
@@ -1309,12 +1325,12 @@ async function activateLicense() {
     }));
 
     hideLicOverlay();
-    // Sincronizar datos desde la nube al activar licencia
+
     setTimeout(async function() {
       var synced = await syncFromCloud();
-      if(synced){
-        render();renderStats();renderAnalysis();
-        if(typeof toast==='function') toast('☁ Datos sincronizados desde la nube — Bienvenido','#4d9fff');
+      if (synced) {
+        render(); renderStats(); renderAnalysis();
+        if (typeof toast === 'function') toast('☁ Datos sincronizados desde la nube — Bienvenido', '#4d9fff');
       } else {
         if (typeof toast === 'function') toast('✅ ¡Licencia activada! Bienvenido a Cursos Digitales 701 Journal', 'var(--green)');
       }
@@ -1326,7 +1342,6 @@ async function activateLicense() {
 
   loadEl.style.display = 'none'; btn.disabled = false; btn.style.opacity = '1';
 }
-
 var MSS=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 var MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 var DAYS=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
