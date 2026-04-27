@@ -1381,45 +1381,141 @@ function load(){
 // ═══════════════════════════════════════════════════════════
 //  SINCRONIZACIÓN CON FIREBASE — NUBE
 // ═══════════════════════════════════════════════════════════
-var SYNC_FB_KEY='AIzaSyDi65NcJKjx0ClhJ0T2RFjf4XLK38AidNw';
-var SYNC_FB_BASE='https://firestore.googleapis.com/v1/projects/journa-2d389/databases/(default)/documents/userData';
-var _syncTimeout=null;
+// ═══════════════════════════════════════════════════════════
+//  SUPABASE — SINCRONIZACIÓN EN LA NUBE
+// ═══════════════════════════════════════════════════════════
+var SB_URL = 'https://adeaizywhidbgmvltlob.supabase.co';
+var SB_KEY = 'sb_publishable_zJY0rZeBktasCOFUoogZqg_e8VaVTs7';
+var SB_TABLE = 'journal_data';
+var _syncTimeout = null;
+var _syncPending = false;
 
 function getSyncKey(){
   try{var l=JSON.parse(localStorage.getItem('ttlic')||'null');return l&&l.key?l.key:null;}catch(e){return null;}
 }
 
+function sbHeaders(){
+  return {
+    'Content-Type': 'application/json',
+    'apikey': SB_KEY,
+    'Authorization': 'Bearer ' + SB_KEY,
+    'Prefer': 'return=minimal'
+  };
+}
+
+function getAcctId(){
+  return (typeof getActiveId === 'function') ? getActiveId() : 'default';
+}
+
 function syncToCloud(){
-  var key=getSyncKey();if(!key)return;
+  var key = getSyncKey(); if(!key) return;
   clearTimeout(_syncTimeout);
-  _syncTimeout=setTimeout(function(){
-    var payload={fields:{
-      trades:{stringValue:JSON.stringify(S.trades)},
-      settings:{stringValue:JSON.stringify(S.settings)},
-      updatedAt:{timestampValue:new Date().toISOString()}
-    }};
-    fetch(SYNC_FB_BASE+'/'+encodeURIComponent(key)+'?key='+SYNC_FB_KEY,{
-      method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
-    }).then(function(){showSyncStatus('☁ Sincronizado');}).catch(function(){showSyncStatus('⚠ Sin conexión');});
-  },2000);
+  _syncPending = true;
+  _syncTimeout = setTimeout(async function(){
+    try{
+      var acctId = getAcctId();
+      var rowId = key + '_' + acctId;
+      var accounts = (typeof getAccounts==='function') ? getAccounts() : [];
+      var payload = {
+        id: rowId,
+        license_key: key,
+        account_id: acctId,
+        trades: S.trades,
+        settings: S.settings,
+        accounts: accounts,
+        updated_at: new Date().toISOString()
+      };
+      var res = await fetch(SB_URL + '/rest/v1/' + SB_TABLE, {
+        method: 'POST',
+        headers: Object.assign({}, sbHeaders(), {'Prefer': 'resolution=merge-duplicates,return=minimal'}),
+        body: JSON.stringify(payload)
+      });
+      if(res.ok || res.status===201 || res.status===204){
+        showSyncStatus('☁ Guardado en nube');
+        _syncPending = false;
+      } else {
+        var err = await res.text();
+        console.warn('Supabase sync error:', res.status, err);
+        showSyncStatus('⚠ Error al guardar');
+      }
+    }catch(e){
+      console.warn('syncToCloud error:', e);
+      showSyncStatus('⚠ Sin conexión');
+    }
+  }, 1500);
 }
 
 async function syncFromCloud(){
-  var key=getSyncKey();if(!key)return false;
+  var key = getSyncKey(); if(!key) return false;
   try{
-    var res=await fetch(SYNC_FB_BASE+'/'+encodeURIComponent(key)+'?key='+SYNC_FB_KEY);
-    if(!res.ok)return false;
-    var data=await res.json();var f=data.fields||{};
-    var ct=f.trades&&f.trades.stringValue?JSON.parse(f.trades.stringValue):null;
-    var cs=f.settings&&f.settings.stringValue?JSON.parse(f.settings.stringValue):null;
-    if(ct&&ct.length>0&&ct.length>=S.trades.length){
-      S.trades=ct;if(cs)S.settings=Object.assign({},S.settings,cs);
-      localStorage.setItem('tt_cfg',JSON.stringify(S.settings));
-      var n=Math.ceil(S.trades.length/500)||1;localStorage.setItem('tt_n',String(n));
-      for(var i=0;i<n;i++)localStorage.setItem('tt_'+i,JSON.stringify(S.trades.slice(i*500,(i+1)*500)));
+    var acctId = getAcctId();
+    var rowId = key + '_' + acctId;
+    var res = await fetch(SB_URL + '/rest/v1/' + SB_TABLE + '?id=eq.' + encodeURIComponent(rowId) + '&select=*', {
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY
+      }
+    });
+    if(!res.ok) return false;
+    var data = await res.json();
+    if(!data || !data.length) return false;
+    var row = data[0];
+    var cloudTrades = row.trades || [];
+    var cloudSettings = row.settings || null;
+    var cloudAccounts = row.accounts || null;
+    // Merge: use cloud data if it has more or equal trades
+    if(cloudTrades.length >= S.trades.length){
+      S.trades = cloudTrades;
+      if(cloudSettings) S.settings = Object.assign({}, S.settings, cloudSettings);
+      // Save to localStorage as cache
+      var id = getAcctId();
+      localStorage.setItem('tt_cfg_'+id, JSON.stringify(S.settings));
+      var n = Math.ceil(S.trades.length/500)||1;
+      localStorage.setItem('tt_n_'+id, String(n));
+      for(var i=0;i<n;i++) localStorage.setItem('tt_'+id+'_'+i, JSON.stringify(S.trades.slice(i*500,(i+1)*500)));
+      // Restore accounts if available
+      if(cloudAccounts && cloudAccounts.length && typeof saveAccounts==='function'){
+        saveAccounts(cloudAccounts);
+      }
       return true;
-    }return false;
-  }catch(e){return false;}
+    }
+    return false;
+  }catch(e){
+    console.warn('syncFromCloud error:', e);
+    return false;
+  }
+}
+
+async function syncAllAccounts(){
+  // Sync all accounts from cloud
+  var key = getSyncKey(); if(!key) return;
+  try{
+    var res = await fetch(SB_URL + '/rest/v1/' + SB_TABLE + '?license_key=eq.' + encodeURIComponent(key) + '&select=*', {
+      headers: {'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY}
+    });
+    if(!res.ok) return;
+    var rows = await res.json();
+    if(!rows || !rows.length) return;
+    // Restore each account's data to localStorage
+    rows.forEach(function(row){
+      var acctId = row.account_id;
+      if(!acctId) return;
+      var trades = row.trades || [];
+      var settings = row.settings || {};
+      localStorage.setItem('tt_cfg_'+acctId, JSON.stringify(settings));
+      var n = Math.ceil(trades.length/500)||1;
+      localStorage.setItem('tt_n_'+acctId, String(n));
+      for(var i=0;i<n;i++) localStorage.setItem('tt_'+acctId+'_'+i, JSON.stringify(trades.slice(i*500,(i+1)*500)));
+    });
+    // Restore accounts list from first row
+    var firstRow = rows[0];
+    if(firstRow.accounts && firstRow.accounts.length && typeof saveAccounts==='function'){
+      saveAccounts(firstRow.accounts);
+    }
+    showSyncStatus('☁ Todo sincronizado');
+  }catch(e){
+    console.warn('syncAllAccounts error:', e);
+  }
 }
 
 function showSyncStatus(msg){
@@ -3437,11 +3533,18 @@ document.addEventListener('DOMContentLoaded',function(){
   checkLicenseOnLoad();
   load();
   initAccounts();
-  // Sincronizar desde la nube al abrir
+  // Sincronizar TODAS las cuentas desde Supabase al abrir
   setTimeout(async function(){
-    var synced=await syncFromCloud();
-    if(synced){render();renderStats();renderAnalysis();if(typeof toast==='function')toast('☁ Datos sincronizados desde la nube','#4d9fff');}
-  },1500);
+    showSyncStatus('⏳ Sincronizando...');
+    await syncAllAccounts();
+    var synced = await syncFromCloud();
+    if(synced){
+      render();renderStats();renderAnalysis();
+      if(typeof toast==='function') toast('☁ Datos sincronizados desde la nube','#4d9fff');
+    } else {
+      showSyncStatus('✓ Listo');
+    }
+  },1200);
   // Setup del-all button safely
   var dab=g('del-all-btn');
   if(dab)dab.onclick=function(){delAll();};
@@ -3668,4 +3771,24 @@ button:active, [onclick]:active, .ni:active, .cal-nav-btn:active, .rb:active, .t
   }, {passive:true, capture:true});
 })();
 </script>
+
+<!--
+  SUPABASE SQL — Ejecutar en Supabase > SQL Editor:
+
+  CREATE TABLE IF NOT EXISTS journal_data (
+    id TEXT PRIMARY KEY,
+    license_key TEXT NOT NULL,
+    account_id TEXT NOT NULL DEFAULT 'default',
+    trades JSONB DEFAULT '[]',
+    settings JSONB DEFAULT '{}',
+    accounts JSONB DEFAULT '[]',
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_license_key ON journal_data(license_key);
+
+  ALTER TABLE journal_data ENABLE ROW LEVEL SECURITY;
+  CREATE POLICY "public_access" ON journal_data FOR ALL USING (true) WITH CHECK (true);
+-->
+
 </html>
