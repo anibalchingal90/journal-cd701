@@ -1631,8 +1631,8 @@ function renderConfig(){
   } else {
     updatePreview();
   }
+  updateFondeoFieldsState();
 }
-function saveC2(){
   var n=pN(g('ca2').value);
   if(n!==null){
     S.settings.accountSize=n;
@@ -1674,8 +1674,10 @@ function renderConfigAccounts(){
     html += '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">';
     if(isActive) html += '<span class="active-dot-pulse"></span>';
     html += '<span style="font-size:12px;font-weight:700;color:#f0f0f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;">'+a.name+'</span>';
-    html += '<span style="font-size:9px;padding:2px 6px;border-radius:4px;font-weight:700;background:'+(a.type==='fondeo'?'rgba(232,160,32,.15)':'rgba(77,159,255,.12)')+';color:'+(a.type==='fondeo'?'#e8a020':'#4d9fff')+';">'+(a.type==='fondeo'?'FONDEO':'PERSONAL')+'</span>';
-    if(a.type==='fondeo') html += '<span class="fondeo-badge-pulse" style="margin-left:2px;" title="Modo Fondeo">F</span>';
+    var _cfg2 = null; try{ _cfg2 = JSON.parse(localStorage.getItem('tt_cfg_'+a.id)||'null'); }catch(e){}
+    var _fondeoOn2 = _cfg2 ? !!_cfg2.challengeActive : false;
+    html += '<span style="font-size:9px;padding:2px 6px;border-radius:4px;font-weight:700;background:'+(_fondeoOn2?'rgba(232,160,32,.15)':'rgba(77,159,255,.12)')+';color:'+(_fondeoOn2?'#e8a020':'#4d9fff')+';">'+(_fondeoOn2?'FONDEO':'PERSONAL')+'</span>';
+    if(_fondeoOn2) html += '<span class="fondeo-badge-pulse" style="margin-left:2px;" title="Modo Fondeo">F</span>';
     html += '</div>';
     html += '<div style="font-size:10px;color:#555;margin-top:2px;">$'+Number(a.initialBalance).toLocaleString('en')+' &middot; '+trades.length+' ops &middot; <span style="color:'+pnlCol+';">'+(pnl>=0?'+':'')+pnl.toFixed(2)+'$</span></div>';
     html += '</div>';
@@ -1752,9 +1754,20 @@ function renderRulesSummary(){
 }
 
 function updateRuleEquivalents(){
-  var s=S.settings; var acc=s.accountSize||10000;
-  var rle=g('rule-loss-equiv'); if(rle) rle.textContent='= $'+(acc*(s.maxTotalLoss||10)/100).toLocaleString('en');
-  var rpe=g('rule-profit-equiv'); if(rpe) rpe.textContent='= $'+(acc*(s.profitTarget||10)/100).toLocaleString('en');
+  var lossPct, profitPct, capital;
+  if(_modoNuevaCuenta){
+    _draftReadDOM();
+    lossPct   = parseFloat(_draft.maxTotalLoss) || 10;
+    profitPct = parseFloat(_draft.profitTarget) || 10;
+    capital   = parseFloat(_draft.initial) || 0;
+  } else {
+    var s = S.settings;
+    var cftEl = g('cft'); lossPct   = cftEl && cftEl.value !== '' ? (parseFloat(cftEl.value)||10) : (s.maxTotalLoss||10);
+    var cfgEl = g('cfg'); profitPct = cfgEl && cfgEl.value !== '' ? (parseFloat(cfgEl.value)||10) : (s.profitTarget||10);
+    var initEl = g('acfg-initial'); capital = initEl && initEl.value !== '' ? (parseFloat(initEl.value)||s.accountSize||10000) : (s.accountSize||10000);
+  }
+  var rle=g('rule-loss-equiv');   if(rle) rle.textContent='= -$'+(capital*lossPct/100).toLocaleString('en');
+  var rpe=g('rule-profit-equiv'); if(rpe) rpe.textContent='= $'+(capital*profitPct/100).toLocaleString('en');
 }
 
 function saveRuleExtra(){
@@ -1787,7 +1800,7 @@ function saveAcctConfig(){
     S.settings.accountSize=pN(init.value);
     var ai=g('acct-inp');if(ai)ai.value=S.settings.accountSize;
   }
-  save();updateAcctBtn();renderConfigAccounts();updatePreview();checkAlerts();
+  save();updateAcctBtn();renderConfigAccounts();updatePreview();checkAlerts();updateRuleEquivalents();
 }
 
 function saveC2fromConfig(){
@@ -1834,6 +1847,16 @@ function updatePreview(){
 
 function refreshFondeoSwitch(){
   updatePreview();
+}
+
+function updateFondeoFieldsState(){
+  var active = _modoNuevaCuenta ? !!_draft.challengeActive : !!S.settings.challengeActive;
+  ['cft','cfg','cfd','cfal-rule'].forEach(function(id){
+    var el=g(id); if(!el) return;
+    el.disabled = !active;
+    el.style.opacity = active ? '1' : '0.4';
+    el.style.cursor = active ? '' : 'not-allowed';
+  });
 }
 
 function setAcctColor(color){
@@ -1900,6 +1923,7 @@ function togChallenge(){
     S.settings.challengeActive = _draft.challengeActive;
     _draftWriteDOM();
     _updatePreviewDraft();
+    updateFondeoFieldsState();
     return;
   }
   // En modo edición de cuenta existente: guardar campos antes de re-render
@@ -1916,6 +1940,7 @@ function togChallenge(){
   var t=g('ctog');if(t){if(S.settings.challengeActive)t.classList.add('on');else t.classList.remove('on');}
   var t2=g('ctog2');if(t2){if(S.settings.challengeActive)t2.classList.add('on');else t2.classList.remove('on');}
   updatePreview();
+  updateFondeoFieldsState();
 }
 
 // SORTED
@@ -2029,8 +2054,10 @@ function renderDash(){
   g('dash-kpis').innerHTML=hkpis.map(function(k){return'<div class="kcard '+k.cls+'"><div class="klbl">'+k.l+'</div><div class="kval" style="color:'+k.c+'">'+k.v+'</div>'+(k.sub?'<div class="ksub">'+k.sub+'</div>':'')+'</div>';}).join('');
 
   // Barra inteligente única
-  var ddw=g('dd-wrap');if(ddw)ddw.style.display=s.challengeActive?'block':'none';
-  if(s.challengeActive){
+  var _cfgDD = null; try{ _cfgDD = JSON.parse(localStorage.getItem('tt_cfg_'+getActiveId())||'null'); }catch(e){}
+  var _fondeoDD = _cfgDD ? !!_cfgDD.challengeActive : !!s.challengeActive;
+  var ddw=g('dd-wrap');if(ddw)ddw.style.display=_fondeoDD?'block':'none';
+  if(_fondeoDD){
     var profPct = s.accountSize ? (to.totalPnl/s.accountSize)*100 : 0;
     var isWinning = profPct >= 0;
     var barPct, barCol, barLabel, limitLabel, sublabel, leftLabel, goalText;
@@ -2669,7 +2696,9 @@ function renderSidebarAccounts(){
     var bg  = isActive ? 'rgba(0,230,118,.12)' : 'rgba(255,255,255,.03)';
     var bdr = isActive ? 'rgba(0,230,118,.4)'  : 'rgba(255,255,255,.08)';
     var nameColor = isActive ? '#00e676' : '#bbbbbb';
-    var fondeoLabel = a.type === 'fondeo'
+    var _cfg = null; try{ _cfg = JSON.parse(localStorage.getItem('tt_cfg_'+a.id)||'null'); }catch(e){}
+    var _fondeoOn = _cfg ? !!_cfg.challengeActive : false;
+    var fondeoLabel = _fondeoOn
       ? '<span class="fondeo-badge-pulse" title="Modo Fondeo activo">F</span>'
       : '';
 
@@ -2979,9 +3008,16 @@ function guardarCuenta(){
 
   renderSidebarAccounts();
   updateAcctBtn();
-  updatePreview();
   renderConfigAccounts();
   refresh();
+  // Resetear form a estado inicial — lista para nueva cuenta
+  _modoNuevaCuenta = true;
+  _draft = {name:'',currency:'USD',initial:'',desc:'',color:'#8b5cf6',icon:'🏦',challengeActive:false,maxDailyLoss:5,maxTotalLoss:10,profitTarget:10};
+  _selectedColor='#8b5cf6'; _selectedIcon='🏦';
+  _draftWriteDOM();
+  actualizarBtnGuardar();
+  _updatePreviewDraft();
+  updateFondeoFieldsState();
   if(typeof toast==='function') toast('💾 Cuenta guardada correctamente', '#00e676');
 }
 
