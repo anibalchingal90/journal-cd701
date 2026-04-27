@@ -1655,6 +1655,7 @@ function saveF(){
   if(_modoNuevaCuenta){
     _draftReadDOM();
     _updatePreviewDraft();
+    updateRuleEquivalents();
     return;
   }
   var s=S.settings;
@@ -1763,20 +1764,12 @@ function renderRulesSummary(){
 }
 
 function updateRuleEquivalents(){
-  var lossPct, profitPct, capital;
-  if(_modoNuevaCuenta){
-    _draftReadDOM();
-    lossPct   = parseFloat(_draft.maxTotalLoss)||10;
-    profitPct = parseFloat(_draft.profitTarget)||10;
-    capital   = parseFloat(_draft.initial)||0;
-  } else {
-    var s=S.settings;
-    var cftEl=g('cft'); lossPct   = cftEl&&cftEl.value!==''?parseFloat(cftEl.value)||10:s.maxTotalLoss||10;
-    var cfgEl=g('cfg'); profitPct = cfgEl&&cfgEl.value!==''?parseFloat(cfgEl.value)||10:s.profitTarget||10;
-    var initEl=g('acfg-initial'); capital = initEl&&initEl.value!==''?parseFloat(initEl.value)||s.accountSize||10000:s.accountSize||10000;
-  }
-  var rle=g('rule-loss-equiv');   if(rle) rle.textContent='= -$'+(capital*lossPct/100).toLocaleString('en');
-  var rpe=g('rule-profit-equiv'); if(rpe) rpe.textContent='= $'+(capital*profitPct/100).toLocaleString('en');
+  var s=S.settings;
+  var cftEl=g('cft');var lossPct=cftEl&&cftEl.value!==''?parseFloat(cftEl.value)||0:s.maxTotalLoss||10;
+  var cfgEl=g('cfg');var profitPct=cfgEl&&cfgEl.value!==''?parseFloat(cfgEl.value)||0:s.profitTarget||10;
+  var initEl=g('acfg-initial');var capital=initEl&&initEl.value!==''?parseFloat(initEl.value)||0:s.accountSize||0;
+  var rle=g('rule-loss-equiv');if(rle)rle.textContent='= -$'+(capital*lossPct/100).toLocaleString('en');
+  var rpe=g('rule-profit-equiv');if(rpe)rpe.textContent='= $'+(capital*profitPct/100).toLocaleString('en');
 }
 
 function saveRuleExtra(){
@@ -2976,6 +2969,8 @@ function guardarCuenta(){
       challengeActive:isFondeo, maxDailyLoss:mdl,
       maxTotalLoss:mtl, profitTarget:pt, alertAt:80
     });
+    setActiveId(newId);
+    loadAccountData(newId);
     // Resetear draft y S.settings para la próxima cuenta
     _draft = {name:'',currency:'USD',initial:'',desc:'',color:'#8b5cf6',icon:'🏦',challengeActive:false,maxDailyLoss:5,maxTotalLoss:10,profitTarget:10};
     _selectedColor='#8b5cf6'; _selectedIcon='🏦';
@@ -3013,10 +3008,10 @@ function guardarCuenta(){
   _modoNuevaCuenta = true;
   _draft = {name:'',currency:'USD',initial:'',desc:'',color:'#8b5cf6',icon:'🏦',challengeActive:false,maxDailyLoss:5,maxTotalLoss:10,profitTarget:10};
   _selectedColor='#8b5cf6'; _selectedIcon='🏦';
-  _draftWriteDOM();
+  S.settings = {accountSize:10000,assets:[].concat(DEF_ASSETS),challengeActive:false,maxDailyLoss:5,maxTotalLoss:10,profitTarget:10,alertAt:80};
+  renderConfig();
   actualizarBtnGuardar();
   _updatePreviewDraft();
-  updateFondeoFieldsState();
   if(typeof toast==='function') toast('💾 Cuenta guardada correctamente', '#00e676');
 }
 
