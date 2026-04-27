@@ -1465,35 +1465,35 @@ function checkAlerts(){
   }
 }
 
-// STORAGE
+// STORAGE — ✅ FIX CACHE: claves prefijadas con license_key
 function save(){
   try{
+    var pfx = getLicensePrefix();
     var id = getActiveId();
-    localStorage.setItem('tt_cfg',JSON.stringify(S.settings)); // legacy
-    localStorage.setItem('tt_cfg_'+id,JSON.stringify(S.settings));
+    localStorage.setItem(pfx+'cfg_'+id, JSON.stringify(S.settings));
     var n=Math.ceil(S.trades.length/500)||1;
-    localStorage.setItem('tt_n',String(n)); // legacy
-    localStorage.setItem('tt_n_'+id,String(n));
+    localStorage.setItem(pfx+'n_'+id, String(n));
     for(var i=0;i<n;i++){
-      localStorage.setItem('tt_'+i,JSON.stringify(S.trades.slice(i*500,(i+1)*500))); // legacy
-      localStorage.setItem('tt_'+id+'_'+i,JSON.stringify(S.trades.slice(i*500,(i+1)*500)));
+      localStorage.setItem(pfx+id+'_'+i, JSON.stringify(S.trades.slice(i*500,(i+1)*500)));
     }
-    var old=parseInt(localStorage.getItem('tt_old_'+id)||String(n));
-    for(var j=n;j<=old;j++) localStorage.removeItem('tt_'+id+'_'+j);
-    localStorage.setItem('tt_old_'+id,String(n));
+    var oldN=parseInt(localStorage.getItem(pfx+'old_'+id)||String(n));
+    for(var j=n;j<=oldN;j++) localStorage.removeItem(pfx+id+'_'+j);
+    localStorage.setItem(pfx+'old_'+id, String(n));
     syncToCloud();
   }catch(e){console.error('save',e);}
 }
 function load(){
   try{
+    var pfx = getLicensePrefix();
     var id = (typeof getActiveId==='function') ? getActiveId() : 'default';
-    var c=localStorage.getItem('tt_cfg_'+id)||localStorage.getItem('tt_cfg');
-    if(c)S.settings=Object.assign({},S.settings,JSON.parse(c));
-    var n=parseInt(localStorage.getItem('tt_n_'+id)||localStorage.getItem('tt_n')||'1');
+    var c = localStorage.getItem(pfx+'cfg_'+id);
+    if(c) S.settings=Object.assign({},S.settings,JSON.parse(c));
+    var n = parseInt(localStorage.getItem(pfx+'n_'+id)||'1');
     var t=[];
-    // Try account-specific first, then legacy
-    for(var i=0;i<n;i++){var x=localStorage.getItem('tt_'+id+'_'+i)||localStorage.getItem('tt_'+i);if(x)t=t.concat(JSON.parse(x));}
-    if(!t.length){var old2=localStorage.getItem('smc5_0')||localStorage.getItem('smc_trades');if(old2)try{t=JSON.parse(old2);}catch(e2){}}
+    for(var i=0;i<n;i++){
+      var x=localStorage.getItem(pfx+id+'_'+i);
+      if(x) try{t=t.concat(JSON.parse(x));}catch(e2){}
+    }
     S.trades=t;
   }catch(e){console.error('load',e);}
 }
@@ -1508,7 +1508,8 @@ function load(){
 var APP_VERSION = '2.1'; // ⬅ Sube este número cada vez que hagas cambios
 
 function migrateData(){
-  var savedVersion = localStorage.getItem('tt_version') || '1.0';
+  var pfxV = getLicensePrefix();
+  var savedVersion = localStorage.getItem(pfxV+'version') || '1.0';
   if(savedVersion === APP_VERSION) return; // ya está al día, no hacer nada
 
   // ── Zona de migraciones ───────────────────────────────────────────────────
@@ -1524,7 +1525,7 @@ function migrateData(){
   // }
   // ─────────────────────────────────────────────────────────────────────────
 
-  localStorage.setItem('tt_version', APP_VERSION);
+  localStorage.setItem(pfxV+'version', APP_VERSION);
   if(typeof save === 'function') save(); // guarda con estructura nueva y sube a nube
   console.log('[TradeTrack] Migración completa: ' + savedVersion + ' → ' + APP_VERSION);
 }
@@ -1566,15 +1567,16 @@ function syncToCloud(){
       var accounts = (typeof getAccounts==='function') ? getAccounts() : [];
 
       // Construir snapshot completo de todas las cuentas
+      var pfx = getLicensePrefix();
       var allAccountsData = {};
       accounts.forEach(function(acct){
-        var n = parseInt(localStorage.getItem('tt_n_'+acct.id)||'1');
+        var n = parseInt(localStorage.getItem(pfx+'n_'+acct.id)||'1');
         var trades = [];
         for(var i=0;i<n;i++){
-          var x = localStorage.getItem('tt_'+acct.id+'_'+i);
+          var x = localStorage.getItem(pfx+acct.id+'_'+i);
           if(x) try{ trades = trades.concat(JSON.parse(x)); }catch(e){}
         }
-        var cfg = localStorage.getItem('tt_cfg_'+acct.id);
+        var cfg = localStorage.getItem(pfx+'cfg_'+acct.id);
         var settings = cfg ? JSON.parse(cfg) : {};
         allAccountsData[acct.id] = { trades: trades, settings: settings, meta: acct };
       });
@@ -1660,48 +1662,48 @@ async function syncFromCloud(){
       saveAccounts(cloudAccounts);
     }
 
-    // 2. Restaurar datos de TODAS las cuentas al localStorage
+    // 2. Restaurar datos de TODAS las cuentas al localStorage (con prefijo de licencia)
+    var pfx2 = getLicensePrefix();
     if(Object.keys(allData).length){
       Object.keys(allData).forEach(function(acctId){
         var acctData = allData[acctId];
         var trades = acctData.trades || [];
         var settings = acctData.settings || {};
-        localStorage.setItem('tt_cfg_'+acctId, JSON.stringify(settings));
+        localStorage.setItem(pfx2+'cfg_'+acctId, JSON.stringify(settings));
         var n = Math.ceil(trades.length/500)||1;
-        localStorage.setItem('tt_n_'+acctId, String(n));
-        for(var i=0;i<n;i++) localStorage.setItem('tt_'+acctId+'_'+i, JSON.stringify(trades.slice(i*500,(i+1)*500)));
+        localStorage.setItem(pfx2+'n_'+acctId, String(n));
+        for(var i=0;i<n;i++) localStorage.setItem(pfx2+acctId+'_'+i, JSON.stringify(trades.slice(i*500,(i+1)*500)));
       });
     } else if(row.account_id && row.trades){
       // Formato viejo: solo 1 cuenta guardada
       var acctId0 = row.account_id;
       var trades0 = row.trades || [];
       var settings0 = row.settings || {};
-      localStorage.setItem('tt_cfg_'+acctId0, JSON.stringify(settings0));
+      localStorage.setItem(pfx2+'cfg_'+acctId0, JSON.stringify(settings0));
       var n0 = Math.ceil(trades0.length/500)||1;
-      localStorage.setItem('tt_n_'+acctId0, String(n0));
-      for(var i=0;i<n0;i++) localStorage.setItem('tt_'+acctId0+'_'+i, JSON.stringify(trades0.slice(i*500,(i+1)*500)));
+      localStorage.setItem(pfx2+'n_'+acctId0, String(n0));
+      for(var i=0;i<n0;i++) localStorage.setItem(pfx2+acctId0+'_'+i, JSON.stringify(trades0.slice(i*500,(i+1)*500)));
       if(!cloudAccounts.length && typeof saveAccounts==='function'){
-        // Si no habia lista de cuentas, usar account_id como cuenta por defecto
-        localStorage.setItem('tt_active', acctId0);
+        localStorage.setItem(pfx2+'active', acctId0);
       }
     }
 
     // 3. Asegurar que activeId apunta a una cuenta válida
     var savedAccounts = (typeof getAccounts==='function') ? getAccounts() : [];
     if(savedAccounts.length){
-      var currentActive = localStorage.getItem('tt_active')||'';
+      var currentActive = localStorage.getItem(pfx2+'active')||'';
       var validActive = savedAccounts.find(function(a){return a.id===currentActive;});
-      if(!validActive) localStorage.setItem('tt_active', savedAccounts[0].id);
+      if(!validActive) localStorage.setItem(pfx2+'active', savedAccounts[0].id);
     }
 
     // 4. Cargar la cuenta activa en S
     var id = (typeof getActiveId==='function') ? getActiveId() : (row.account_id||'default');
-    var cfg = localStorage.getItem('tt_cfg_'+id);
+    var cfg = localStorage.getItem(pfx2+'cfg_'+id);
     if(cfg) try{ S.settings = Object.assign({}, S.settings, JSON.parse(cfg)); }catch(ex){}
-    var n2 = parseInt(localStorage.getItem('tt_n_'+id)||'1');
+    var n2 = parseInt(localStorage.getItem(pfx2+'n_'+id)||'1');
     var t = [];
     for(var i=0;i<n2;i++){
-      var x = localStorage.getItem('tt_'+id+'_'+i);
+      var x = localStorage.getItem(pfx2+id+'_'+i);
       if(x) try{ t = t.concat(JSON.parse(x)); }catch(ex2){}
     }
     S.trades = t; // siempre reemplazar con datos de la nube
@@ -1729,26 +1731,26 @@ async function syncAllAccounts(){
       if(!acctId) return;
       var trades = row.trades || [];
       var settings = row.settings || {};
-      localStorage.setItem('tt_cfg_'+acctId, JSON.stringify(settings));
+      var pfxSAA = getLicensePrefix();
+      localStorage.setItem(pfxSAA+'cfg_'+acctId, JSON.stringify(settings));
       var n = Math.ceil(trades.length/500)||1;
-      localStorage.setItem('tt_n_'+acctId, String(n));
-      for(var i=0;i<n;i++) localStorage.setItem('tt_'+acctId+'_'+i, JSON.stringify(trades.slice(i*500,(i+1)*500)));
+      localStorage.setItem(pfxSAA+'n_'+acctId, String(n));
+      for(var i=0;i<n;i++) localStorage.setItem(pfxSAA+acctId+'_'+i, JSON.stringify(trades.slice(i*500,(i+1)*500)));
     });
     // Restore accounts list from first row
     var firstRow = rows[0];
+    var pfxSAA2 = getLicensePrefix();
     if(firstRow.accounts && firstRow.accounts.length && typeof saveAccounts==='function'){
       saveAccounts(firstRow.accounts);
-      // FIX: Si el activeId actual no existe en las cuentas restauradas, usar el primero
-      var currentActive = localStorage.getItem('tt_active')||'';
+      var currentActive = localStorage.getItem(pfxSAA2+'active')||'';
       var validActive = firstRow.accounts.find(function(a){return a.id===currentActive;});
       if(!validActive){
-        localStorage.setItem('tt_active', firstRow.accounts[0].id);
+        localStorage.setItem(pfxSAA2+'active', firstRow.accounts[0].id);
       }
     } else if(rows.length){
-      // Si no hay lista de cuentas pero sí hay rows, usar el account_id del primer row
-      var currentActive2 = localStorage.getItem('tt_active')||'';
+      var currentActive2 = localStorage.getItem(pfxSAA2+'active')||'';
       if(!currentActive2 && rows[0].account_id){
-        localStorage.setItem('tt_active', rows[0].account_id);
+        localStorage.setItem(pfxSAA2+'active', rows[0].account_id);
       }
     }
     showSyncStatus('☁ Todo sincronizado');
@@ -2087,7 +2089,7 @@ function renderConfigAccounts(){
     if(isActive) html += '<span class="active-dot-pulse"></span>';
     html += '<span style="font-size:12px;font-weight:700;color:#f0f0f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;">'+a.name+'</span>';
     html += '<span style="font-size:9px;padding:2px 6px;border-radius:4px;font-weight:700;background:'+(a.type==='fondeo'?'rgba(232,160,32,.15)':'rgba(77,159,255,.12)')+';color:'+(a.type==='fondeo'?'#e8a020':'#4d9fff')+';">'+(a.type==='fondeo'?'FONDEO':'PERSONAL')+'</span>';
-    var _c1=null;try{_c1=JSON.parse(localStorage.getItem('tt_cfg_'+a.id)||'null');}catch(e){}
+    var _c1=null;try{_c1=JSON.parse(localStorage.getItem(getLicensePrefix()+'cfg_'+a.id)||'null');}catch(e){}
     if(_c1&&_c1.challengeActive) html += '<span class="fondeo-badge-pulse" style="margin-left:2px;" title="Modo Fondeo">F</span>';
     html += '</div>';
     html += '<div style="font-size:10px;color:#555;margin-top:2px;">$'+Number(a.initialBalance).toLocaleString('en')+' &middot; '+trades.length+' ops &middot; <span style="color:'+pnlCol+';">'+(pnl>=0?'+':'')+pnl.toFixed(2)+'$</span></div>';
@@ -2924,19 +2926,34 @@ function setNewAcctType(t){
   document.getElementById('new-acct-type').value = t;
 }
 
-function getAccounts(){
-  try{ return JSON.parse(localStorage.getItem('tt_accounts')||'[]'); }catch(e){return [];}
+// ✅ FIX CACHE: Todas las claves de localStorage se prefiján con el license_key
+// Así cada cliente tiene su propio espacio aislado y no hay contaminación entre cuentas
+function getLicensePrefix(){
+  try{
+    var l = JSON.parse(localStorage.getItem('ttlic')||'null');
+    return l && l.key ? 'tt_'+l.key+'_' : 'tt_nokey_';
+  }catch(e){ return 'tt_nokey_'; }
 }
-function saveAccounts(arr){ localStorage.setItem('tt_accounts', JSON.stringify(arr)); }
+function getAccounts(){
+  var pfx = getLicensePrefix();
+  try{ return JSON.parse(localStorage.getItem(pfx+'accounts')||'[]'); }catch(e){return [];}
+}
+function saveAccounts(arr){
+  var pfx = getLicensePrefix();
+  localStorage.setItem(pfx+'accounts', JSON.stringify(arr));
+}
 function getActiveId(){
-  var id = localStorage.getItem('tt_active')||'';
-  // Validar que el id existe en las cuentas
+  var pfx = getLicensePrefix();
+  var id = localStorage.getItem(pfx+'active')||'';
   var accounts = getAccounts();
   if(id && accounts.find(function(a){return a.id===id;})) return id;
   if(accounts.length) return accounts[0].id;
   return '';
 }
-function setActiveId(id){ localStorage.setItem('tt_active', id); }
+function setActiveId(id){
+  var pfx = getLicensePrefix();
+  localStorage.setItem(pfx+'active', id);
+}
 
 function initAccounts(){
   var accounts = getAccounts();
@@ -3010,37 +3027,34 @@ function renderAccountsList(){
 }
 
 function getAccountTrades(id){
+  // ✅ FIX CACHE: prefijo de licencia para aislar datos por cliente
   try{
-    var n = parseInt(localStorage.getItem('tt_n_'+id)||'0');
+    var pfx = getLicensePrefix();
+    var n = parseInt(localStorage.getItem(pfx+'n_'+id)||'0');
     if(!n) return [];
     var t=[];
-    for(var i=0;i<n;i++){var x=localStorage.getItem('tt_'+id+'_'+i);if(x)t=t.concat(JSON.parse(x));}
+    for(var i=0;i<n;i++){var x=localStorage.getItem(pfx+id+'_'+i);if(x)t=t.concat(JSON.parse(x));}
     return t;
   }catch(e){return [];}
 }
 
 function saveAccountData(id, trades, settings){
-  localStorage.setItem('tt_cfg_'+id, JSON.stringify(settings));
+  var pfx = getLicensePrefix();
+  localStorage.setItem(pfx+'cfg_'+id, JSON.stringify(settings));
   var n=Math.ceil(trades.length/500)||1;
-  localStorage.setItem('tt_n_'+id, String(n));
-  for(var i=0;i<n;i++) localStorage.setItem('tt_'+id+'_'+i, JSON.stringify(trades.slice(i*500,(i+1)*500)));
-  var old=parseInt(localStorage.getItem('tt_old_'+id)||String(n));
-  for(var j=n;j<=old;j++) localStorage.removeItem('tt_'+id+'_'+j);
-  localStorage.setItem('tt_old_'+id, String(n));
+  localStorage.setItem(pfx+'n_'+id, String(n));
+  for(var i=0;i<n;i++) localStorage.setItem(pfx+id+'_'+i, JSON.stringify(trades.slice(i*500,(i+1)*500)));
+  var old=parseInt(localStorage.getItem(pfx+'old_'+id)||String(n));
+  for(var j=n;j<=old;j++) localStorage.removeItem(pfx+id+'_'+j);
+  localStorage.setItem(pfx+'old_'+id, String(n));
 }
 
 function loadAccountData(id){
   try{
-    var c = localStorage.getItem('tt_cfg_'+id);
+    var pfx = getLicensePrefix();
+    var c = localStorage.getItem(pfx+'cfg_'+id);
     if(c) S.settings = Object.assign({}, S.settings, JSON.parse(c));
     var trades = getAccountTrades(id);
-    // Fallback: si no hay datos por id, usar datos legacy (tt_0, tt_cfg)
-    if(!trades.length && id==='default'){
-      var leg = localStorage.getItem('tt_cfg');
-      if(leg) S.settings = Object.assign({}, S.settings, JSON.parse(leg));
-      var n=parseInt(localStorage.getItem('tt_n')||'1');
-      for(var i=0;i<n;i++){var x=localStorage.getItem('tt_'+i);if(x)trades=trades.concat(JSON.parse(x));}
-    }
     S.trades = trades;
   }catch(e){ S.trades=[]; }
 }
@@ -3057,7 +3071,7 @@ function switchAccount(id){
   var acct = accounts.find(function(a){return a.id===id;});
   if(acct){
     var savedCfg = null;
-    try{savedCfg=JSON.parse(localStorage.getItem('tt_cfg_'+id)||'null');}catch(e){}
+    try{savedCfg=JSON.parse(localStorage.getItem(getLicensePrefix()+'cfg_'+id)||'null');}catch(e){}
     S.settings = {
       accountSize: acct.initialBalance,
       assets: (savedCfg&&savedCfg.assets)||[].concat(DEF_ASSETS),
@@ -3095,7 +3109,7 @@ function renderSidebarAccounts(){
     var bg  = isActive ? 'rgba(0,230,118,.12)' : 'rgba(255,255,255,.03)';
     var bdr = isActive ? 'rgba(0,230,118,.4)'  : 'rgba(255,255,255,.08)';
     var nameColor = isActive ? '#00e676' : '#bbbbbb';
-    var _c2=null;try{_c2=JSON.parse(localStorage.getItem('tt_cfg_'+a.id)||'null');}catch(e){}
+    var _c2=null;try{_c2=JSON.parse(localStorage.getItem(getLicensePrefix()+'cfg_'+a.id)||'null');}catch(e){}
     var fondeoLabel = (_c2&&_c2.challengeActive===true&&a.type==='fondeo')
       ? '<span class="fondeo-badge-pulse" title="Modo Fondeo activo">F</span>'
       : '';
@@ -3175,10 +3189,11 @@ function borrarCuentaDirecto(id, nombre){
     function(){
       accounts = accounts.filter(function(a){return a.id!==id;});
       saveAccounts(accounts);
-      localStorage.removeItem('tt_cfg_'+id);
-      var n=parseInt(localStorage.getItem('tt_n_'+id)||'0');
-      for(var i=0;i<n;i++) localStorage.removeItem('tt_'+id+'_'+i);
-      localStorage.removeItem('tt_n_'+id);
+      var pfxD = getLicensePrefix();
+      localStorage.removeItem(pfxD+'cfg_'+id);
+      var n=parseInt(localStorage.getItem(pfxD+'n_'+id)||'0');
+      for(var i=0;i<n;i++) localStorage.removeItem(pfxD+id+'_'+i);
+      localStorage.removeItem(pfxD+'n_'+id);
       if(getActiveId()===id){
         var nextId = accounts[0].id;
         setActiveId(nextId);
@@ -3512,10 +3527,11 @@ function deleteAccount(btn,id){
     accounts = accounts.filter(function(a){return a.id!==id;});
     saveAccounts(accounts);
     // Limpiar datos
-    localStorage.removeItem('tt_cfg_'+id);
-    var n=parseInt(localStorage.getItem('tt_n_'+id)||'0');
-    for(var i=0;i<n;i++) localStorage.removeItem('tt_'+id+'_'+i);
-    localStorage.removeItem('tt_n_'+id);
+    var pfxDel2 = getLicensePrefix();
+    localStorage.removeItem(pfxDel2+'cfg_'+id);
+    var n=parseInt(localStorage.getItem(pfxDel2+'n_'+id)||'0');
+    for(var i=0;i<n;i++) localStorage.removeItem(pfxDel2+id+'_'+i);
+    localStorage.removeItem(pfxDel2+'n_'+id);
     if(getActiveId()===id){
       switchAccount(accounts[0].id);
     } else {
@@ -3575,7 +3591,7 @@ function removeTag(tag){
 function renderNotas(){
   var el = g('tab-notas');
   if(!el) return;
-  var notes = JSON.parse(localStorage.getItem('tt_notas_'+getActiveId())||'[]');
+  var notes = JSON.parse(localStorage.getItem(getLicensePrefix()+'notas_'+getActiveId())||'[]');
   var html = '<div style="max-width:700px;margin:0 auto;">';
   html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">';
   html += '<div style="font-size:16px;font-weight:800;color:var(--text);">📝 Notas del Diario</div>';
@@ -3615,29 +3631,29 @@ function addNota(){
   if(body===null) return;
   var colors = ['#10b981','#3b82f6','#f59e0b','#8b5cf6','#ef4444','#06b6d4'];
   var color = colors[Math.floor(Math.random()*colors.length)];
-  var notes = JSON.parse(localStorage.getItem('tt_notas_'+getActiveId())||'[]');
+  var notes = JSON.parse(localStorage.getItem(getLicensePrefix()+'notas_'+getActiveId())||'[]');
   notes.unshift({title:title,body:body,color:color,date:new Date().toLocaleDateString('es')});
-  localStorage.setItem('tt_notas_'+getActiveId(),JSON.stringify(notes));
+  localStorage.setItem(getLicensePrefix()+'notas_'+getActiveId(),JSON.stringify(notes));
   renderNotas();
   if(typeof toast==='function') toast('✅ Nota guardada','var(--green)');
 }
 
 function editNota(i){
-  var notes = JSON.parse(localStorage.getItem('tt_notas_'+getActiveId())||'[]');
+  var notes = JSON.parse(localStorage.getItem(getLicensePrefix()+'notas_'+getActiveId())||'[]');
   var n = notes[i]; if(!n) return;
   var title = prompt('Título:', n.title);
   if(title===null) return;
   var body = prompt('Contenido:', n.body);
   if(body===null) return;
   notes[i].title = title; notes[i].body = body;
-  localStorage.setItem('tt_notas_'+getActiveId(),JSON.stringify(notes));
+  localStorage.setItem(getLicensePrefix()+'notas_'+getActiveId(),JSON.stringify(notes));
   renderNotas();
 }
 
 function deleteNota(i){
-  var notes = JSON.parse(localStorage.getItem('tt_notas_'+getActiveId())||'[]');
+  var notes = JSON.parse(localStorage.getItem(getLicensePrefix()+'notas_'+getActiveId())||'[]');
   notes.splice(i,1);
-  localStorage.setItem('tt_notas_'+getActiveId(),JSON.stringify(notes));
+  localStorage.setItem(getLicensePrefix()+'notas_'+getActiveId(),JSON.stringify(notes));
   renderNotas();
   if(typeof toast==='function') toast('Nota eliminada','var(--red)');
 }
