@@ -1232,19 +1232,7 @@ async function checkLicenseOnLoad() {
   }
 
   hideLicOverlay();
-
-  // ✅ Sincronizar datos desde la nube al abrir en cualquier dispositivo
-  setTimeout(async function() {
-    try {
-      var synced = await syncFromCloud();
-      if (synced) {
-        render(); renderStats(); renderAnalysis();
-        showSyncStatus('☁ Datos sincronizados');
-      }
-    } catch(e) {
-      console.warn('[TradeTrack] Error al sincronizar al cargar:', e);
-    }
-  }, 600);
+  // La sincronización de datos la maneja el bloque DOMContentLoaded
 }
 async function activateLicense() {
   var code = (document.getElementById('lic-input').value || '').trim().toUpperCase();
@@ -1482,6 +1470,32 @@ function load(){
 // ═══════════════════════════════════════════════════════════
 //  SUPABASE — SINCRONIZACIÓN EN LA NUBE
 // ═══════════════════════════════════════════════════════════
+// ── Versioning & Auto-migration ──────────────────────────────────────────────
+var APP_VERSION = '2.1'; // ⬅ Sube este número cada vez que hagas cambios
+
+function migrateData(){
+  var savedVersion = localStorage.getItem('tt_version') || '1.0';
+  if(savedVersion === APP_VERSION) return; // ya está al día, no hacer nada
+
+  // ── Zona de migraciones ───────────────────────────────────────────────────
+  // Agrega bloques aquí cuando hagas cambios de estructura.
+  // Ejemplo: cuando subas a v2.2 y agregues campo "session":
+  //
+  // if(savedVersion < '2.2'){
+  //   S.trades.forEach(function(t){ if(!t.session) t.session = 'London'; });
+  // }
+  //
+  // if(savedVersion < '2.3'){
+  //   S.trades.forEach(function(t){ if(t.pnl === undefined) t.pnl = 0; });
+  // }
+  // ─────────────────────────────────────────────────────────────────────────
+
+  localStorage.setItem('tt_version', APP_VERSION);
+  if(typeof save === 'function') save(); // guarda con estructura nueva y sube a nube
+  console.log('[TradeTrack] Migración completa: ' + savedVersion + ' → ' + APP_VERSION);
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 var SB_URL = 'https://adeaizywhidbgmvltlob.supabase.co';
 var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkZWFpenl3aGlkYmdtdmx0bG9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMzYxNTUsImV4cCI6MjA5MjcxMjE1NX0.RYvO1KLF-ltQQBuAxG043GLfhOMyiZogafX1nmQ4Vcc';
 var SB_TABLE = 'journal_data';
@@ -1610,6 +1624,18 @@ async function syncAllAccounts(){
     var firstRow = rows[0];
     if(firstRow.accounts && firstRow.accounts.length && typeof saveAccounts==='function'){
       saveAccounts(firstRow.accounts);
+      // FIX: Si el activeId actual no existe en las cuentas restauradas, usar el primero
+      var currentActive = localStorage.getItem('tt_active')||'';
+      var validActive = firstRow.accounts.find(function(a){return a.id===currentActive;});
+      if(!validActive){
+        localStorage.setItem('tt_active', firstRow.accounts[0].id);
+      }
+    } else if(rows.length){
+      // Si no hay lista de cuentas pero sí hay rows, usar el account_id del primer row
+      var currentActive2 = localStorage.getItem('tt_active')||'';
+      if(!currentActive2 && rows[0].account_id){
+        localStorage.setItem('tt_active', rows[0].account_id);
+      }
     }
     showSyncStatus('☁ Todo sincronizado');
   }catch(e){
@@ -3631,11 +3657,14 @@ document.addEventListener('DOMContentLoaded',function(){
   // ── Verificar licencia primero ──
   checkLicenseOnLoad();
   load();
+  migrateData(); // migrar estructura si hay nueva versión
   initAccounts();
   // Sincronizar TODAS las cuentas desde Supabase al abrir
   setTimeout(async function(){
     showSyncStatus('⏳ Sincronizando...');
     await syncAllAccounts();
+    // FIX: Reinicializar cuentas con los datos restaurados de la nube
+    initAccounts();
     var synced = await syncFromCloud();
     if(synced){
       render();renderStats();renderAnalysis();
@@ -3643,7 +3672,7 @@ document.addEventListener('DOMContentLoaded',function(){
     } else {
       showSyncStatus('✓ Listo');
     }
-  },1200);
+  },500);
   // Setup del-all button safely
   var dab=g('del-all-btn');
   if(dab)dab.onclick=function(){delAll();};
