@@ -1162,30 +1162,42 @@ async function checkLicenseOnLoad() {
   try { stored = JSON.parse(localStorage.getItem('ttlic') || 'null'); } catch(e) {}
   if (!stored || !stored.key) { showLicOverlay(); return; }
 
-  // Verificar online máximo una vez cada 24 horas
-  var now = Date.now();
-  var sinceCheck = now - (stored.lastCheck || 0);
-  if (sinceCheck > 24 * 60 * 60 * 1000) {
-    try {
-      var res = await fetch(FB_BASE + '/' + stored.key + '?key=' + FB_KEY);
-      if (!res.ok) {
-        localStorage.removeItem('ttlic');
-        showLicOverlay('⚠ Licencia no encontrada. Contacta a tu revendedor.');
-        return;
-      }
-      var data = await res.json();
-      var f = data.fields || {};
-      if (f.active && f.active.booleanValue === false) {
-        localStorage.removeItem('ttlic');
-        showLicOverlay('❌ Tu licencia fue desactivada. Contacta soporte.');
-        return;
-      }
-      stored.lastCheck = now;
-      localStorage.setItem('ttlic', JSON.stringify(stored));
-    } catch(e) {
-      // Sin internet — permitir si ya estaba verificada
-      console.log('[TradeTrack] Offline — usando licencia local');
+  // ── Verificación INSTANTÁNEA cada vez que se abre ──
+  try {
+    var res = await fetch(FB_BASE + '/' + stored.key + '?key=' + FB_KEY);
+    if (!res.ok) {
+      localStorage.removeItem('ttlic');
+      showLicOverlay('⚠ Licencia no encontrada. Contacta a tu revendedor.');
+      return;
     }
+    var data = await res.json();
+    var f = data.fields || {};
+    // Verificar si fue revocada
+    if (f.active && f.active.booleanValue === false) {
+      localStorage.removeItem('ttlic');
+      showLicOverlay('❌ Tu licencia fue revocada. Contacta a quien te vendió el producto.');
+      return;
+    }
+    // Verificar dispositivos — si el dispositivo actual no coincide con el registrado
+    var deviceId = localStorage.getItem('tt_did') || '';
+    var lastDevice = (f.lastDevice && f.lastDevice.stringValue) || '';
+    var maxActivations = parseInt((f.maxActivations && f.maxActivations.integerValue) || '2');
+    var activations = parseInt((f.activations && f.activations.integerValue) || '0');
+    // Si hay más de 1 dispositivo registrado y este no es el último
+    // Permitir acceso si este deviceId fue el que activó (lastDevice)
+    // o si hay cupo disponible
+    if(lastDevice && lastDevice !== deviceId && activations >= maxActivations) {
+      // Dispositivo no autorizado
+      localStorage.removeItem('ttlic');
+      showLicOverlay('⚠ Esta licencia alcanzó el límite de dispositivos. Contacta soporte.');
+      return;
+    }
+    stored.lastCheck = Date.now();
+    localStorage.setItem('ttlic', JSON.stringify(stored));
+  } catch(e) {
+    // Sin internet — permitir acceso si ya tenía licencia guardada
+    console.log('[TradeTrack] Sin conexión — usando licencia local');
+    if (!stored.key) { showLicOverlay('⚠ Sin internet. Conectate para verificar tu licencia.'); return; }
   }
   hideLicOverlay();
 }
@@ -1385,7 +1397,7 @@ function load(){
 //  SUPABASE — SINCRONIZACIÓN EN LA NUBE
 // ═══════════════════════════════════════════════════════════
 var SB_URL = 'https://adeaizywhidbgmvltlob.supabase.co';
-var SB_KEY = 'sb_publishable_zJY0rZeBktasCOFUoogZqg_e8VaVTs7';
+var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkZWFpenl3aGlkYmdtdmx0bG9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMzYxNTUsImV4cCI6MjA5MjcxMjE1NX0.RYvO1KLF-ltQQBuAxG043GLfhOMyiZogafX1nmQ4Vcc';
 var SB_TABLE = 'journal_data';
 var _syncTimeout = null;
 var _syncPending = false;
