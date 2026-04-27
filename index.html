@@ -1173,7 +1173,10 @@ async function checkLicenseOnLoad() {
     var f = data.fields || {};
 
     // Verificar si fue revocada
+    // ✅ FIX: Solo bloquear si active existe Y es explícitamente false
     if (f.active && f.active.booleanValue === false) {
+      // Guardar la key para recuperar datos cuando se restaure
+      localStorage.setItem('ttlic_revoked_key', stored.key);
       localStorage.removeItem('ttlic');
       showLicOverlay('❌ Tu licencia fue revocada. Contacta a quien te vendió el producto.');
       return;
@@ -1270,7 +1273,8 @@ async function activateLicense() {
     var data = await res.json();
     var f = data.fields || {};
 
-    if (!f.active || f.active.booleanValue === false) {
+    // ✅ FIX: Solo bloquear si active existe Y es explícitamente false
+    if (f.active && f.active.booleanValue === false) {
       errEl.textContent = '❌ Este código está desactivado. Contacta a tu revendedor.';
       loadEl.style.display = 'none'; btn.disabled = false; btn.style.opacity = '1'; return;
     }
@@ -1328,9 +1332,44 @@ async function activateLicense() {
 
     setTimeout(async function() {
       var synced = await syncFromCloud();
+      if (!synced) {
+        // ✅ FIX: Intentar recuperar datos de licencia anterior (revocada o cambiada)
+        var oldKey = localStorage.getItem('ttlic_revoked_key');
+        if (oldKey && oldKey !== code) {
+          try {
+            var res2 = await fetch(SB_URL + '/rest/v1/' + SB_TABLE + '?license_key=eq.' + encodeURIComponent(oldKey) + '&select=*', {
+              headers: {'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY}
+            });
+            if (res2.ok) {
+              var rows2 = await res2.json();
+              if (rows2 && rows2.length) {
+                // Reasignar los datos a la nueva clave de licencia
+                for (var ri = 0; ri < rows2.length; ri++) {
+                  var oldRow = rows2[ri];
+                  var newAcctId = oldRow.account_id || 'default';
+                  var newRowId = code + '_' + newAcctId;
+                  await fetch(SB_URL + '/rest/v1/' + SB_TABLE, {
+                    method: 'POST',
+                    headers: Object.assign({}, sbHeaders(), {'Prefer': 'resolution=merge-duplicates,return=minimal'}),
+                    body: JSON.stringify(Object.assign({}, oldRow, {id: newRowId, license_key: code, updated_at: new Date().toISOString()}))
+                  });
+                }
+                synced = await syncFromCloud();
+                if (synced) {
+                  render(); renderStats(); renderAnalysis();
+                  if (typeof toast === 'function') toast('☁ ¡Datos restaurados! Tu journal anterior fue recuperado', '#4d9fff');
+                  localStorage.removeItem('ttlic_revoked_key');
+                  return;
+                }
+              }
+            }
+          } catch(e2) { console.warn('[TradeTrack] Error recuperando datos anteriores:', e2); }
+        }
+      }
       if (synced) {
         render(); renderStats(); renderAnalysis();
         if (typeof toast === 'function') toast('☁ Datos sincronizados desde la nube — Bienvenido', '#4d9fff');
+        localStorage.removeItem('ttlic_revoked_key');
       } else {
         if (typeof toast === 'function') toast('✅ ¡Licencia activada! Bienvenido a Cursos Digitales 701 Journal', 'var(--green)');
       }
