@@ -1318,19 +1318,31 @@ function showAlert(msg,col){
   var b=g('abanner'),t=g('atxt');if(!b||!t)return;
   b.style.background=col+'22';b.style.borderColor=col;t.style.color=col;t.textContent=msg;b.classList.add('show');
 }
+var _alertaWarningMostrada = false;
 function checkAlerts(){
   var s=S.settings;if(!s.challengeActive||!S.trades.length){closeAlert();return;}
   var total=S.trades.reduce(function(a,t){return a+(t.pnl||0);},0);
   var pct=(total/s.accountSize)*100;
   var todayPnl=S.trades.filter(function(t){return t.date===tod();}).reduce(function(a,t){return a+(t.pnl||0);},0);
   var tdp=(todayPnl/s.accountSize)*100;
+  var margen=s.maxTotalLoss-Math.abs(Math.min(pct,0));
   // Alerta roja: cuenta quemada
   if(pct<=-s.maxTotalLoss) showAlert('🔥 CUENTA QUEMADA — Drawdown '+Math.abs(pct).toFixed(2)+'% superó el límite de '+s.maxTotalLoss+'%','#ff4d6a');
   // Alerta roja: límite diario alcanzado
   else if(s.maxDailyLoss&&tdp<=-s.maxDailyLoss) showAlert('⚠ LÍMITE DIARIO ALCANZADO — Pérdida hoy: '+Math.abs(tdp).toFixed(2)+'% (límite: '+s.maxDailyLoss+'%)','#ff8c42');
   // Alerta verde: objetivo de ganancia alcanzado
   else if(s.profitTarget&&pct>=s.profitTarget) showAlert('🎉 ¡OBJETIVO ALCANZADO! — Ganancia: +'+pct.toFixed(2)+'% (meta: '+s.profitTarget+'%)','#00e676');
-  else closeAlert();
+  // Alerta amarilla: a 4% o menos del límite (solo una vez)
+  else if(pct<0&&margen<=4&&!_alertaWarningMostrada){
+    _alertaWarningMostrada=true;
+    showAlert('⚠ ADVERTENCIA — Estás a '+margen.toFixed(2)+'% del límite de pérdida ('+s.maxTotalLoss+'%)','#f5c518');
+    setTimeout(function(){closeAlert();},7000);
+  } else if(margen>4){
+    _alertaWarningMostrada=false;
+    closeAlert();
+  } else {
+    closeAlert();
+  }
 }
 
 // STORAGE
@@ -1594,13 +1606,7 @@ function calGoTo(){
 function renderConfig(){
   actualizarBtnGuardar();
   var s=S.settings;
-  // En modo nueva cuenta: NO leer el DOM, el draft ya fue reseteado
-  // Solo leer DOM si estamos editando una cuenta existente
-  if(!_modoNuevaCuenta){
-    var cfdEl=g('cfd');if(cfdEl&&cfdEl.value!==''){var n=parseFloat(cfdEl.value);if(!isNaN(n))s.maxDailyLoss=n;}
-    var cftEl=g('cft');if(cftEl&&cftEl.value!==''){var n2=parseFloat(cftEl.value);if(!isNaN(n2))s.maxTotalLoss=n2;}
-    var cfgEl=g('cfg');if(cfgEl&&cfgEl.value!==''){var n3=parseFloat(cfgEl.value);if(!isNaN(n3))s.profitTarget=n3;}
-  }
+  // S.settings es la fuente de verdad — nunca leer del DOM para sobrescribirlo
   // Actualizar campos del form con los valores de S.settings
   var ca=g('ca2');if(ca)ca.value=s.accountSize;
   var ai=g('acct-inp');if(ai)ai.value=s.accountSize;
