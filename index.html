@@ -1162,7 +1162,7 @@ async function checkLicenseOnLoad() {
   try { stored = JSON.parse(localStorage.getItem('ttlic') || 'null'); } catch(e) {}
   if (!stored || !stored.key) { showLicOverlay(); return; }
 
-  // ── Verificación INSTANTÁNEA cada vez que se abre ──
+  // ══ Verificación INSTANTÁNEA cada vez que se abre ══
   try {
     var res = await fetch(FB_BASE + '/' + stored.key + '?key=' + FB_KEY);
     if (!res.ok) {
@@ -1172,36 +1172,68 @@ async function checkLicenseOnLoad() {
     }
     var data = await res.json();
     var f = data.fields || {};
+
     // Verificar si fue revocada
     if (f.active && f.active.booleanValue === false) {
       localStorage.removeItem('ttlic');
       showLicOverlay('❌ Tu licencia fue revocada. Contacta a quien te vendió el producto.');
       return;
     }
-    // Verificar dispositivos — si el dispositivo actual no coincide con el registrado
+
     var deviceId = localStorage.getItem('tt_did') || '';
     var lastDevice = (f.lastDevice && f.lastDevice.stringValue) || '';
     var maxActivations = parseInt((f.maxActivations && f.maxActivations.integerValue) || '2');
     var activations = parseInt((f.activations && f.activations.integerValue) || '0');
-    // Si hay más de 1 dispositivo registrado y este no es el último
-    // Permitir acceso si este deviceId fue el que activó (lastDevice)
-    // o si hay cupo disponible
-    if(lastDevice && lastDevice !== deviceId && activations >= maxActivations) {
-      // Dispositivo no autorizado
+
+    // ✅ FIX: Solo bloquear si el dispositivo es diferente Y no hay cupo disponible
+    if (lastDevice && lastDevice !== deviceId && activations >= maxActivations) {
       localStorage.removeItem('ttlic');
       showLicOverlay('⚠ Esta licencia alcanzó el límite de dispositivos. Contacta soporte.');
       return;
     }
+
+    // ✅ FIX: Si es un dispositivo nuevo con cupo, registrarlo automáticamente
+    if (deviceId && lastDevice !== deviceId && activations < maxActivations) {
+      var newCount = activations + 1;
+      var patchUrl = FB_BASE + '/' + stored.key + '?key=' + FB_KEY
+        + '&updateMask.fieldPaths=lastDevice'
+        + '&updateMask.fieldPaths=activations';
+      await fetch(patchUrl, {
+        method: 'PATCH',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          fields: {
+            lastDevice: {stringValue: deviceId},
+            activations: {integerValue: String(newCount)}
+          }
+        })
+      });
+    }
+
     stored.lastCheck = Date.now();
     localStorage.setItem('ttlic', JSON.stringify(stored));
+
   } catch(e) {
     // Sin internet — permitir acceso si ya tenía licencia guardada
     console.log('[TradeTrack] Sin conexión — usando licencia local');
     if (!stored.key) { showLicOverlay('⚠ Sin internet. Conectate para verificar tu licencia.'); return; }
   }
-  hideLicOverlay();
-}
 
+  hideLicOverlay();
+
+  // ✅ FIX: Sincronizar datos desde la nube automáticamente al abrir en cualquier dispositivo
+  setTimeout(async function() {
+    try {
+      var synced = await syncFromCloud();
+      if (synced) {
+        render(); renderStats(); renderAnalysis();
+        showSyncStatus('☁ Datos sincronizados');
+      }
+    } catch(e) {
+      console.warn('[TradeTrack] Error al sincronizar al cargar:', e);
+    }
+  }, 600);
+}
 async function activateLicense() {
   var code = (document.getElementById('lic-input').value || '').trim().toUpperCase();
   var errEl = document.getElementById('lic-error');
@@ -1476,7 +1508,8 @@ async function syncFromCloud(){
     var cloudSettings = row.settings || null;
     var cloudAccounts = row.accounts || null;
     // Merge: use cloud data if it has more or equal trades
-    if(cloudTrades.length >= S.trades.length){
+    // ✅ FIX: Siempre traer datos de la nube si existen, no solo si son mayores
+    if(cloudTrades.length > 0 || S.trades.length === 0){
       S.trades = cloudTrades;
       if(cloudSettings) S.settings = Object.assign({}, S.settings, cloudSettings);
       // Save to localStorage as cache
