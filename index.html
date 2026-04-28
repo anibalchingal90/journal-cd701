@@ -2463,7 +2463,8 @@ function updateFondeoFieldsState(){
   });
 }
 function saveC2(){
-  var n=pN(g('ca2').value);
+  var ca2el=g('ca2');
+  var n=pN(ca2el?ca2el.value:'');
   if(n!==null){
     S.settings.accountSize=n;
     var ai=g('acct-inp');if(ai)ai.value=n;
@@ -2709,17 +2710,20 @@ function setAcctIcon(icon){
   var pi=document.getElementById('prev-icon');if(pi)pi.textContent=icon;
 }
 function createAccountFromInline(){
-  var name=document.getElementById('new-acct-name').value.trim();
-  var bal=parseFloat(document.getElementById('new-acct-balance').value)||10000;
-  var type=document.getElementById('new-acct-type').value||'normal';
+  var nameEl=document.getElementById('new-acct-name');
+  var balEl=document.getElementById('new-acct-balance');
+  var typeEl=document.getElementById('new-acct-type');
+  var name=nameEl?nameEl.value.trim():'';
+  var bal=parseFloat(balEl?balEl.value:'')||10000;
+  var type=typeEl?typeEl.value||'normal':'normal';
   if(!name){if(typeof toast==='function')toast('⚠ Escribe un nombre','#ff1744');return;}
   var accounts=getAccounts();
   var id='acct_'+Date.now();
   accounts.push({id:id,name:name,type:type,initialBalance:bal,currency:'USD',icon:'🏦',color:'#8b5cf6'});
   saveAccounts(accounts);
   saveAccountData(id,[],{accountSize:bal,assets:S.settings.assets||[],challengeActive:type==='fondeo',maxDailyLoss:5,maxTotalLoss:10,profitTarget:10,alertAt:80});
-  document.getElementById('new-acct-name').value='';
-  document.getElementById('new-acct-balance').value='';
+  if(nameEl) nameEl.value='';
+  if(balEl) balEl.value='';
   closeNewAcctInline();
   renderConfigAccounts();
   if(typeof toast==='function')toast('✅ Cuenta creada: '+name,'#00e676');
@@ -3417,7 +3421,7 @@ function setNewAcctType(t){
     f.style.background='rgba(232,160,32,.2)';f.style.borderColor='rgba(232,160,32,.5)';f.style.color='#e8a020';
     n.style.background='#1e1e1e';n.style.borderColor='#333';n.style.color='#555';
   }
-  document.getElementById('new-acct-type').value = t;
+  var nat = document.getElementById('new-acct-type'); if(nat) nat.value = t;
 }
 
 // ✅ FIX CACHE: Todas las claves de localStorage se prefiján con el license_key
@@ -3932,17 +3936,20 @@ function guardarCuenta(){
 }
 
 function createAccount(){
-  var name = document.getElementById('new-acct-name').value.trim();
-  var bal = parseFloat(document.getElementById('new-acct-balance').value)||10000;
-  var type = document.getElementById('new-acct-type').value||'normal';
+  var nameEl = document.getElementById('new-acct-name');
+  var balEl = document.getElementById('new-acct-balance');
+  var typeEl = document.getElementById('new-acct-type');
+  var name = nameEl ? nameEl.value.trim() : '';
+  var bal = parseFloat(balEl ? balEl.value : '')||10000;
+  var type = typeEl ? typeEl.value||'normal' : 'normal';
   if(!name){ if(typeof toast==='function') toast('⚠ Escribe un nombre','#ff1744'); return; }
   var accounts = getAccounts();
   var id = 'acct_'+Date.now();
   accounts.push({id:id, name:name, type:type, initialBalance:bal, currency:'USD', icon:'🏦', color:'#8b5cf6'});
   saveAccounts(accounts);
   saveAccountData(id, [], {accountSize:bal, assets:S.settings.assets||[], challengeActive:type==='fondeo', maxDailyLoss:5, maxTotalLoss:10, profitTarget:10, alertAt:80});
-  document.getElementById('new-acct-name').value='';
-  document.getElementById('new-acct-balance').value='';
+  if(nameEl) nameEl.value='';
+  if(balEl) balEl.value='';
   renderAccountsList();
   if(typeof toast==='function') toast('✅ Cuenta creada: '+name, '#00e676');
 }
@@ -4910,11 +4917,12 @@ window.addImageFromURL = function() {
 };
 
 window.addLinkFromInput = function() {
-  var url = (document.getElementById('f-link-url')||{}).value || '';
+  var el = document.getElementById('f-link-url');
+  var url = el ? el.value || '' : '';
   if(!url.trim()) return;
   if(!url.startsWith('http')) url = 'https://'+url;
   window._formLinks.push(url.trim());
-  document.getElementById('f-link-url').value = '';
+  if(el) el.value = '';
   renderFormLinksPreview();
 };
 
