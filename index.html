@@ -4353,6 +4353,15 @@ function initApp(){
   // Setup botones
   var dab=g('del-all-btn');
   if(dab)dab.onclick=function(){delAll();};
+  // ✅ Listener directo para el botón Nueva operación (garantizado)
+  var newOpBtn = document.querySelector('.btn-new-op');
+  if(newOpBtn) {
+    newOpBtn.onclick = function(e) {
+      e.preventDefault();
+      editId = null;
+      window.openNewOpPanel();
+    };
+  }
   // Fecha de hoy
   var today=new Date();
   selDay=today.getDate();
@@ -4925,17 +4934,19 @@ window.addLinkFromInput = function() {
 };
 
 function renderFormImagesPreview() {
-  var el = document.getElementById('form-images-preview'); if(!el) return;
+  var el = document.getElementById('form-img-preview'); if(!el) return;
   el.innerHTML = window._formImages.map(function(img, i) {
     return '<div class="img-thumb" style="position:relative">' +
-      '<img src="'+img.src+'" onclick="openLightbox('"+img.src+"')" style="width:100%;height:100%;object-fit:cover;cursor:zoom-in">' +
-      '<button class="del-cap" onclick="event.stopPropagation();window._formImages.splice('+i+',1);renderFormImagesPreview()" style="display:block">✕</button>' +
+      '<img src="'+img.src+'" onclick="openLightbox(this.src)" style="width:100%;height:100%;object-fit:cover;cursor:zoom-in">' +
+      '<button class="del-cap" onclick="event.stopPropagation();window._formImages.splice('+i+',1);window._tradeImages=window._formImages.slice();renderFormImagesPreview()" style="display:block">✕</button>' +
     '</div>';
   }).join('');
+  var cnt = document.getElementById('form-img-count');
+  if(cnt) cnt.textContent = window._formImages.length + ' archivo' + (window._formImages.length!==1?'s':'');
 }
 
 function renderFormLinksPreview() {
-  var el = document.getElementById('form-links-preview'); if(!el) return;
+  var el = document.getElementById('form-links-list'); if(!el) return;
   el.innerHTML = window._formLinks.map(function(link, i) {
     var short = link.replace('https://','').replace('http://','').substring(0,50);
     return '<div class="link-item">' +
@@ -4947,9 +4958,9 @@ function renderFormLinksPreview() {
 }
 
 window.openLightbox = function(src) {
-  var lb = document.getElementById('img-lightbox');
-  var img = document.getElementById('img-lightbox-src');
-  if(lb && img){ img.src=src; lb.style.display='flex'; }
+  var lb = document.getElementById('lightbox');
+  var img = lb ? lb.querySelector('img') : null;
+  if(lb && img){ img.src=src; lb.classList.add('open'); }
 };
 
 // Reset form media when opening modal
@@ -4969,29 +4980,62 @@ function resetFormMedia(trade) {
 
 // ── Open/Close new op panel ───────────────────────────
 window.openNewOpPanel = function(trade) {
-  window._playClick && window._playClick();
-  // Resetear ambos sistemas de imágenes
-  if(!trade || !trade._skipMediaInit) {
-    window._tradeImages = (trade && trade.images) ? trade.images.slice() : [];
-    window._tradeLinks  = (trade && trade.links)  ? trade.links.slice()  : [];
+  try {
+    // 1. Título
+    var ft = document.getElementById('form-title-modal');
+    if(ft) ft.textContent = (editId !== null) ? '✏ Editar Operación' : '✦ Nueva Operación';
+
+    // 2. Fecha de hoy si es nueva operación
+    if(editId === null) {
+      var today = new Date();
+      var yy = today.getFullYear();
+      var mm = String(today.getMonth()+1).padStart(2,'0');
+      var dd = String(today.getDate()).padStart(2,'0');
+      var dateStr = yy+'-'+mm+'-'+dd;
+
+      var fd = document.getElementById('f-date');
+      if(fd) fd.value = dateStr;
+
+      var fday = document.getElementById('f-day');
+      var fmon = document.getElementById('f-month');
+      var fyr  = document.getElementById('f-year');
+      if(fday) fday.value = dd;
+      if(fmon) fmon.value = mm;
+      if(fyr)  fyr.value  = String(yy);
+
+      var fh = document.getElementById('f-hour');
+      var fm = document.getElementById('f-min');
+      var ft2 = document.getElementById('f-time');
+      if(fh)  fh.value  = '08';
+      if(fm)  fm.value  = '00';
+      if(ft2) ft2.value = '08:00';
+    }
+
+    // 3. Activo por defecto si no hay ninguno
+    var fa = document.getElementById('f-asset');
+    if(fa && !fa.value && fa.options && fa.options.length > 0) fa.selectedIndex = 0;
+
+    // 4. Resetear imágenes y links
     window._formImages  = (trade && trade.images) ? trade.images.slice() : [];
     window._formLinks   = (trade && trade.links)  ? trade.links.slice()  : [];
-    if(typeof renderFormImagesPreview === 'function') renderFormImagesPreview();
-    if(typeof renderFormLinksPreview  === 'function') renderFormLinksPreview();
+    window._tradeImages = window._formImages.slice();
+    window._tradeLinks  = window._formLinks.slice();
+    if(typeof renderFormImagesPreview === 'function') try{ renderFormImagesPreview(); }catch(e){}
+    if(typeof renderFormLinksPreview  === 'function') try{ renderFormLinksPreview();  }catch(e){}
+
+    // 5. Abrir modal
+    var modal = document.getElementById('new-op-modal');
+    if(modal) {
+      modal.classList.add('show');
+    } else {
+      console.error('[TradeTrack] ERROR: #new-op-modal no encontrado en el DOM');
+    }
+  } catch(err) {
+    console.error('[TradeTrack] Error en openNewOpPanel:', err);
+    // Último recurso: mostrar el modal de todas formas
+    var m = document.getElementById('new-op-modal');
+    if(m) m.classList.add('show');
   }
-  // Siempre setear fecha de hoy para nueva operación
-  if(editId === null) {
-    var fd = g('f-date');
-    if(fd) fd.value = tod();
-    if(typeof syncSelectsFromHidden === 'function') syncSelectsFromHidden();
-  }
-  // Asegurar activo seleccionado
-  var fa = g('f-asset');
-  if(fa && !fa.value && fa.options && fa.options.length > 0) fa.selectedIndex = 0;
-  // Título del modal
-  var ft = g('form-title-modal');
-  if(ft) ft.textContent = (editId !== null) ? '✏ Editar Operación' : '✦ Nueva Operación';
-  document.getElementById('new-op-modal').classList.add('show');
 };
 window.closeNewOpPanel = function() {
   document.getElementById('new-op-modal').classList.remove('show');
