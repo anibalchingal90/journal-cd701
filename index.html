@@ -399,61 +399,77 @@ tr:hover td{background:rgba(14,18,41,.8)}
 /* NAV ARROWS IN TDP */
 .tdp-nav-btn{background:var(--card2);border:1px solid var(--bdr);border-radius:6px;color:var(--gray2);cursor:pointer;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .2s}
 .tdp-nav-btn:hover{border-color:var(--accent);color:#a78bfa}
-/* ACTIVE NAV ITEM — exact match image */
+/* ── ACTIVE NAV ITEM — exact match image */
 .ni.act{background:var(--ni-act-bg);color:var(--ni-act-color);border-color:var(--ni-act-border)}
 
-/* ═══════════════════════════════════
-   REGISTRO — nuevo diseño imagen
-═══════════════════════════════════ */
-/* Barra de tabs */
-.reg-toolbar{display:flex;align-items:center;gap:0;margin-bottom:16px;flex-wrap:wrap;gap:10px}
-.reg-tabs{display:flex;background:var(--card2);border:1px solid var(--bdr);border-radius:11px;padding:3px;gap:2px;flex-shrink:0}
-.reg-tab{border:none;background:transparent;color:var(--gray2);padding:7px 16px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;font-family:'Exo 2',sans-serif;display:inline-flex;align-items:center;gap:6px;letter-spacing:.3px;white-space:nowrap}
+/* ═══════════════════════════════════════════════
+   REGISTRO TAB — nuevo diseño tipo imagen
+═══════════════════════════════════════════════ */
+.reg-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.reg-tabs{display:flex;background:var(--card2);border:1px solid var(--bdr);border-radius:11px;padding:3px;gap:2px}
+.reg-tab{border:none;background:transparent;color:var(--gray2);padding:6px 14px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;font-family:'Exo 2',sans-serif;display:flex;align-items:center;gap:6px;letter-spacing:.3px}
 .reg-tab:hover{color:var(--text);background:rgba(99,102,241,.1)}
-.reg-tab.act{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff!important;box-shadow:0 2px 14px rgba(99,102,241,.45)}
-/* Barra de navegación fecha */
-.reg-nav-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
-.reg-nav-left{display:flex;align-items:center;gap:6px}
-.reg-arrow{background:var(--card);border:1px solid var(--bdr);color:var(--text2);border-radius:8px;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .2s;flex-shrink:0}
-.reg-arrow:hover{border-color:var(--accent);color:#818cf8;background:rgba(99,102,241,.1)}
-.reg-month-label{display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:10px;padding:6px 14px;font-family:'Exo 2',sans-serif;font-size:13px;font-weight:800;color:var(--text)}
-.reg-today{background:rgba(99,102,241,.14);border:1px solid rgba(99,102,241,.3);color:#818cf8;border-radius:8px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
-.reg-today:hover{background:rgba(99,102,241,.25);border-color:rgba(99,102,241,.5)}
-.reg-pair-filter{padding:7px 12px;font-size:11px;background:var(--card2);border:1px solid var(--bdr);border-radius:9px;color:var(--text);cursor:pointer;min-width:148px;font-family:'DM Sans',sans-serif}
-/* KPI bar — 6 columnas con iconos */
-.reg-kpi-bar{display:grid;grid-template-columns:repeat(6,1fr);background:linear-gradient(135deg,rgba(12,17,36,.98),rgba(8,12,28,.99));border:1px solid var(--bdr);border-radius:14px;overflow:hidden;margin:14px 0 16px;position:relative}
-.reg-kpi-item{padding:14px 8px;text-align:center;border-right:1px solid rgba(30,40,70,.7);position:relative}
+.reg-tab.act{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;box-shadow:0 2px 12px rgba(99,102,241,.4)}
+.reg-tab svg{opacity:.8}
+.reg-tab.act svg{opacity:1}
+.reg-filter-btn{display:flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--bdr);color:var(--gray2);padding:7px 14px;font-size:11px;font-weight:600}
+.reg-filter-btn:hover{border-color:var(--bdr2);color:var(--text)}
+
+/* NAV BAR */
+.reg-nav-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.reg-nav-arrow{background:var(--card);border:1px solid var(--bdr);color:var(--text2);border-radius:8px;width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.reg-nav-arrow:hover{border-color:var(--accent);color:#818cf8;background:rgba(99,102,241,.1)}
+.reg-month-pill{display:flex;align-items:center;gap:7px;background:var(--card2);border:1px solid var(--bdr);border-radius:10px;padding:6px 14px;cursor:pointer;position:relative;transition:all .2s}
+.reg-month-pill:hover{border-color:var(--bdr2)}
+.reg-today-btn{background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);color:#818cf8;border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.reg-today-btn:hover{background:rgba(99,102,241,.22);border-color:rgba(99,102,241,.4)}
+.reg-pair-sel{padding:6px 10px;font-size:11px;background:var(--card2);border:1px solid var(--bdr);border-radius:9px;color:var(--text);cursor:pointer;min-width:140px}
+
+/* KPI BAR — debajo del calendario, 6 columnas con iconos */
+.reg-kpi-bar{display:grid;grid-template-columns:repeat(6,1fr);gap:0;background:linear-gradient(135deg,rgba(14,18,41,.98),rgba(10,14,32,.98));border:1px solid var(--bdr);border-radius:14px;overflow:hidden;margin:14px 0 16px;position:relative;backdrop-filter:blur(10px)}
+.reg-kpi-bar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:40px;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 800 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 40 Q200 10 400 35 Q600 60 800 25 L800 60 L0 60Z' fill='rgba(99,102,241,0.06)'/%3E%3C/svg%3E") bottom/cover no-repeat;pointer-events:none}
+.reg-kpi-item{padding:14px 10px;text-align:center;position:relative;border-right:1px solid rgba(30,37,64,.6)}
 .reg-kpi-item:last-child{border-right:none}
-.reg-kpi-icon{font-size:17px;display:block;margin-bottom:4px}
-.reg-kpi-val{font-size:14px;font-weight:900;font-family:'Exo 2',sans-serif;line-height:1.2;white-space:nowrap}
-.reg-kpi-lbl{font-size:8px;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;font-family:'Exo 2',sans-serif;margin-top:3px}
-/* Barra de filtros colapsable */
-.reg-filter-bar{display:none;background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:10px 14px;margin-bottom:12px;flex-wrap:wrap;gap:8px;align-items:center}
-.reg-filter-bar.open{display:flex}
-/* Btn Filtros */
-.reg-filtros-btn{background:var(--card2);border:1px solid var(--bdr);color:var(--gray2);border-radius:9px;padding:7px 14px;font-size:11px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .2s;font-family:'DM Sans',sans-serif}
-.reg-filtros-btn:hover{border-color:var(--bdr2);color:var(--text)}
-.reg-filtros-btn.active{border-color:var(--accent);color:#818cf8}
-/* Day detail header */
-.day-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px}
-.day-badge{display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;font-size:10px;font-weight:800;border-radius:50%;width:22px;height:22px;font-family:'Exo 2',sans-serif;box-shadow:0 0 10px rgba(99,102,241,.4);flex-shrink:0}
-/* Day ops table — columnas exactas como la imagen */
-.day-ops-table{width:100%;border-collapse:collapse;font-size:11px}
-.day-ops-table th{background:rgba(10,14,30,.8);color:var(--gray2);font-weight:700;font-size:8px;padding:9px 10px;text-align:left;text-transform:uppercase;letter-spacing:1.2px;border-bottom:1px solid var(--bdr);font-family:'Exo 2',sans-serif}
-.day-ops-table td{padding:9px 10px;border-bottom:1px solid rgba(26,34,64,.5);vertical-align:middle;transition:background .12s}
-.day-ops-table tr:last-child td{border-bottom:none}
+.reg-kpi-icon{font-size:16px;margin-bottom:4px;display:block;line-height:1}
+.reg-kpi-val{font-size:15px;font-weight:900;font-family:'Exo 2',sans-serif;line-height:1.1;margin-bottom:2px}
+.reg-kpi-lbl{font-size:8px;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;font-family:'Exo 2',sans-serif}
+
+/* CALENDAR CELL — updated */
+.cal-cell-ops{font-size:10px;color:var(--gray2);margin-top:3px;font-weight:600}
+
+/* DAY DETAIL HEADER */
+.day-detail-hdr{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.day-count-badge{display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;font-size:10px;font-weight:800;font-family:'Exo 2',sans-serif;border-radius:50%;width:22px;height:22px;box-shadow:0 0 10px rgba(99,102,241,.4)}
+
+/* DAY OPS TABLE — updated columns */
+.day-ops-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:0}
+.day-ops-table th{text-align:left;color:var(--gray2);font-weight:700;font-size:8px;padding:9px 10px;text-transform:uppercase;letter-spacing:1.2px;border-bottom:1px solid var(--bdr);font-family:'Exo 2',sans-serif;background:var(--card2)}
+.day-ops-table td{padding:9px 10px;border-bottom:1px solid rgba(30,37,64,.4);cursor:pointer;transition:background .15s;vertical-align:middle}
 .day-ops-table tr:hover td{background:rgba(99,102,241,.05)}
-.day-ops-table tr.day-row-sel td{background:rgba(247,201,72,.05)}
-.day-add-btn{background:none;border:none;color:var(--accent);font-size:11px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:'DM Sans',sans-serif;padding:0;transition:color .2s}
-.day-add-btn:hover{color:#a78bfa}
-/* TDP action buttons */
-.tdp-act{background:var(--card2);border:1px solid var(--bdr);border-radius:6px;color:var(--gray2);cursor:pointer;width:27px;height:27px;display:inline-flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
-.tdp-act:hover{border-color:var(--accent);color:#818cf8;background:rgba(99,102,241,.12)}
-.tdp-act.del:hover{border-color:var(--red);color:var(--red);background:var(--rd)}
-/* Calendar cell ops text */
-.cal-ops-count{font-size:10px;color:var(--gray2);font-weight:600;margin-top:3px}
-@media(max-width:900px){.reg-kpi-bar{grid-template-columns:repeat(3,1fr)}.reg-kpi-item:nth-child(3){border-right:none}.reg-kpi-item:nth-child(4){border-right:1px solid rgba(30,40,70,.7)}}
-@media(max-width:640px){.reg-tabs{width:100%}.reg-tab{flex:1;justify-content:center;font-size:10px;padding:6px 6px}.reg-kpi-bar{grid-template-columns:repeat(2,1fr)}.reg-kpi-item:nth-child(2n){border-right:none}.reg-kpi-item:nth-child(2n+1){border-right:1px solid rgba(30,40,70,.7)}}
+.day-ops-table tr.sel-row td{background:rgba(247,201,72,.06);border-color:rgba(247,201,72,.2)}
+.day-ops-table tr:last-child td{border-bottom:none}
+.reg-add-inline-btn{background:none;border:none;color:var(--accent);font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;font-family:'DM Sans',sans-serif;padding:2px 0;transition:color .2s}
+.reg-add-inline-btn:hover{color:#a78bfa}
+
+/* TDP ACTION BUTTONS */
+.tdp-action-btn{background:var(--card2);border:1px solid var(--bdr);border-radius:6px;color:var(--gray2);cursor:pointer;width:26px;height:26px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.tdp-action-btn:hover{border-color:var(--accent);color:#818cf8;background:rgba(99,102,241,.15)}
+.tdp-action-btn.edit-act:hover{border-color:var(--accent);color:#818cf8;background:rgba(99,102,241,.12)}
+.tdp-action-btn.del-act:hover{border-color:var(--red);color:var(--red);background:var(--rd)}
+
+@media(max-width:900px){
+  .reg-kpi-bar{grid-template-columns:repeat(3,1fr)}
+  .reg-kpi-item:nth-child(3){border-right:none}
+  .reg-kpi-item:nth-child(4){border-right:1px solid rgba(30,37,64,.6)}
+}
+@media(max-width:640px){
+  .reg-toolbar{gap:6px}
+  .reg-tabs{width:100%;justify-content:space-between}
+  .reg-tab{flex:1;justify-content:center;padding:6px 8px;font-size:10px}
+  .reg-kpi-bar{grid-template-columns:repeat(2,1fr)}
+  .reg-kpi-item:nth-child(even){border-right:none}
+  .reg-kpi-item:nth-child(odd):not(:nth-child(5)){border-right:1px solid rgba(30,37,64,.6)}
+}
 </style>
 </head>
 <body>
@@ -662,28 +678,34 @@ tr:hover td{background:rgba(14,18,41,.8)}
   <!-- ═══ REGISTRO ═══ -->
   <div id="tab-registro" class="tsec">
 
-    <!-- ── TOOLBAR: tabs izquierda + acciones derecha ── -->
+    <!-- ── TOOLBAR: tabs + acciones ── -->
     <div class="reg-toolbar">
+      <!-- Tabs izquierda -->
       <div class="reg-tabs">
         <button class="reg-tab act" id="vbtn-cal" onclick="setLogView('cal')">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="13" height="13"><rect x="1" y="2.5" width="14" height="12" rx="1.5"/><line x1="1" y1="6" x2="15" y2="6"/><line x1="5" y1="1" x2="5" y2="4"/><line x1="11" y1="1" x2="11" y2="4"/></svg>Calendario
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="13" height="13"><rect x="1" y="2.5" width="14" height="12" rx="1.5"/><line x1="1" y1="6" x2="15" y2="6"/><line x1="5" y1="1" x2="5" y2="4"/><line x1="11" y1="1" x2="11" y2="4"/></svg>
+          Calendario
         </button>
         <button class="reg-tab" id="vbtn-tbl" onclick="setLogView('tbl')">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="13" height="13"><rect x="1" y="2" width="14" height="12" rx="1.5"/><line x1="1" y1="5.5" x2="15" y2="5.5"/><line x1="5.5" y1="5.5" x2="5.5" y2="14"/></svg>Tabla
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="13" height="13"><rect x="1" y="2" width="14" height="12" rx="1.5"/><line x1="1" y1="5.5" x2="15" y2="5.5"/><line x1="5.5" y1="5.5" x2="5.5" y2="14"/></svg>
+          Tabla
         </button>
         <button class="reg-tab" id="vbtn-chart" onclick="setLogView('chart')">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="13" height="13"><polyline points="1,13 4.5,8 7.5,10.5 11,5 15,7.5"/><polyline points="11,5 15,5 15,7.5"/></svg>Gráficos
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="13" height="13"><polyline points="1,13 4.5,8 7.5,10.5 11,5 15,7.5"/><polyline points="11,5 15,5 15,7.5"/></svg>
+          Gráficos
         </button>
         <button class="reg-tab" id="vbtn-stats2" onclick="showTab('stats',document.getElementById('nav-stats'))">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="13" height="13"><rect x="1" y="9" width="3" height="6" rx=".8"/><rect x="6" y="5" width="3" height="10" rx=".8"/><rect x="11" y="2" width="3" height="13" rx=".8"/></svg>Estadísticas
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="13" height="13"><rect x="1" y="9" width="3" height="6" rx=".8"/><rect x="6" y="5" width="3" height="10" rx=".8"/><rect x="11" y="2" width="3" height="13" rx=".8"/></svg>
+          Estadísticas
         </button>
       </div>
+      <!-- Acciones derecha -->
       <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
         <button class="btn-new-op" onclick="openNewOpPanel()">
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" width="13" height="13"><line x1="8" y1="1" x2="8" y2="15"/><line x1="1" y1="8" x2="15" y2="8"/></svg>
           Nueva operación
         </button>
-        <button class="reg-filtros-btn" id="btn-filtros-reg" onclick="toggleRegFiltros()">
+        <button class="btn reg-filter-btn" id="reg-filter-toggle" onclick="toggleRegFilters()">
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="13" height="13"><path d="M1 3h14M4 8h8M7 13h2"/></svg>
           Filtros
           <svg viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" width="9" height="9"><polyline points="1,1 5,5 9,1"/></svg>
@@ -691,47 +713,55 @@ tr:hover td{background:rgba(14,18,41,.8)}
       </div>
     </div>
 
-    <!-- ── FILTROS COLAPSABLES ── -->
-    <div class="reg-filter-bar" id="reg-filter-bar">
-      <select id="f-filter-asset" class="fi" style="width:auto;padding:5px 8px;font-size:11px" onchange="renderTable()"><option value="">Todos los activos</option></select>
+    <!-- ── FILTERS BAR (hidden by default) ── -->
+    <div id="reg-filters-bar" style="display:none;background:var(--card);border-radius:12px;padding:10px 14px;border:1px solid var(--bdr);margin-bottom:12px;display:none;flex-wrap:wrap;gap:8px;align-items:center">
+      <select id="f-filter-asset" class="fi" style="width:auto;padding:5px 8px;font-size:11px" onchange="renderTable();renderCal()"><option value="">Todos los activos</option></select>
       <select id="f-filter-session" class="fi" style="width:auto;padding:5px 8px;font-size:11px" onchange="renderTable()"><option value="">Todas sesiones</option><option>Asia</option><option>Londres</option><option>Nueva York</option><option>Londres+NY</option></select>
       <select id="f-filter-tf" class="fi" style="width:auto;padding:5px 8px;font-size:11px" onchange="renderTable()"><option value="">Todos TF</option><option>M1</option><option>M5</option><option>M15</option><option>M30</option><option>H1</option><option>H4</option><option>D1</option></select>
-      <select id="f-filter-result" class="fi" style="width:auto;padding:5px 8px;font-size:11px" onchange="renderTable()"><option value="">TP y SL</option><option value="TP">Solo TP</option><option value="SL">Solo SL</option></select>
+      <select id="f-filter-result" class="fi" style="width:auto;padding:5px 8px;font-size:11px" onchange="renderTable();renderCal()"><option value="">TP y SL</option><option value="TP">Solo TP</option><option value="SL">Solo SL</option></select>
       <button class="btn" style="padding:5px 10px;font-size:10px" onclick="clearTableFilters()">✕ Limpiar</button>
     </div>
 
-    <!-- ── BARRA NAV FECHA + PAR ── -->
+    <!-- ── NAV FECHA + PAR SELECTOR ── -->
     <div class="reg-nav-bar">
-      <div class="reg-nav-left">
-        <button class="reg-arrow" onclick="calNav(-1)">◀</button>
-        <button class="reg-arrow" onclick="calNav(1)">▶</button>
-        <div class="reg-month-label">
-          <span id="cal-label"></span>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button class="reg-nav-arrow" onclick="calNav(-1)">
+          <svg viewBox="0 0 8 12" fill="none" stroke="currentColor" stroke-width="1.8" width="8" height="12"><polyline points="7,1 1,6 7,11"/></svg>
+        </button>
+        <button class="reg-nav-arrow" onclick="calNav(1)">
+          <svg viewBox="0 0 8 12" fill="none" stroke="currentColor" stroke-width="1.8" width="8" height="12"><polyline points="1,1 7,6 1,11"/></svg>
+        </button>
+        <div class="reg-month-pill" onclick="document.getElementById('reg-date-selects').classList.toggle('open')">
+          <span id="cal-label" style="font-family:'Exo 2',sans-serif;font-size:13px;font-weight:800;color:var(--text)"></span>
           <svg viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" width="9" height="9" style="opacity:.5"><polyline points="1,1 5,5 9,1"/></svg>
-          <!-- Selectores ocultos para la lógica JS -->
-          <select id="cal-yr-sel" style="display:none" onchange="calGoTo()"></select>
-          <select id="cal-mo-sel" style="display:none" onchange="calGoTo()"></select>
+          <!-- Hidden selects for programmatic use -->
+          <div id="reg-date-selects" style="display:none;position:absolute;top:100%;left:0;margin-top:4px;background:var(--card);border:1px solid var(--bdr2);border-radius:10px;padding:8px;z-index:100;display:none;gap:6px">
+            <select id="cal-yr-sel" class="fi" style="width:auto;padding:5px 8px;font-size:11px;font-weight:700" onchange="calGoTo()"></select>
+            <select id="cal-mo-sel" class="fi" style="width:auto;padding:5px 8px;font-size:11px;font-weight:700" onchange="calGoTo()"></select>
+          </div>
         </div>
-        <button class="reg-today" onclick="calToday()">Hoy</button>
+        <button class="reg-today-btn" onclick="calToday()">Hoy</button>
       </div>
-      <select id="f-filter-asset-cal" class="reg-pair-filter" onchange="renderCal();renderMonthSummary()">
-        <option value="">Todos los pares</option>
-      </select>
+      <div style="margin-left:auto">
+        <select id="f-filter-asset-cal" class="fi reg-pair-sel" onchange="renderCal();renderMonthSummary()">
+          <option value="">Todos los pares</option>
+        </select>
+      </div>
     </div>
-
-    <!-- KPI BAR (encima del calendario, entre nav y grid) -->
-    <div class="reg-kpi-bar" id="msum"></div>
 
     <!-- ── CALENDAR VIEW ── -->
     <div id="log-cal">
       <div class="cal-grid" id="cal-grid"></div>
 
+      <!-- KPI BAR: debajo del calendario -->
+      <div class="reg-kpi-bar" id="msum"></div>
+
       <!-- DAY DETAIL -->
       <div id="day-detail" style="display:none;margin-top:16px">
-        <div class="day-hdr">
+        <div class="day-detail-hdr">
           <div style="display:flex;align-items:center;gap:10px">
             <span id="day-detail-title" style="font-family:'Exo 2',sans-serif;font-size:14px;font-weight:800;color:var(--text)"></span>
-            <span id="day-detail-badge" class="day-badge">0</span>
+            <span id="day-detail-badge" class="day-count-badge"></span>
             <span style="font-size:11px;color:var(--gray2)">Resumen del día</span>
           </div>
           <div style="display:flex;align-items:center;gap:8px">
@@ -739,8 +769,8 @@ tr:hover td{background:rgba(14,18,41,.8)}
             <button class="btn" style="padding:4px 10px;font-size:10px" onclick="g('day-detail').style.display='none';selDay=null;renderCal()">✕</button>
           </div>
         </div>
-        <div class="card" style="padding:0;overflow:hidden">
-          <table class="day-ops-table">
+        <div class="card" style="padding:0;overflow:hidden;margin-top:10px">
+          <table class="day-ops-table" id="day-ops-table">
             <thead>
               <tr>
                 <th>Hora</th><th>Par</th><th>Dirección</th><th>TF</th>
@@ -750,8 +780,8 @@ tr:hover td{background:rgba(14,18,41,.8)}
             <tbody id="day-trades"></tbody>
           </table>
           <div style="padding:10px 14px;border-top:1px solid var(--bdr)">
-            <button class="day-add-btn" onclick="openNewOpPanel()">
-              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg>
+            <button class="reg-add-inline-btn" onclick="openNewOpPanel()">
+              <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><line x1="7" y1="1" x2="7" y2="13"/><line x1="1" y1="7" x2="13" y2="7"/></svg>
               Nueva operación
             </button>
           </div>
@@ -772,12 +802,12 @@ tr:hover td{background:rgba(14,18,41,.8)}
     <!-- ── CHART VIEW ── -->
     <div id="log-chart" style="display:none">
       <div class="g2">
-        <div class="card"><div class="card-hdr" style="color:var(--green);border-color:rgba(0,229,160,.2)">📈 Curva de Equity</div><div class="cw"><canvas id="creg-eq"></canvas></div></div>
-        <div class="card"><div class="card-hdr" style="color:var(--blue);border-color:rgba(77,159,255,.2)">📅 P&amp;L Mensual</div><div class="cw"><canvas id="creg-mon"></canvas></div></div>
+        <div class="card"><div class="card-hdr" style="color:var(--green);border-color:rgba(0,229,160,.2)">📈 Curva de Equity</div><div class="cw"><canvas id="creg-eq" role="img" aria-label="Equity curva registro"></canvas></div></div>
+        <div class="card"><div class="card-hdr" style="color:var(--blue);border-color:rgba(77,159,255,.2)">📅 P&L Mensual</div><div class="cw"><canvas id="creg-mon" role="img" aria-label="PnL mensual registro"></canvas></div></div>
       </div>
       <div class="g2" style="margin-top:12px">
-        <div class="card"><div class="card-hdr" style="color:var(--purp);border-color:rgba(168,85,247,.2)">⏱ TP/SL por Hora</div><div class="cw"><canvas id="creg-hr"></canvas></div></div>
-        <div class="card"><div class="card-hdr" style="color:var(--gold);border-color:rgba(255,200,77,.2)">📆 TP/SL por Día</div><div class="cw"><canvas id="creg-day"></canvas></div></div>
+        <div class="card"><div class="card-hdr" style="color:var(--purp);border-color:rgba(168,85,247,.2)">📆 TP/SL por Día</div><div class="cw"><canvas id="creg-day" role="img" aria-label="TP SL por dia"></canvas></div></div>
+        <div class="card"><div class="card-hdr" style="color:var(--gold);border-color:rgba(255,200,77,.2)">⏱ TP/SL por Hora</div><div class="cw"><canvas id="creg-hr" role="img" aria-label="TP SL por hora"></canvas></div></div>
       </div>
     </div>
 
@@ -2854,9 +2884,9 @@ function renderCal(){
     var inner='<div class="cdn">'+day+'</div>';
     if(data){
       var pc=data.pnl>=0?'pos':'neg';
-      var tot=(data.tp||0)+(data.sl||0);
       inner+='<div class="cpnl '+pc+'">'+(data.pnl>=0?'+$':'-$')+Math.abs(data.pnl).toFixed(2)+'</div>';
-      if(tot>0)inner+='<div class="cal-ops-count">'+tot+(tot===1?' operación':' operaciones')+'</div>';
+      var tot=(data.tp||0)+(data.sl||0);
+      if(tot>0)inner+='<div class="cal-cell-ops">'+tot+(tot===1?' operación':' operaciones')+'</div>';
     }
     html+='<div class="'+cls+'" onclick="selectDay('+day+')">'+inner+'</div>';
   }
@@ -2885,42 +2915,34 @@ function renderDayDetail(){
   var mo=String(calMonth+1).padStart(2,'0'),dy=String(selDay).padStart(2,'0');
   var ds=calYear+'-'+mo+'-'+dy;
   var dt=S.trades.filter(function(t){return t.date===ds;}).sort(function(a,b){return(a.time||'').localeCompare(b.time||'');});
-  // Título
   var title=g('day-detail-title');
-  if(title)title.textContent='Operaciones del '+selDay+' de '+MONTHS[calMonth].toLowerCase();
-  // Badge conteo
+  if(title)title.textContent='Operaciones del '+String(selDay)+' de '+MONTHS[calMonth].toLowerCase();
   var badge=g('day-detail-badge');
   if(badge)badge.textContent=dt.length;
-  // PnL del día
+  detail.style.display='block';
   var dayPnl=dt.reduce(function(x,t){return x+(t.pnl||0);},0);
   var dpnl=g('day-detail-pnl');
   if(dpnl){dpnl.textContent=(dayPnl>=0?'+$':'-$')+Math.abs(dayPnl).toFixed(2);dpnl.style.color=dayPnl>=0?'var(--green)':'var(--red)';}
-  detail.style.display='block';
-  var tbody=g('day-trades');if(!tbody)return;
-  if(!dt.length){
-    tbody.innerHTML='<tr><td colspan="10" style="text-align:center;padding:20px;color:var(--gray2);font-size:11px">Sin operaciones este día</td></tr>';
-    return;
-  }
-  tbody.innerHTML=dt.map(function(t,idx){
-    var tId=t.id;
-    var tDate=ds;
-    var pip=t.pips!=null&&t.pips!==''?(parseFloat(t.pips)>=0?'+':'')+t.pips:'—';
+  var list=g('day-trades');if(!list)return;
+  if(!dt.length){list.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--gray2);padding:20px;font-size:11px">Sin operaciones este día</td></tr>';return;}
+  list.innerHTML=dt.map(function(t,tIdx){
+    var noteTxt=t.notes?(t.notes.substring(0,28)+(t.notes.length>28?'…':'')):'';
+    var pips=t.pips?(t.pips>=0?'+':'')+t.pips:'—';
     var rr=t.rr?'1:'+t.rr:'—';
-    var nota=t.notes?(t.notes.substring(0,26)+(t.notes.length>26?'…':'')):'';
-    var notaDot=nota?'<span style="display:inline-block;width:7px;height:7px;background:var(--green);border-radius:50%;margin-left:4px;vertical-align:middle"></span>':'';
-    return '<tr style="cursor:pointer" onclick="(function(){var tr=S.trades.find(function(x){return x.id==='+tId+';});if(tr)openTDP(tr,S.trades.filter(function(x){return x.date===\''+tDate+'\';}),'+idx+');})()" class="'+(editId===tId?'day-row-sel':'')+'">'+
-      '<td style="color:var(--cyan);font-family:\'JetBrains Mono\',monospace;font-size:10px">'+(t.time||'—')+'</td>'+
-      '<td><span style="color:var(--gray2);margin-right:2px;font-size:10px">›</span><span style="color:var(--blue);font-weight:700">'+t.asset+'</span></td>'+
-      '<td><span style="color:var(--gray2);margin-right:2px;font-size:10px">›</span><span style="color:'+(t.direction==='BUY'?'var(--green)':'var(--red)')+'font-weight:600">'+(t.direction==='BUY'?'Long':'Short')+'</span></td>'+
+    var hasNote=noteTxt?'<span style="display:inline-block;width:8px;height:8px;background:var(--green);border-radius:50%;vertical-align:middle;margin-left:3px"></span>':'';
+    return'<tr onclick="openTDP(S.trades.find(function(x){return x.id==='+t.id+';})||{},S.trades.filter(function(x){return x.date===\''+ds+'\';}),'+tIdx+')" class="'+(editId===t.id?'sel-row':'')+'">'+
+      '<td style="color:var(--cyan);font-family:\'JetBrains Mono\',monospace;font-size:10px">'+( t.time||'—')+'</td>'+
+      '<td style="font-weight:700;color:var(--blue)"><span style="font-size:10px;color:var(--gray2);margin-right:2px">›</span>'+t.asset+'</td>'+
+      '<td><span style="font-size:10px;color:var(--gray2);margin-right:2px">›</span><span style="color:'+(t.direction==='BUY'?'var(--green)':'var(--red)')+'">'+( t.direction==='BUY'?'Long':'Short')+'</span></td>'+
       '<td style="color:var(--gray2);font-size:10px">'+(t.tf||'—')+'</td>'+
       '<td><span class="'+(t.result==='TP'?'btp':'bsl')+'">'+t.result+'</span></td>'+
       '<td class="'+(t.pnl>=0?'pp':'pn')+'" style="font-weight:700">'+fU(t.pnl)+'</td>'+
-      '<td style="color:'+(t.pips!=null&&parseFloat(t.pips)>=0?'var(--green)':'var(--red)')+';font-size:10px;font-weight:600">'+pip+'</td>'+
+      '<td style="color:'+(t.pips&&t.pips>=0?'var(--green)':'var(--red)')+';font-weight:600;font-size:10px">'+pips+'</td>'+
       '<td style="color:var(--cyan);font-size:10px;font-weight:600">'+rr+'</td>'+
-      '<td style="color:var(--gray2);font-size:10px">'+nota+notaDot+'</td>'+
+      '<td style="color:var(--gray2);font-size:10px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+noteTxt+hasNote+'</td>'+
       '<td style="text-align:right;white-space:nowrap">'+
-        '<button class="icon-btn edit" onclick="event.stopPropagation();editTrade('+tId+')" title="Editar">✏</button>'+
-        '<button class="icon-btn del" onclick="event.stopPropagation();delTrade('+tId+')" title="Eliminar" style="margin-left:3px">🗑</button>'+
+        '<button class="icon-btn edit" onclick="event.stopPropagation();editTrade('+t.id+')" title="Editar">✏</button>'+
+        '<button class="icon-btn del" onclick="event.stopPropagation();delTrade('+t.id+')" title="Eliminar" style="margin-left:3px">🗑</button>'+
       '</td>'+
     '</tr>';
   }).join('');
@@ -2933,15 +2955,15 @@ function renderMonthSummary(){
   var tp=ft.filter(function(t){return t.result==='TP';}).length;
   var sl=ft.filter(function(t){return t.result==='SL';}).length;
   var pnl=ft.reduce(function(a,t){return a+(t.pnl||0);},0);
-  var wr=ft.length?(tp/ft.length*100):0;
+  var wr=ft.length?(tp/ft.length*100).toFixed(2):0;
+  var wrPct=ft.length?(tp/ft.length*100).toFixed(1):0;
   var tpp=ft.filter(function(t){return t.result==='TP';}).reduce(function(a,t){return a+(t.pnl||0);},0);
   var slp=ft.filter(function(t){return t.result==='SL';}).reduce(function(a,t){return a+(t.pnl||0);},0);
   var pf=slp<0?Math.abs(tpp/slp).toFixed(2):'∞';
-  var tpPct=ft.length?(tp/ft.length*100).toFixed(2):'0.00';
-  var slPct=ft.length?(sl/ft.length*100).toFixed(2):'0.00';
-  var wrStr=wr.toFixed(2)+'%';
+  var tpPct=ft.length?(tp/ft.length*100).toFixed(2):0;
+  var slPct=ft.length?(sl/ft.length*100).toFixed(2):0;
   var pnlStr=(pnl>=0?'+$':'-$')+Math.abs(pnl).toFixed(2);
-  el.className='reg-kpi-bar';
+  var wrStr=(parseFloat(wr)>=0?'+':'')+wr+'%';
   el.innerHTML=
     '<div class="reg-kpi-item">'+
       '<span class="reg-kpi-icon">🎯</span>'+
@@ -2950,12 +2972,12 @@ function renderMonthSummary(){
     '</div>'+
     '<div class="reg-kpi-item">'+
       '<span class="reg-kpi-icon">📈</span>'+
-      '<div class="reg-kpi-val" style="color:var(--green)">'+tp+' <span style="font-size:11px">('+tpPct+'%)</span></div>'+
+      '<div class="reg-kpi-val" style="color:var(--green)">'+tp+' <span style="font-size:11px;font-weight:600">('+tpPct+'%)</span></div>'+
       '<div class="reg-kpi-lbl">Ganadoras</div>'+
     '</div>'+
     '<div class="reg-kpi-item">'+
-      '<span class="reg-kpi-icon">✖</span>'+
-      '<div class="reg-kpi-val" style="color:var(--red)">'+sl+' <span style="font-size:11px">('+slPct+'%)</span></div>'+
+      '<span class="reg-kpi-icon" style="color:var(--red)">✖</span>'+
+      '<div class="reg-kpi-val" style="color:var(--red)">'+sl+' <span style="font-size:11px;font-weight:600">('+slPct+'%)</span></div>'+
       '<div class="reg-kpi-lbl">Perdedoras</div>'+
     '</div>'+
     '<div class="reg-kpi-item">'+
@@ -2964,12 +2986,12 @@ function renderMonthSummary(){
       '<div class="reg-kpi-lbl">Resultado neto</div>'+
     '</div>'+
     '<div class="reg-kpi-item">'+
-      '<span class="reg-kpi-icon" style="color:var(--cyan)">📊</span>'+
-      '<div class="reg-kpi-val" style="color:var(--cyan)">'+(wr>=0?'+':'')+wrStr+'</div>'+
+      '<span class="reg-kpi-icon" style="color:var(--cyan)">➕</span>'+
+      '<div class="reg-kpi-val" style="color:var(--cyan)">'+wrStr+'</div>'+
       '<div class="reg-kpi-lbl">Win Rate</div>'+
     '</div>'+
     '<div class="reg-kpi-item">'+
-      '<span class="reg-kpi-icon" style="color:var(--gold)">⚖️</span>'+
+      '<span class="reg-kpi-icon" style="color:var(--gold)">📊</span>'+
       '<div class="reg-kpi-val" style="color:var(--gold)">'+pf+'</div>'+
       '<div class="reg-kpi-lbl">Profit Factor</div>'+
     '</div>';
@@ -2995,11 +3017,12 @@ function setLogView(v){
   if(cal) cal.style.display=v==='cal'?'block':'none';
   if(tbl) tbl.style.display=v==='tbl'?'block':'none';
   if(chart) chart.style.display=v==='chart'?'block':'none';
-  ['cal','tbl','chart'].forEach(function(k){
-    var b=g('vbtn-'+k);if(b)b.className='reg-tab'+(v===k?' act':'');
+  ['cal','tbl','chart'].forEach(function(tab){
+    var btn=g('vbtn-'+tab);
+    if(btn) btn.className='reg-tab'+(v===tab?' act':'');
   });
   if(v==='tbl')renderTable();
-  if(v==='chart'){renderRegCharts();}
+  if(v==='chart' && typeof renderRegCharts==='function')renderRegCharts();
 }
 
 function renderTable(){
@@ -4420,17 +4443,21 @@ button:active, [onclick]:active, .ni:active, .cal-nav-btn:active, .rb:active, .t
 <div id="trade-detail-panel">
   <div class="tdp-hdr">
     <span class="tdp-title" id="tdp-title">Operación</span>
-    <div style="display:flex;align-items:center;gap:4px">
-      <button class="tdp-nav-btn" id="tdp-prev" onclick="navTDP(-1)" title="Anterior">◀</button>
-      <button class="tdp-nav-btn" id="tdp-next" onclick="navTDP(1)" title="Siguiente">▶</button>
-      <button class="tdp-act" onclick="if(_currentTrade)editTrade(_currentTrade.id)" title="Editar">
-        <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5" width="12" height="12"><path d="M8.5 2l2.5 2.5L4 11.5H1.5V9L8.5 2z"/></svg>
+    <div style="display:flex;align-items:center;gap:5px">
+      <button class="tdp-nav-btn" id="tdp-prev" onclick="navTDP(-1)" title="Anterior">
+        <svg viewBox="0 0 8 12" fill="none" stroke="currentColor" stroke-width="1.8" width="7" height="11"><polyline points="7,1 1,6 7,11"/></svg>
       </button>
-      <button class="tdp-act" onclick="if(_currentTrade)copyTradeText(_currentTrade)" title="Copiar">
-        <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5" width="12" height="12"><rect x="4.5" y="4.5" width="7" height="8" rx="1.2"/><path d="M8.5 4.5V2.5a1 1 0 00-1-1h-6a1 1 0 00-1 1v8a1 1 0 001 1h2"/></svg>
+      <button class="tdp-nav-btn" id="tdp-next" onclick="navTDP(1)" title="Siguiente">
+        <svg viewBox="0 0 8 12" fill="none" stroke="currentColor" stroke-width="1.8" width="7" height="11"><polyline points="1,1 7,6 1,11"/></svg>
       </button>
-      <button class="tdp-act del" onclick="if(_currentTrade)delTrade(_currentTrade.id)" title="Eliminar">
-        <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5" width="12" height="12"><polyline points="1,3 12,3"/><path d="M4.5 3V1.5h4V3"/><rect x="2" y="3" width="9" height="9.5" rx="1"/><line x1="5" y1="5.5" x2="5" y2="9.5"/><line x1="8" y1="5.5" x2="8" y2="9.5"/></svg>
+      <button class="tdp-action-btn edit-act" id="tdp-edit-btn" onclick="_currentTrade&&editTrade(_currentTrade.id)" title="Editar">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" width="12" height="12"><path d="M9 2l3 3L4 13H1v-3L9 2z"/></svg>
+      </button>
+      <button class="tdp-action-btn" onclick="_currentTrade&&copyTradeTxt(_currentTrade)" title="Copiar">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" width="12" height="12"><rect x="5" y="5" width="8" height="9" rx="1.2"/><path d="M9 5V3a1 1 0 00-1-1H2a1 1 0 00-1 1v8a1 1 0 001 1h2"/></svg>
+      </button>
+      <button class="tdp-action-btn del-act" id="tdp-del-btn" onclick="_currentTrade&&delTrade(_currentTrade.id)" title="Eliminar">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" width="12" height="12"><polyline points="1,3 13,3"/><path d="M5 3V1h4v2"/><rect x="2" y="3" width="10" height="10" rx="1"/><line x1="5" y1="6" x2="5" y2="10"/><line x1="9" y1="6" x2="9" y2="10"/></svg>
       </button>
       <button class="tdp-close" onclick="closeTDP()">✕</button>
     </div>
@@ -4873,11 +4900,13 @@ window.renderDayDetail = function() {
   var dt=S.trades.filter(function(t){return t.date===ds;}).sort(function(a,b){return(a.time||'').localeCompare(b.time||'');});
   var dayPnl=dt.reduce(function(x,t){return x+(t.pnl||0);},0);
 
-  // Actualizar título y badge
+  // Actualizar título
   var titleEl=g('day-detail-title');
   if(titleEl) titleEl.textContent='Operaciones del '+selDay+' de '+MONTHS[calMonth].toLowerCase();
+  // Badge conteo
   var badgeEl=g('day-detail-badge');
   if(badgeEl) badgeEl.textContent=dt.length;
+  // PnL del día
   var pnlEl=g('day-detail-pnl');
   if(pnlEl){ pnlEl.textContent=(dayPnl>=0?'+$':'-$')+Math.abs(dayPnl).toFixed(2); pnlEl.style.color=dayPnl>=0?'var(--green)':'var(--red)'; }
 
@@ -4888,21 +4917,20 @@ window.renderDayDetail = function() {
     tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--gray2);padding:20px;font-size:11px">Sin operaciones este día</td></tr>';
     return;
   }
-  // Guardar trades del día globalmente para navegación en TDP
   window._currentDayTrades = dt;
   tbody.innerHTML=dt.map(function(t,i){
     var isWin=t.result==='TP';
     var pip=t.pips!=null&&t.pips!==''?(parseFloat(t.pips)>=0?'+':'')+t.pips:'—';
     var rr=t.rr?'1:'+t.rr:'—';
-    var nota=t.notes?(t.notes.substring(0,24)+(t.notes.length>24?'…':'')):'';
-    var notaDot=nota?'<span style="display:inline-block;width:6px;height:6px;background:var(--green);border-radius:50%;margin-left:3px;vertical-align:middle"></span>':'';
+    var nota=t.notes?(t.notes.substring(0,26)+(t.notes.length>26?'…':'')):'';
+    var notaDot=nota?'<span style="display:inline-block;width:7px;height:7px;background:var(--green);border-radius:50%;margin-left:3px;vertical-align:middle"></span>':'';
     return '<tr onclick="openTDP(window._currentDayTrades['+i+'],window._currentDayTrades,'+i+');window._playClick&&window._playClick()" style="cursor:pointer">'+
       '<td style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:var(--cyan)">'+(t.time||'—')+'</td>'+
       '<td><span style="font-size:10px;color:var(--gray2)">›</span> <span style="font-weight:700;color:var(--blue)">'+t.asset+'</span></td>'+
       '<td><span style="font-size:10px;color:var(--gray2)">›</span> <span style="color:'+(t.direction==='BUY'?'var(--green)':'var(--red)')+';font-weight:600">'+(t.direction==='BUY'?'Long':'Short')+'</span></td>'+
       '<td style="color:var(--gray2);font-size:10px">'+(t.tf||'—')+'</td>'+
       '<td><span class="'+(isWin?'btp':'bsl')+'">'+t.result+'</span></td>'+
-      '<td class="'+(t.pnl>=0?'pp':'pn')+'" style="font-weight:700">'+(t.pnl>=0?'+$':'-$')+Math.abs(t.pnl||0).toFixed(2)+'</td>'+
+      '<td class="'+(isWin?'pp':'pn')+'" style="font-weight:700">'+(t.pnl>=0?'+$':'-$')+Math.abs(t.pnl||0).toFixed(2)+'</td>'+
       '<td style="color:'+(t.pips!=null&&parseFloat(t.pips)>=0?'var(--green)':'var(--red)')+';font-size:10px;font-weight:600">'+pip+'</td>'+
       '<td style="color:var(--cyan);font-size:10px;font-weight:600">'+rr+'</td>'+
       '<td style="color:var(--gray2);font-size:10px">'+nota+notaDot+'</td>'+
@@ -4928,6 +4956,7 @@ window.renderMonthSummary = function() {
   var pf=slp<0?Math.abs(tpp/slp).toFixed(2):'∞';
   var tpPct=ft.length?(tp/ft.length*100).toFixed(2):'0.00';
   var slPct=ft.length?(sl/ft.length*100).toFixed(2):'0.00';
+  // Asegurarse de que tenga la clase correcta
   el.className='reg-kpi-bar';
   el.innerHTML=
     '<div class="reg-kpi-item">'+
@@ -4937,12 +4966,12 @@ window.renderMonthSummary = function() {
     '</div>'+
     '<div class="reg-kpi-item">'+
       '<span class="reg-kpi-icon">📈</span>'+
-      '<div class="reg-kpi-val" style="color:var(--green)">'+tp+' <span style="font-size:10px;opacity:.8">('+tpPct+'%)</span></div>'+
+      '<div class="reg-kpi-val" style="color:var(--green)">'+tp+' <span style="font-size:10px;opacity:.85">('+tpPct+'%)</span></div>'+
       '<div class="reg-kpi-lbl">Ganadoras</div>'+
     '</div>'+
     '<div class="reg-kpi-item">'+
       '<span class="reg-kpi-icon">✖</span>'+
-      '<div class="reg-kpi-val" style="color:var(--red)">'+sl+' <span style="font-size:10px;opacity:.8">('+slPct+'%)</span></div>'+
+      '<div class="reg-kpi-val" style="color:var(--red)">'+sl+' <span style="font-size:10px;opacity:.85">('+slPct+'%)</span></div>'+
       '<div class="reg-kpi-lbl">Perdedoras</div>'+
     '</div>'+
     '<div class="reg-kpi-item">'+
@@ -4969,7 +4998,6 @@ window.setLogView = function(v) {
   if(cal)   cal.style.display   = v==='cal'   ? 'block':'none';
   if(tbl)   tbl.style.display   = v==='tbl'   ? 'block':'none';
   if(chart) chart.style.display = v==='chart' ? 'block':'none';
-  // Actualizar clases de botones de tab
   ['cal','tbl','chart'].forEach(function(k){
     var b=g('vbtn-'+k);
     if(b) b.className='reg-tab'+(v===k?' act':'');
@@ -4978,52 +5006,50 @@ window.setLogView = function(v) {
   if(v==='chart') window.renderRegCharts&&window.renderRegCharts();
 };
 
-// ── navTDP (alias para compatibilidad) ────────────────
+// ── navTDP — alias para los botones ◀ ▶ del panel ─────
 window.navTDP = function(dir) {
-  if(!_dayTrades.length) return;
+  if(!_dayTrades||!_dayTrades.length) return;
   _dayTradeIdx = Math.max(0, Math.min(_dayTrades.length-1, _dayTradeIdx+dir));
   window.openTDP(_dayTrades[_dayTradeIdx], _dayTrades, _dayTradeIdx);
 };
 
-// ── toggleRegFiltros ─────────────────────────────────
-window.toggleRegFiltros = function() {
-  var bar=g('reg-filter-bar');
-  var btn=g('btn-filtros-reg');
+// ── toggleRegFilters ──────────────────────────────────
+window.toggleRegFilters = function() {
+  var bar=g('reg-filters-bar');
+  var btn=g('reg-filter-toggle');
   if(!bar) return;
-  var open=bar.classList.contains('open');
-  if(open){ bar.classList.remove('open'); if(btn)btn.classList.remove('active'); }
-  else    { bar.classList.add('open');    if(btn)btn.classList.add('active');    }
+  var isOpen=bar.style.display==='flex';
+  bar.style.display=isOpen?'none':'flex';
+  if(btn) btn.style.borderColor=isOpen?'':'var(--accent)';
 };
 
-// ── copyTradeText ─────────────────────────────────────
-window.copyTradeText = function(t) {
-  if(!t) return;
-  var txt='Operación #'+String(t.id).slice(-4)+'\n'+(t.date||'')+(t.time?' '+t.time:'')+
-    '\n'+t.asset+' | '+(t.direction||'—')+' | '+t.result+
-    '\nP&L: '+(t.pnl>=0?'+$':'-$')+Math.abs(t.pnl||0).toFixed(2)+
-    (t.pips?' | Pips: '+t.pips:'')+(t.rr?' | RR: 1:'+t.rr:'')+
-    (t.strategy?'\nEstrategia: '+t.strategy:'')+(t.notes?'\nNotas: '+t.notes:'');
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(txt).then(function(){toast('✅ Copiado','var(--green)');}).catch(function(){});
-  }
+
+window.copyTradeTxt = function(trade) {
+  if(!trade) return;
+  var txt = 'Operación #'+String(trade.id).slice(-4)+'\n'+
+    (trade.date||'')+(trade.time?' '+trade.time:'')+'\n'+
+    (trade.asset||'—')+' | '+(trade.direction||'—')+' | '+(trade.result||'—')+'\n'+
+    'P&L: '+fU(trade.pnl)+(trade.pips?' | Pips: '+trade.pips:'')+
+    (trade.rr?' | RR: 1:'+trade.rr:'')+'\n'+
+    (trade.strategy?'Estrategia: '+trade.strategy+'\n':'')+
+    (trade.notes?'Notas: '+trade.notes:'');
+  try{navigator.clipboard.writeText(txt).then(function(){toast('✅ Copiado','var(--green)');}).catch(function(){toast('Copiado','var(--green)');});}
+  catch(e){toast('Copiado','var(--green)');}
 };
 
-// ── renderRegCharts ───────────────────────────────────
 window.renderRegCharts = function() {
   var yrS=String(calYear);
-  var sorted=[].concat(S.trades).sort(function(a,b){return a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||'');});
-  var eq=[],running=0,lbls=[];
-  sorted.forEach(function(t){running+=(t.pnl||0);eq.push(running);lbls.push((t.date||'').slice(5));});
+  var ft=[].concat(S.trades).sort(function(a,b){return a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||'');});
+  var eq=[],running=0,labels=[];
+  ft.forEach(function(t){running+=(t.pnl||0);eq.push(running);labels.push((t.date||'').slice(5));});
   if(typeof mkC==='function'){
-    mkC('creg-eq','line',lbls,[{data:eq,borderColor:'rgba(0,229,176,1)',backgroundColor:'rgba(0,229,176,.08)',tension:.4,fill:true,pointRadius:2,borderWidth:2}],{});
-    var mPnl=MONTHS.map(function(_,i){
-      return S.trades.filter(function(t){return t.date&&t.date.startsWith(yrS)&&+t.date.split('-')[1]===i+1;}).reduce(function(a,t){return a+(t.pnl||0);},0);
-    });
-    mkC('creg-mon','bar',MSS,[{data:mPnl,backgroundColor:mPnl.map(function(v){return v>=0?'rgba(0,229,176,.75)':'rgba(255,56,96,.75)';}),borderRadius:4,borderSkipped:false}],{});
+    mkC('creg-eq','line',labels,[{data:eq,borderColor:'var(--green)',backgroundColor:'rgba(0,229,176,.08)',tension:.4,fill:true,pointRadius:2,borderWidth:2}],{});
+    var mPnl=MONTHS.map(function(_,i){return S.trades.filter(function(t){return t.date&&t.date.startsWith(yrS)&&+t.date.split('-')[1]===i+1;}).reduce(function(a,t){return a+(t.pnl||0);},0);});
+    mkC('creg-mon','bar',MSS,[{data:mPnl,backgroundColor:mPnl.map(function(v){return v>=0?'rgba(0,229,176,.7)':'rgba(255,56,96,.7)';}),borderRadius:4,borderSkipped:false}],{});
     var tg=getTimeGroups(S.trades);
     mkC('creg-hr','bar',tg.map(function(h){return h.time;}),
-      [{data:tg.map(function(h){return h.tp;}),backgroundColor:'rgba(0,229,160,.75)',label:'TP',borderRadius:4,borderSkipped:false},
-       {data:tg.map(function(h){return h.sl;}),backgroundColor:'rgba(255,56,96,.75)',label:'SL',borderRadius:4,borderSkipped:false}],
+      [{data:tg.map(function(h){return h.tp;}),backgroundColor:'rgba(0,229,160,.7)',label:'TP',borderRadius:4,borderSkipped:false},
+       {data:tg.map(function(h){return h.sl;}),backgroundColor:'rgba(255,77,106,.7)',label:'SL',borderRadius:4,borderSkipped:false}],
       {plugins:{legend:{display:true,labels:{color:'#6b7aaa',font:{size:9},boxWidth:8}}}});
   }
 };
