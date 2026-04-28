@@ -329,48 +329,115 @@ tr:hover td{background:rgba(14,18,41,.8)}
    MÓVIL ≤640px — modo app
 ════════════════════════════════════ */
 @media(max-width:640px){
+  /* ── BASE ── */
   body{flex-direction:column}
-  /* Ocultar sidebar — reemplazado por nav inferior */
   .sb{display:none!important}
-  /* Main toma todo el ancho */
   .main{width:100vw;overflow:hidden}
-  /* Topbar compacta */
-  .topbar{padding:10px 12px}
-  .page-title{font-size:14px}
-  /* Ocultar botón CSV del topbar (está en el menú inferior) */
-  .btn-csv-hide{display:none!important}
-  /* Área de contenido: padding abajo para no quedar tapado por nav */
-  .content{padding:12px 10px 78px}
-  /* KPI: 2 columnas */
-  .krow{gap:7px}
-  .kcard{min-width:calc(50% - 4px);flex:0 0 calc(50% - 4px)}
-  /* Grids a 1 columna */
-  .g2{grid-template-columns:1fr;gap:9px}
-  .msum{grid-template-columns:repeat(2,1fr);gap:6px}
-  /* Calendario apilado */
-  .cal-layout{flex-direction:column;gap:10px}
-  .cal-side{width:100%}
-  .cal-cell{min-height:54px;padding:4px}
-  /* Tablas con scroll horizontal */
-  .tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  table{font-size:10px}
-  th{font-size:7px;padding:6px 6px}
-  td{padding:5px 6px}
-  /* Filtros con scroll horizontal */
-  .fbar{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
-  /* Charts compactos */
-  .cw{height:140px}
-  /* Cards */
-  .card{padding:11px}
-  /* Botones de resultado/dirección */
-  .rb{padding:10px 6px;font-size:11px}
-  /* Toast sube para no quedar detrás del nav */
-  #toast{bottom:68px;right:10px;left:10px;text-align:center}
-  /* Modales a pantalla completa en móvil */
-  .mo{padding:8px;align-items:flex-end}
-  .mb{border-radius:16px 16px 0 0;max-width:100%;max-height:92vh;overflow-y:auto}
 
-  /* ── BARRA DE NAVEGACIÓN INFERIOR ── */
+  /* ── TOPBAR ── */
+  .topbar{padding:10px 12px;gap:8px}
+  .page-title{font-size:13px;font-weight:800}
+  .page-sub{display:none}
+  .btn-csv-hide{display:none!important}
+  .topbar .btn{padding:6px 10px;font-size:10px}
+
+  /* ── CONTENIDO ── */
+  .content{padding:10px 8px 80px}
+
+  /* ── CARDS ── */
+  .card{padding:10px;border-radius:12px}
+
+  /* ── GRIDS ── */
+  .g2{grid-template-columns:1fr;gap:8px}
+  .krow{gap:6px;flex-wrap:wrap}
+  .kcard{min-width:calc(50% - 4px);flex:0 0 calc(50% - 4px);padding:10px 8px}
+  .kval{font-size:17px}
+
+  /* ── CALENDARIO ── */
+  .cal-layout{flex-direction:column;gap:8px}
+  .cal-side{width:100%}
+  .cal-cell{min-height:46px;padding:4px 3px;border-radius:7px;font-size:9px}
+  .cal-dow{font-size:7px;padding:5px 0 6px}
+  .msum{grid-template-columns:repeat(2,1fr);gap:5px}
+  .msc{padding:8px 6px}
+
+  /* ── TABLAS ── */
+  .tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{font-size:10px;min-width:480px}
+  th{font-size:7px;padding:7px 6px;letter-spacing:.5px}
+  td{padding:6px 6px}
+
+  /* ── REGISTRO — toolbar ── */
+  .reg-toolbar{gap:5px;flex-wrap:wrap}
+  .reg-tabs{width:100%;order:2}
+  .reg-tab{flex:1;justify-content:center;padding:7px 4px;font-size:10px;gap:3px}
+  .reg-tab svg{width:11px;height:11px}
+  .btn-new-op{order:1;width:100%;justify-content:center;padding:10px;font-size:12px;border-radius:10px}
+  .reg-filter-btn{order:3;font-size:10px;padding:6px 10px}
+
+  /* ── REGISTRO — panel derecho oculto en móvil ── */
+  .tsec.act.reg-split{flex-direction:column}
+  #reg-right-panel{display:none!important}
+
+  /* ── REGISTRO — KPI bar ── */
+  .reg-kpi-bar{grid-template-columns:repeat(3,1fr)}
+  .reg-kpi-item{padding:9px 4px;border-right:1px solid rgba(30,37,64,.6)}
+  .reg-kpi-item:nth-child(3n){border-right:none}
+  .reg-kpi-val{font-size:12px}
+  .reg-kpi-lbl{font-size:7px;letter-spacing:.5px}
+  .reg-kpi-icon{font-size:13px;margin-bottom:2px}
+
+  /* ── REGISTRO — tabla del día ── */
+  .day-ops-table{font-size:10px}
+  .day-ops-table th{font-size:7px;padding:7px 5px}
+  .day-ops-table td{padding:7px 5px}
+
+  /* ── FILTROS ── */
+  .fbar{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;gap:5px}
+  .fbar .fi{min-width:110px;font-size:10px;padding:6px 8px}
+
+  /* ── GRÁFICOS ── */
+  .cw{height:130px}
+
+  /* ── MODAL — bottom sheet ── */
+  .mo{padding:0;align-items:flex-end;background:rgba(0,0,0,.5);backdrop-filter:blur(4px)}
+  .mb{
+    border-radius:20px 20px 0 0;
+    max-width:100%;width:100%;
+    max-height:88vh;
+    overflow-y:auto;
+    padding:14px 14px 24px;
+    border-bottom:none;
+    box-shadow:0 -8px 40px rgba(0,0,0,.6);
+  }
+  /* Línea decorativa top del sheet */
+  .mb::before{
+    content:'';display:block;
+    width:36px;height:3px;
+    background:var(--bdr2);border-radius:99px;
+    margin:0 auto 14px;
+  }
+  .mh{padding-bottom:8px}
+  .mt2{font-size:14px}
+  .fg{margin-bottom:10px}
+  .fg2{gap:7px;margin-bottom:10px}
+  .fi{padding:10px 10px;font-size:13px}
+  .fl{font-size:9px}
+  .rb{padding:13px 8px;font-size:12px;min-height:46px}
+  #btn-save{padding:14px;font-size:13px;border-radius:11px}
+  .fi-lg{font-size:14px;padding:12px 10px}
+
+  /* ── ESTADÍSTICAS ── */
+  .msum{flex-wrap:wrap}
+  .msc{min-width:45%}
+
+  /* ── TOAST ── */
+  #toast{bottom:70px;right:8px;left:8px;text-align:center;font-size:12px}
+
+  /* ── CHARTS ── */
+  canvas{max-height:140px}
+
+  /* ── NAV INFERIOR ── */
   #mob-nav{
     display:flex;
     position:fixed;bottom:0;left:0;right:0;
@@ -398,17 +465,14 @@ tr:hover td{background:rgba(14,18,41,.8)}
   .mni.act svg{filter:drop-shadow(0 0 5px rgba(77,159,255,.6))}
   .mni:active{background:rgba(255,255,255,.05)}
 
-  /* Drawer "Más" */
+  /* ── DRAWER ── */
   #mob-drawer{
-    display:none;
-    position:fixed;inset:0;z-index:9500;
-    background:rgba(0,0,0,.75);
-    backdrop-filter:blur(3px);
+    display:none;position:fixed;inset:0;z-index:9500;
+    background:rgba(0,0,0,.75);backdrop-filter:blur(3px);
   }
   #mob-drawer.open{display:flex;align-items:flex-end}
   #mob-drawer-inner{
-    width:100%;
-    background:var(--sb);
+    width:100%;background:var(--sb);
     border-radius:18px 18px 0 0;
     border-top:1px solid var(--bdr);
     padding:14px 16px 80px;
@@ -428,6 +492,19 @@ tr:hover td{background:rgba(14,18,41,.8)}
   }
   .mni-big:active{background:var(--card2)}
   .mni-big svg{width:16px;height:16px;color:#00d4ff}
+}
+
+/* ── TABLET 641–900px ── */
+@media(min-width:641px) and (max-width:900px){
+  .sb{width:180px}
+  .ni{font-size:11px;padding:9px 10px}
+  .content{padding:14px 14px}
+  .kcard{padding:12px 10px}
+  .g2{gap:10px}
+  .reg-kpi-bar{grid-template-columns:repeat(3,1fr)}
+  #reg-right-panel{width:220px}
+  .cal-cell{min-height:60px}
+  .cw{height:150px}
 }
 
 /* IMAGE GALLERY */
@@ -481,7 +558,7 @@ tr:hover td{background:rgba(14,18,41,.8)}
 .reg-today-btn:hover{background:rgba(99,102,241,.22);border-color:rgba(99,102,241,.4)}
 .reg-pair-sel{padding:6px 10px;font-size:11px;background:var(--card2);border:1px solid var(--bdr);border-radius:9px;color:var(--text);cursor:pointer;min-width:140px}
 
-/* KPI BAR — debajo del calendario, 6 columnas con iconos */
+/* KPI BAR */
 .reg-kpi-bar{display:grid;grid-template-columns:repeat(6,1fr);gap:0;background:linear-gradient(135deg,rgba(14,18,41,.98),rgba(10,14,32,.98));border:1px solid var(--bdr);border-radius:14px;overflow:hidden;margin:14px 0;backdrop-filter:blur(10px);position:relative}
 .reg-kpi-bar::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 400 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 60 Q100 20 200 50 Q300 80 400 40 L400 80 L0 80Z' fill='rgba(99,102,241,0.04)'/%3E%3C/svg%3E") bottom/cover no-repeat;pointer-events:none;border-radius:14px}
 .reg-kpi-item{padding:14px 10px;text-align:center;position:relative;border-right:1px solid rgba(30,37,64,.6)}
@@ -490,14 +567,14 @@ tr:hover td{background:rgba(14,18,41,.8)}
 .reg-kpi-val{font-size:15px;font-weight:900;font-family:'Exo 2',sans-serif;line-height:1.1;margin-bottom:2px}
 .reg-kpi-lbl{font-size:8px;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;font-family:'Exo 2',sans-serif}
 
-/* CALENDAR CELL — updated */
+/* CALENDAR CELL */
 .cal-cell-ops{font-size:10px;color:var(--gray2);margin-top:3px;font-weight:600}
 
 /* DAY DETAIL HEADER */
 .day-detail-hdr{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
 .day-count-badge{display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;font-size:10px;font-weight:800;font-family:'Exo 2',sans-serif;border-radius:50%;width:22px;height:22px;box-shadow:0 0 10px rgba(99,102,241,.4)}
 
-/* DAY OPS TABLE — updated columns */
+/* DAY OPS TABLE */
 .day-ops-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:0}
 .day-ops-table th{text-align:left;color:var(--gray2);font-weight:700;font-size:8px;padding:9px 10px;text-transform:uppercase;letter-spacing:1.2px;border-bottom:1px solid var(--bdr);font-family:'Exo 2',sans-serif;background:var(--card2)}
 .day-ops-table td{padding:9px 10px;border-bottom:1px solid rgba(30,37,64,.4);cursor:pointer;transition:background .15s;vertical-align:middle}
@@ -519,12 +596,13 @@ tr:hover td{background:rgba(14,18,41,.8)}
   .reg-kpi-item:nth-child(4){border-right:1px solid rgba(30,37,64,.6)}
 }
 @media(max-width:640px){
-  .reg-toolbar{gap:6px}
+  .reg-toolbar{gap:5px}
   .reg-tabs{width:100%;justify-content:space-between}
-  .reg-tab{flex:1;justify-content:center;padding:6px 8px;font-size:10px}
-  .reg-kpi-bar{grid-template-columns:repeat(2,1fr)}
-  .reg-kpi-item:nth-child(even){border-right:none}
-  .reg-kpi-item:nth-child(odd):not(:nth-child(5)){border-right:1px solid rgba(30,37,64,.6)}
+  .reg-tab{flex:1;justify-content:center;padding:7px 4px;font-size:10px}
+  .reg-kpi-bar{grid-template-columns:repeat(3,1fr)}
+  .reg-kpi-item:nth-child(3n){border-right:none}
+  .reg-nav-bar{gap:6px}
+  .reg-pair-sel{min-width:100px;font-size:10px}
 }
 
 <!-- ═══════════════════════════════════════════════════════════
