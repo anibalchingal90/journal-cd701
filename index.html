@@ -265,6 +265,37 @@ tr:hover td{background:rgba(14,18,41,.8)}
 
 @media(max-width:900px){.cal-layout{grid-template-columns:1fr}.cal-side{width:100%}.g2{grid-template-columns:1fr}.msum{flex-wrap:wrap}.msc{min-width:45%}}
 
+/* ── REGISTRO SPLIT LAYOUT ── */
+.reg-split{display:flex!important;gap:14px;align-items:flex-start}
+#reg-main-col{flex:1;min-width:0}
+#reg-right-panel{width:300px;flex-shrink:0;position:sticky;top:0;max-height:calc(100vh - 80px);overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.rp-card{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:14px;position:relative;overflow:hidden}
+.rp-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(99,102,241,.04),transparent 60%);pointer-events:none}
+.rp-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 16px;text-align:center;color:var(--gray2)}
+.rp-placeholder svg{opacity:.3;margin-bottom:12px}
+.rp-badge{display:inline-flex;align-items:center;gap:5px;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;font-family:'Exo 2',sans-serif}
+.rp-badge.win{background:rgba(0,229,176,.15);border:1px solid rgba(0,229,176,.3);color:var(--green)}
+.rp-badge.loss{background:rgba(255,56,96,.15);border:1px solid rgba(255,56,96,.3);color:var(--red)}
+.rp-pnl{font-family:'Exo 2',sans-serif;font-size:22px;font-weight:900}
+.rp-pnl.pos{color:var(--green);text-shadow:0 0 16px rgba(0,229,176,.4)}
+.rp-pnl.neg{color:var(--red);text-shadow:0 0 16px rgba(255,56,96,.4)}
+.rp-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(30,37,64,.4)}
+.rp-row:last-child{border-bottom:none}
+.rp-icon{width:26px;height:26px;border-radius:6px;background:var(--card2);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.rp-label{font-size:8px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;font-family:'Exo 2',sans-serif}
+.rp-val{font-size:11px;color:var(--text);font-weight:500}
+.rp-mini-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin:10px 0}
+.rp-mini{background:var(--card2);border-radius:8px;border:1px solid var(--bdr);padding:8px;text-align:center}
+.rp-mini-l{font-size:8px;color:var(--gray2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px;font-family:'Exo 2',sans-serif}
+.rp-mini-v{font-size:13px;font-weight:700;font-family:'Exo 2',sans-serif;color:var(--text)}
+.rp-img-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:8px}
+.rp-img-thumb{aspect-ratio:1;border-radius:7px;overflow:hidden;border:1px solid var(--bdr);cursor:zoom-in;background:var(--bg2)}
+.rp-img-thumb img{width:100%;height:100%;object-fit:cover}
+.rp-link{display:flex;align-items:center;gap:6px;background:var(--blueglow);border:1px solid rgba(67,97,238,.25);border-radius:6px;padding:4px 8px;margin-top:4px;font-size:10px;color:#818cf8;cursor:pointer;text-decoration:none;transition:all .2s;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.rp-link:hover{background:rgba(99,102,241,.2)}
+@media(max-width:1100px){#reg-right-panel{width:250px}}
+@media(max-width:860px){.reg-split{flex-direction:column}#reg-right-panel{width:100%;position:static;max-height:none}}
+
 /* ── MOBILE NAV BAR (oculto en desktop) ── */
 #mob-nav{display:none}
 #mob-drawer{display:none}
@@ -676,7 +707,9 @@ tr:hover td{background:rgba(14,18,41,.8)}
   </div>
 
   <!-- ═══ REGISTRO ═══ -->
-  <div id="tab-registro" class="tsec">
+  <div id="tab-registro" class="tsec reg-split">
+  <!-- LEFT: main column -->
+  <div id="reg-main-col">
 
     <!-- ── TOOLBAR: tabs + acciones ── -->
     <div class="reg-toolbar">
@@ -819,7 +852,27 @@ tr:hover td{background:rgba(14,18,41,.8)}
         <button class="btn btn-r" id="del-all-btn" onclick="delAll()" style="justify-content:center;font-size:11px;padding:8px 18px">🗑 Borrar todo el registro de esta cuenta</button>
       </div>
     </div>
-  </div>
+  </div><!-- /reg-main-col -->
+
+  <!-- RIGHT: permanent detail panel -->
+  <div id="reg-right-panel">
+    <div class="rp-card" id="rp-main">
+      <div class="rp-placeholder" id="rp-placeholder">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40">
+          <rect x="6" y="6" width="36" height="36" rx="4"/>
+          <line x1="6" y1="16" x2="42" y2="16"/>
+          <line x1="16" y1="6" x2="16" y2="42"/>
+          <circle cx="30" cy="30" r="7"/>
+          <line x1="35" y1="35" x2="40" y2="40"/>
+        </svg>
+        <div style="font-size:12px;font-weight:600;color:var(--gray2);margin-bottom:4px">Sin operación seleccionada</div>
+        <div style="font-size:10px;color:var(--gray);line-height:1.6">Haz clic en cualquier operación del calendario o la tabla para ver el detalle aquí</div>
+      </div>
+      <div id="rp-content" style="display:none"></div>
+    </div>
+  </div><!-- /reg-right-panel -->
+
+  </div><!-- /tab-registro -->
 
   <!-- ═══ ESTADÍSTICAS ═══ -->
   <div id="tab-stats" class="tsec">
@@ -4578,13 +4631,17 @@ button:active, [onclick]:active, .ni:active, .cal-nav-btn:active, .rb:active, .t
       </label>
       <div id="form-img-preview" class="img-gallery" style="min-height:0"></div>
       <div style="display:flex;gap:6px;margin-top:8px">
-        <label style="flex:1;cursor:pointer">
+        <label style="cursor:pointer">
           <div class="img-add-btn" style="aspect-ratio:auto;padding:10px;flex-direction:row;gap:8px;border-radius:8px">
             <span style="font-size:16px">📁</span>
-            <span style="font-size:11px">Subir desde dispositivo</span>
+            <span style="font-size:11px">Dispositivo</span>
           </div>
           <input type="file" id="f-img-file" accept="image/*" multiple style="display:none" onchange="handleImgUpload(this)">
         </label>
+        <div style="flex:1;display:flex;gap:5px;align-items:stretch">
+          <input type="url" id="f-img-url" class="fi" placeholder="URL de imagen (TradingView, etc.)" style="flex:1;font-size:11px" onkeydown="if(event.key==='Enter'){event.preventDefault();addImgFromURL();}">
+          <button class="btn" style="padding:9px 10px;white-space:nowrap;font-size:11px" onclick="addImgFromURL()">+ URL</button>
+        </div>
       </div>
     </div>
     <!-- ENLACES -->
@@ -4640,8 +4697,10 @@ window._formImages = [];
 window._formLinks  = [];
 
 window.setMediaTab = function(tab) {
-  document.getElementById('media-imgs-panel').style.display = tab==='imgs' ? 'block' : 'none';
-  document.getElementById('media-links-panel').style.display = tab==='links' ? 'block' : 'none';
+  var ip=document.getElementById('media-imgs-panel');
+  var lp=document.getElementById('media-links-panel');
+  if(ip) ip.style.display = tab==='imgs' ? 'block' : 'none';
+  if(lp) lp.style.display = tab==='links' ? 'block' : 'none';
   var bi=document.getElementById('mtab-imgs'),bl=document.getElementById('mtab-links');
   if(bi){ bi.className='media-tab-btn'+(tab==='imgs'?' act':''); }
   if(bl){ bl.className='media-tab-btn'+(tab==='links'?' act':''); }
@@ -4723,7 +4782,13 @@ function resetFormMedia(trade) {
 // ── Open/Close new op panel ───────────────────────────
 window.openNewOpPanel = function(trade) {
   window._playClick && window._playClick();
-  resetFormMedia(trade||null);
+  // Reinicializar imágenes y links usando el sistema correcto del formulario
+  window._tradeImages = (trade && trade.images) ? trade.images.slice() : [];
+  window._tradeLinks  = (trade && trade.links)  ? trade.links.slice()  : [];
+  if(typeof renderFormImages === 'function') renderFormImages();
+  if(typeof renderFormLinks  === 'function') renderFormLinks();
+  var ft = document.getElementById('form-title-modal');
+  if(ft) ft.textContent = trade ? '✏ Editar Operación' : '✦ Nueva Operación';
   document.getElementById('new-op-modal').classList.add('show');
 };
 window.closeNewOpPanel = function() {
@@ -4734,6 +4799,97 @@ window.closeNewOpPanel = function() {
 var _currentTrade = null;
 var _dayTrades = [];
 var _dayTradeIdx = 0;
+
+// ── Populate permanent right panel ───────────────────
+function populateRegRightPanel(trade) {
+  var ph  = document.getElementById('rp-placeholder');
+  var cnt = document.getElementById('rp-content');
+  if(!ph || !cnt) return;
+  if(!trade) { ph.style.display='flex'; cnt.style.display='none'; return; }
+
+  ph.style.display = 'none';
+  cnt.style.display = 'block';
+
+  var isWin = trade.result === 'TP';
+  var pnl   = trade.pnl || 0;
+  var images = trade.images || [];
+  var links  = trade.links  || [];
+
+  var acctName = '—';
+  try { var accts=getAccounts(); var act=getActiveId(); var found=accts.find(function(a){return a.id===act;}); if(found) acctName=found.name; } catch(e){}
+
+  var html = '';
+
+  // Badge + PnL
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
+  html += '<span class="rp-badge '+(isWin?'win':'loss')+'">'+(isWin?'✓ TP (Ganadora)':'✕ SL (Perdedora)')+'</span>';
+  html += '<span class="rp-pnl '+(pnl>=0?'pos':'neg')+'">'+(pnl>=0?'+$':'-$')+Math.abs(pnl).toFixed(2)+'</span>';
+  html += '</div>';
+
+  // Asset header
+  html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:10px;background:var(--card2);border-radius:10px;border:1px solid var(--bdr)">';
+  html += '<div style="width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;font-family:\'Exo 2\',sans-serif;flex-shrink:0">'+(trade.asset||'?').substring(0,2)+'</div>';
+  html += '<div><div style="font-size:14px;font-weight:900;font-family:\'Exo 2\',sans-serif;color:var(--text)">'+(trade.asset||'—')+'</div>';
+  html += '<div style="font-size:10px;color:'+(trade.direction==='BUY'?'var(--green)':'var(--red)')+'">'+( trade.direction==='BUY'?'▲ Long':'▼ Short')+'</div></div>';
+  if(trade.time) html += '<div style="margin-left:auto;font-size:11px;color:var(--gray2);font-family:\'JetBrains Mono\',monospace">'+(trade.date||'').slice(5)+' '+trade.time+'</div>';
+  html += '</div>';
+
+  // Mini grid: Entrada / Salida / Pips / RR
+  html += '<div class="rp-mini-grid">';
+  html += '<div class="rp-mini"><div class="rp-mini-l">Entrada</div><div class="rp-mini-v" style="font-size:11px">'+(trade.entry||'—')+'</div></div>';
+  html += '<div class="rp-mini"><div class="rp-mini-l">Salida</div><div class="rp-mini-v" style="font-size:11px">'+(trade.exit||'—')+'</div></div>';
+  html += '<div class="rp-mini"><div class="rp-mini-l">Pips</div><div class="rp-mini-v">'+(trade.pips||'—')+'</div></div>';
+  html += '<div class="rp-mini"><div class="rp-mini-l">RR</div><div class="rp-mini-v">'+(trade.rr?'1:'+trade.rr:'—')+'</div></div>';
+  html += '</div>';
+
+  // Detail rows
+  html += '<div style="background:var(--card2);border-radius:10px;border:1px solid var(--bdr);padding:2px 0;margin-bottom:10px">';
+  function rpRow(icon,lbl,val){ return '<div class="rp-row"><div class="rp-icon">'+icon+'</div><div style="flex:1"><div class="rp-label">'+lbl+'</div><div class="rp-val">'+val+'</div></div></div>'; }
+  html += rpRow('🏠','Cuenta', acctName);
+  html += rpRow('📅','Fecha', (trade.date||'—')+(trade.time?' '+trade.time:''));
+  html += rpRow('⏱','Timeframe', trade.tf||'—');
+  html += rpRow('🎯','Estrategia', trade.strategy||'—');
+  html += rpRow('🌍','Sesión', trade.session||'—');
+  if(trade.volume) html += rpRow('📊','Volumen', trade.volume+' lotes');
+  if(trade.commission) html += rpRow('💸','Comisión', '$'+trade.commission);
+  html += '</div>';
+
+  // Notes
+  if(trade.notes) {
+    html += '<div style="background:var(--card2);border:1px solid var(--bdr);border-radius:10px;padding:10px;margin-bottom:10px;font-size:11px;color:var(--text2);line-height:1.6">';
+    html += '<div style="font-size:8px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;font-family:\'Exo 2\',sans-serif">📝 Notas</div>';
+    html += trade.notes;
+    html += '</div>';
+  }
+
+  // Images
+  if(images.length) {
+    html += '<div style="margin-bottom:10px">';
+    html += '<div style="font-size:8px;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px;font-family:\'Exo 2\',sans-serif;display:flex;align-items:center;gap:6px">Capturas <span style="background:rgba(124,58,237,.2);color:var(--purp);border-radius:10px;padding:1px 7px;font-size:9px">'+images.length+'</span></div>';
+    html += '<div class="rp-img-grid">';
+    images.forEach(function(img) {
+      html += '<div class="rp-img-thumb" onclick="openLightbox(\''+img.src.replace(/'/g,"\\'")+'\')">';
+      html += '<img src="'+img.src+'" loading="lazy" onerror="this.parentElement.style.background=\'var(--bdr)\'" style="width:100%;height:100%;object-fit:cover">';
+      html += '</div>';
+    });
+    html += '</div></div>';
+  }
+
+  // Links
+  if(links.length) {
+    html += '<div>';
+    html += '<div style="font-size:8px;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px;font-family:\'Exo 2\',sans-serif;display:flex;align-items:center;gap:6px">Enlaces <span style="background:rgba(77,159,255,.15);color:var(--blue);border-radius:10px;padding:1px 7px;font-size:9px">'+links.length+'</span></div>';
+    links.forEach(function(lk) {
+      var url = typeof lk === 'string' ? lk : (lk.url || lk);
+      var short = url.replace(/^https?:\/\//,'').substring(0,40);
+      html += '<a class="rp-link" href="'+url+'" target="_blank" rel="noopener">🔗 '+short+'</a>';
+    });
+    html += '</div>';
+  }
+
+  cnt.innerHTML = html;
+}
+
 
 window.tdpNavigate = function(dir) {
   if(!_dayTrades.length) return;
@@ -4749,6 +4905,9 @@ window.openTDP = function(trade, dayList, idx) {
   var body = document.getElementById('tdp-body');
   var title = document.getElementById('tdp-title');
   window._playClick && window._playClick();
+
+  // Update permanent right panel (always)
+  populateRegRightPanel(trade);
 
   var isWin = trade.result === 'TP';
   var pnl = trade.pnl || 0;
@@ -5062,6 +5221,17 @@ document.addEventListener('click',function(e){
 // ── Image & Link handling ─────────────────────────────
 window._tradeImages = [];
 window._tradeLinks = [];
+
+// Agregar imagen por URL
+window.addImgFromURL = function() {
+  var inp = document.getElementById('f-img-url');
+  var url = (inp ? inp.value : '').trim();
+  if(!url) return;
+  if(!url.startsWith('http')) url = 'https://' + url;
+  window._tradeImages.push({ src: url, name: url.split('/').pop().split('?')[0] || 'Imagen', type: 'url' });
+  if(inp) inp.value = '';
+  renderFormImages();
+};
 
 window.handleImgUpload = function(input) {
   var files = Array.from(input.files);
