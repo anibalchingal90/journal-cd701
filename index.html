@@ -5717,4 +5717,98 @@ console.log('[TradeTrack] 🚀 Premium UI cargado');
   CREATE POLICY "public_access" ON journal_data FOR ALL USING (true) WITH CHECK (true);
 -->
 
+<script>
+// ════════════════════════════════════════════════════════════
+//  BOTÓN NUEVA OPERACIÓN — ENLACE DIRECTO GARANTIZADO
+//  Este script corre al final, después de todo lo demás.
+//  No depende de initApp ni del sistema de licencias.
+// ════════════════════════════════════════════════════════════
+(function() {
+  function hookNewOpButton() {
+    var btn = document.querySelector('.btn-new-op');
+    var modal = document.getElementById('new-op-modal');
+    if (!btn || !modal) return false;
+
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+
+      // Resetear editId si existe
+      if (typeof window.editId !== 'undefined') window.editId = null;
+      if (typeof window.curR !== 'undefined') { window.curR = 'TP'; }
+      if (typeof window.curD !== 'undefined') { window.curD = 'BUY'; }
+
+      // Setear botones TP/SL y BUY/SELL visualmente
+      var btnTP = document.getElementById('btn-tp');
+      var btnSL = document.getElementById('btn-sl');
+      if (btnTP) btnTP.className = 'rb atp';
+      if (btnSL) btnSL.className = 'rb';
+      var btnBUY = document.getElementById('btn-buy');
+      var btnSELL = document.getElementById('btn-sell');
+      if (btnBUY) btnBUY.className = 'db abd';
+      if (btnSELL) btnSELL.className = 'db';
+
+      // Setear fecha y hora de hoy
+      var now = new Date();
+      var yy = now.getFullYear();
+      var mm = String(now.getMonth() + 1).padStart(2, '0');
+      var dd = String(now.getDate()).padStart(2, '0');
+      var hh = String(now.getHours()).padStart(2, '0');
+      var dateStr = yy + '-' + mm + '-' + dd;
+
+      var fDate = document.getElementById('f-date');
+      var fDay  = document.getElementById('f-day');
+      var fMon  = document.getElementById('f-month');
+      var fYr   = document.getElementById('f-year');
+      var fTime = document.getElementById('f-time');
+      var fHour = document.getElementById('f-hour');
+      var fMin  = document.getElementById('f-min');
+
+      if (fDate) fDate.value = dateStr;
+      if (fDay)  fDay.value  = dd;
+      if (fMon)  fMon.value  = mm;
+      if (fYr)   fYr.value   = String(yy);
+      if (fTime) fTime.value = hh + ':00';
+      if (fHour) fHour.value = hh;
+      if (fMin)  fMin.value  = '00';
+
+      // Activo: primer elemento si no hay ninguno
+      var fAsset = document.getElementById('f-asset');
+      if (fAsset && !fAsset.value && fAsset.options.length > 0) fAsset.selectedIndex = 0;
+
+      // Limpiar campos de resultado anterior
+      var fPnl = document.getElementById('f-pnl');
+      var fNotes = document.getElementById('f-notes');
+      var pnlPrev = document.getElementById('pnl-prev');
+      if (fPnl) fPnl.value = '';
+      if (fNotes) fNotes.value = '';
+      if (pnlPrev) pnlPrev.textContent = '';
+
+      // Título del modal
+      var title = document.getElementById('form-title-modal');
+      if (title) title.textContent = '✦ Nueva Operación';
+
+      // Resetear imágenes y links
+      window._formImages = [];
+      window._formLinks = [];
+      window._tradeImages = [];
+      window._tradeLinks = [];
+
+      // Abrir el modal
+      modal.classList.add('show');
+    }, true); // useCapture=true para máxima prioridad
+
+    console.log('[CD701] ✓ Botón Nueva Operación enlazado directamente');
+    return true;
+  }
+
+  // Intentar inmediatamente
+  if (!hookNewOpButton()) {
+    // Si el DOM no está listo, esperar
+    document.addEventListener('DOMContentLoaded', hookNewOpButton);
+    // También intentar después de 1s por si acaso
+    setTimeout(hookNewOpButton, 1000);
+  }
+})();
+</script>
+
 </html>
