@@ -277,7 +277,8 @@ tr:hover td{background:rgba(14,18,41,.8)}
 #reg-right-panel{
   width:340px;flex-shrink:0;
   position:sticky;top:0;
-  height:calc(100vh - 56px);
+  align-self:flex-start;
+  max-height:calc(100vh - 56px);
   overflow-y:auto;
   display:flex;flex-direction:column;gap:10px;
   padding-bottom:20px;
@@ -857,12 +858,6 @@ tr:hover td{background:rgba(14,18,41,.8)}
             </thead>
             <tbody id="day-trades"></tbody>
           </table>
-          <div style="padding:10px 14px;border-top:1px solid var(--bdr)">
-            <button class="reg-add-inline-btn" onclick="openNewOpPanel()">
-              <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><line x1="7" y1="1" x2="7" y2="13"/><line x1="1" y1="7" x2="13" y2="7"/></svg>
-              Nueva operación
-            </button>
-          </div>
         </div>
       </div>
     </div>
@@ -4975,19 +4970,23 @@ function resetFormMedia(trade) {
 // ── Open/Close new op panel ───────────────────────────
 window.openNewOpPanel = function(trade) {
   window._playClick && window._playClick();
-  // Solo resetear media si NO venimos de editTrade (que ya lo cargó)
+  // Inicializar imágenes y links
   if(!trade || !trade._skipMediaInit) {
     window._tradeImages = (trade && trade.images) ? trade.images.slice() : [];
     window._tradeLinks  = (trade && trade.links)  ? trade.links.slice()  : [];
     if(typeof renderFormImages === 'function') renderFormImages();
     if(typeof renderFormLinks  === 'function') renderFormLinks();
   }
-  // Asegurar fecha si no está seteada
-  var fd = g('f-date');
-  if(fd && !fd.value) { fd.value = tod(); if(typeof syncSelectsFromHidden==='function') syncSelectsFromHidden(); }
-  // Asegurar activo
+  // Siempre asegurar fecha válida al abrir para nueva operación
+  if(editId === null) {
+    var fd = g('f-date');
+    if(fd) { fd.value = tod(); }
+    if(typeof syncSelectsFromHidden === 'function') syncSelectsFromHidden();
+  }
+  // Asegurar que haya un activo seleccionado
   var fa = g('f-asset');
   if(fa && !fa.value && fa.options && fa.options.length > 0) fa.selectedIndex = 0;
+  // Título del modal
   var ft = g('form-title-modal');
   if(ft) ft.textContent = (editId !== null) ? '✏ Editar Operación' : '✦ Nueva Operación';
   document.getElementById('new-op-modal').classList.add('show');
