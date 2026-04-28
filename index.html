@@ -5724,36 +5724,49 @@ console.log('[TradeTrack] 🚀 Premium UI cargado');
 //  No depende de initApp ni del sistema de licencias.
 // ════════════════════════════════════════════════════════════
 (function() {
-  function hookNewOpButton() {
-    var btn = document.querySelector('.btn-new-op');
+  var _hooked = false;
+
+  function closeModal() {
+    var modal = document.getElementById('new-op-modal');
+    if (modal) modal.classList.remove('show');
+  }
+
+  // Sobreescribir closeNewOpPanel para que use nuestra función directa
+  window.closeNewOpPanel = function() { closeModal(); };
+
+  function hookAll() {
+    if (_hooked) return true;
+    var btn   = document.querySelector('.btn-new-op');
     var modal = document.getElementById('new-op-modal');
     if (!btn || !modal) return false;
+    _hooked = true;
 
+    // ── ABRIR modal ──────────────────────────────────────────
     btn.addEventListener('click', function(e) {
       e.stopPropagation();
 
-      // Resetear editId si existe
       if (typeof window.editId !== 'undefined') window.editId = null;
-      if (typeof window.curR !== 'undefined') { window.curR = 'TP'; }
-      if (typeof window.curD !== 'undefined') { window.curD = 'BUY'; }
+      if (typeof window.curR  !== 'undefined') window.curR   = 'TP';
+      if (typeof window.curD  !== 'undefined') window.curD   = 'BUY';
 
-      // Setear botones TP/SL y BUY/SELL visualmente
+      // TP/SL buttons
       var btnTP = document.getElementById('btn-tp');
       var btnSL = document.getElementById('btn-sl');
       if (btnTP) btnTP.className = 'rb atp';
       if (btnSL) btnSL.className = 'rb';
-      var btnBUY = document.getElementById('btn-buy');
+
+      // BUY/SELL buttons
+      var btnBUY  = document.getElementById('btn-buy');
       var btnSELL = document.getElementById('btn-sell');
-      if (btnBUY) btnBUY.className = 'db abd';
+      if (btnBUY)  btnBUY.className  = 'db abd';
       if (btnSELL) btnSELL.className = 'db';
 
-      // Setear fecha y hora de hoy
+      // Fecha y hora de hoy
       var now = new Date();
-      var yy = now.getFullYear();
-      var mm = String(now.getMonth() + 1).padStart(2, '0');
-      var dd = String(now.getDate()).padStart(2, '0');
-      var hh = String(now.getHours()).padStart(2, '0');
-      var dateStr = yy + '-' + mm + '-' + dd;
+      var yy  = now.getFullYear();
+      var mm  = String(now.getMonth() + 1).padStart(2, '0');
+      var dd  = String(now.getDate()).padStart(2, '0');
+      var hh  = String(now.getHours()).padStart(2, '0');
 
       var fDate = document.getElementById('f-date');
       var fDay  = document.getElementById('f-day');
@@ -5763,7 +5776,7 @@ console.log('[TradeTrack] 🚀 Premium UI cargado');
       var fHour = document.getElementById('f-hour');
       var fMin  = document.getElementById('f-min');
 
-      if (fDate) fDate.value = dateStr;
+      if (fDate) fDate.value = yy + '-' + mm + '-' + dd;
       if (fDay)  fDay.value  = dd;
       if (fMon)  fMon.value  = mm;
       if (fYr)   fYr.value   = String(yy);
@@ -5771,43 +5784,72 @@ console.log('[TradeTrack] 🚀 Premium UI cargado');
       if (fHour) fHour.value = hh;
       if (fMin)  fMin.value  = '00';
 
-      // Activo: primer elemento si no hay ninguno
+      // Activo por defecto
       var fAsset = document.getElementById('f-asset');
       if (fAsset && !fAsset.value && fAsset.options.length > 0) fAsset.selectedIndex = 0;
 
-      // Limpiar campos de resultado anterior
-      var fPnl = document.getElementById('f-pnl');
-      var fNotes = document.getElementById('f-notes');
+      // Limpiar campos
+      var fPnl    = document.getElementById('f-pnl');
+      var fNotes  = document.getElementById('f-notes');
       var pnlPrev = document.getElementById('pnl-prev');
-      if (fPnl) fPnl.value = '';
-      if (fNotes) fNotes.value = '';
-      if (pnlPrev) pnlPrev.textContent = '';
+      if (fPnl)    fPnl.value           = '';
+      if (fNotes)  fNotes.value         = '';
+      if (pnlPrev) pnlPrev.textContent  = '';
 
-      // Título del modal
+      // Título
       var title = document.getElementById('form-title-modal');
       if (title) title.textContent = '✦ Nueva Operación';
 
       // Resetear imágenes y links
-      window._formImages = [];
-      window._formLinks = [];
+      window._formImages  = [];
+      window._formLinks   = [];
       window._tradeImages = [];
-      window._tradeLinks = [];
+      window._tradeLinks  = [];
 
-      // Abrir el modal
       modal.classList.add('show');
-    }, true); // useCapture=true para máxima prioridad
+    });
 
-    console.log('[CD701] ✓ Botón Nueva Operación enlazado directamente');
+    // ── CERRAR con botón X (mcl dentro del modal) ────────────
+    var closeBtn = modal.querySelector('.mcl');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        closeModal();
+      });
+    }
+
+    // ── CERRAR haciendo clic en el fondo oscuro ──────────────
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) closeModal();
+    });
+
+    // ── CERRAR con Escape ────────────────────────────────────
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    // ── CERRAR botón Cancelar ────────────────────────────────
+    var cancelBtn = document.getElementById('btn-cancel');
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (typeof window.cancelEdit === 'function') window.cancelEdit();
+        closeModal();
+      });
+    }
+
+    console.log('[CD701] ✓ Modal Nueva Operación — abrir y cerrar enlazados');
     return true;
   }
 
-  // Intentar inmediatamente
-  if (!hookNewOpButton()) {
-    // Si el DOM no está listo, esperar
-    document.addEventListener('DOMContentLoaded', hookNewOpButton);
-    // También intentar después de 1s por si acaso
-    setTimeout(hookNewOpButton, 1000);
+  // Ejecutar cuando el DOM esté disponible
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', hookAll);
+  } else {
+    hookAll();
   }
+  // Respaldo por si acaso
+  setTimeout(hookAll, 500);
 })();
 </script>
 
