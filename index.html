@@ -110,10 +110,11 @@ body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(r
 .fi:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.12)}
 .fi-lg{font-size:18px;font-weight:700;padding:11px;font-family:'Exo 2',sans-serif}
 .fg2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.rbw{display:flex;gap:7px}
-.rb{flex:1;padding:11px 10px;border-radius:9px;border:1px solid var(--bdr2);background:var(--card2);color:var(--text2);font-size:12px;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;font-family:'Exo 2',sans-serif;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;gap:5px}
-.rb.atp{border-color:var(--green);background:var(--gd);color:var(--green);box-shadow:var(--glow-g)}
-.rb.asl{border-color:var(--red);background:var(--rd);color:var(--red);box-shadow:var(--glow-r)}
+.rbw{display:flex;gap:7px;width:100%}
+.rb{flex:1;padding:11px 10px;border-radius:9px;border:2px solid var(--bdr3);background:rgba(255,255,255,.06);color:var(--text);font-size:12px;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;font-family:'Exo 2',sans-serif;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;gap:5px;min-height:44px}
+.rb:hover{border-color:var(--bdr3);background:rgba(255,255,255,.1)}
+.rb.atp{border-color:var(--green);background:rgba(0,229,176,.15);color:var(--green);box-shadow:var(--glow-g)}
+.rb.asl{border-color:var(--red);background:rgba(255,56,96,.15);color:var(--red);box-shadow:var(--glow-r)}
 .rb.abuy{border-color:var(--green);background:rgba(0,229,176,.15);color:var(--green);box-shadow:0 0 12px rgba(0,229,176,.2)}
 .rb.asell{border-color:var(--red);background:rgba(255,56,96,.15);color:var(--red);box-shadow:0 0 12px rgba(255,56,96,.2)}
 /* CALENDAR LAYOUT */
