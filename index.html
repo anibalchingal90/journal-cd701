@@ -105,17 +105,17 @@ body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(r
 .cw{position:relative;height:170px;margin-top:8px}
 /* FORM */
 .fg{margin-bottom:12px}
-.fl{display:block;font-size:9px;font-weight:700;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:5px;font-family:'Exo 2',sans-serif}
-.fi{width:100%;background:var(--bg2);color:var(--text);border:1px solid var(--bdr);border-radius:9px;padding:9px 11px;font-size:12px;outline:none;font-family:'DM Sans',inherit;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none}
+.fl{display:block;font-size:10px;font-weight:700;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:5px;font-family:'Exo 2',sans-serif}
+.fi{width:100%;background:var(--bg2);color:var(--text);border:1px solid var(--bdr);border-radius:9px;padding:10px 12px;font-size:13px;outline:none;font-family:'DM Sans',inherit;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none}
 .fi:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.12)}
 .fi-lg{font-size:18px;font-weight:700;padding:11px;font-family:'Exo 2',sans-serif}
 .fg2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .rbw{display:flex;gap:7px}
-.rb{flex:1;padding:10px;border-radius:9px;border:1px solid var(--bdr);background:var(--bg2);color:var(--gray2);font-size:11px;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;font-family:'Exo 2',sans-serif;letter-spacing:.5px}
+.rb{flex:1;padding:10px;border-radius:9px;border:1px solid var(--bdr);background:var(--bg2);color:var(--gray2);font-size:12px;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;font-family:'Exo 2',sans-serif;letter-spacing:.5px}
 .rb.atp{border-color:var(--green);background:var(--gd);color:var(--green);box-shadow:var(--glow-g)}
 .rb.asl{border-color:var(--red);background:var(--rd);color:var(--red);box-shadow:var(--glow-r)}
-.rb.abuy{border-color:var(--accent);background:var(--blueglow);color:#818cf8}
-.rb.asell{border-color:var(--gold);background:rgba(247,201,72,.08);color:var(--gold)}
+.rb.abuy{border-color:var(--green);background:rgba(0,229,176,.15);color:var(--green);box-shadow:0 0 12px rgba(0,229,176,.2)}
+.rb.asell{border-color:var(--red);background:rgba(255,56,96,.15);color:var(--red);box-shadow:0 0 12px rgba(255,56,96,.2)}
 /* CALENDAR LAYOUT */
 .cal-layout{display:grid;grid-template-columns:1fr 280px;gap:16px}
 .cal-main{min-width:0}
@@ -188,9 +188,9 @@ tr:hover td{background:rgba(14,18,41,.8)}
 /* TOAST */
 #toast{position:fixed;bottom:20px;right:20px;background:var(--card2);border:1px solid var(--bdr2);border-radius:12px;padding:12px 18px;font-size:12px;font-weight:600;z-index:99999;display:none;box-shadow:0 8px 40px rgba(0,0,0,.6);min-width:220px}
 /* MODAL */
-.mo{position:fixed;inset:0;background:rgba(5,7,18,.9);z-index:10000;display:none;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto;backdrop-filter:blur(8px)}
+.mo{position:fixed;inset:0;background:rgba(2,4,14,.96);z-index:10000;display:none;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
 .mo.show{display:flex}
-.mb{background:var(--card);border-radius:16px;padding:24px;max-width:460px;width:100%;border:1px solid var(--bdr2);margin:auto;box-shadow:0 0 80px rgba(99,102,241,.15)}
+.mb{background:var(--card);border-radius:16px;padding:20px;max-width:420px;width:100%;border:1px solid var(--bdr2);margin:auto;box-shadow:0 0 80px rgba(99,102,241,.2)}
 .mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
 .mt2{font-weight:800;font-size:15px;color:var(--cyan);font-family:'Exo 2',sans-serif}
 .mcl{background:none;border:none;color:var(--gray2);cursor:pointer;font-size:22px;line-height:1;transition:color .2s}
@@ -4365,7 +4365,7 @@ function initApp(){
   // Fecha de hoy
   var today=new Date();
   selDay=today.getDate();
-  g('f-date').value=tod();
+  if(g('f-date')) g('f-date').value=tod();
   g('f-time').value='08:00';
   setR('TP');setDir('BUY');
   setSTab('exp');
@@ -4719,7 +4719,7 @@ button:active, [onclick]:active, .ni:active, .cal-nav-btn:active, .rb:active, .t
 ════════════════════════════════════════════════════════════ -->
 <!-- NEW OPERATION PANEL (modal) -->
 <div id="new-op-modal" class="mo">
-  <div class="mb" style="max-width:560px;max-height:90vh;overflow-y:auto">
+  <div class="mb" style="max-height:88vh;overflow-y:auto">
     <div class="mh" style="position:sticky;top:0;background:var(--card);padding-bottom:12px;z-index:2">
       <span class="mt2" id="form-title-modal">✦ Nueva Operación</span>
       <button class="mcl" onclick="closeNewOpPanel()">✕</button>
@@ -4772,17 +4772,6 @@ button:active, [onclick]:active, .ni:active, .cal-nav-btn:active, .rb:active, .t
       </div>
       <div class="fg" style="margin:0"><label class="fl">Precio de Salida</label>
         <input type="text" id="f-exit" class="fi" placeholder="Ej: 1.08950" inputmode="decimal">
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
-      <div class="fg" style="margin:0"><label class="fl">Pips</label>
-        <input type="number" id="f-pips" class="fi" placeholder="20.5" step="0.1">
-      </div>
-      <div class="fg" style="margin:0"><label class="fl">Volumen (lots)</label>
-        <input type="text" id="f-volume" class="fi" placeholder="0.50" inputmode="decimal">
-      </div>
-      <div class="fg" style="margin:0"><label class="fl">Comisión ($)</label>
-        <input type="number" id="f-commission" class="fi" placeholder="-2.50" step="0.01">
       </div>
     </div>
     <div class="fg2" style="margin-bottom:12px">
