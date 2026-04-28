@@ -277,8 +277,7 @@ tr:hover td{background:rgba(14,18,41,.8)}
 #reg-right-panel{
   width:340px;flex-shrink:0;
   position:sticky;top:0;
-  align-self:flex-start;
-  max-height:calc(100vh - 56px);
+  height:calc(100vh - 56px);
   overflow-y:auto;
   display:flex;flex-direction:column;gap:10px;
   padding-bottom:20px;
@@ -2258,26 +2257,30 @@ function saveTrade(){
   var date=g('f-date').value, pnl=pN(g('f-pnl').value);
   if(!date){toast('Selecciona una fecha','var(--red)');return;}
   if(pnl===null){toast('Ingresa un monto válido','var(--red)');return;}
+  // Unificar arrays de imágenes (_formImages y _tradeImages apuntan al mismo contenido)
+  var imgs = (window._formImages && window._formImages.length) ? window._formImages : (window._tradeImages || []);
+  var lnks = (window._formLinks  && window._formLinks.length)  ? window._formLinks  : (window._tradeLinks  || []);
   if(editId!==null){
     var idx=S.trades.findIndex(function(t){return t.id===editId;});
-    if(idx>=0) S.trades[idx]=Object.assign({},S.trades[idx],{date:date,time:g('f-time').value,asset:g('f-asset').value,result:curR,direction:curD,pnl:pnl,strategy:g('f-strategy').value,notes:g('f-notes').value,tf:g('f-tf').value,session:g('f-session').value,rr:parseFloat(g('f-rr').value)||0,tags:g('f-tags').value,entry:g('f-entry')?g('f-entry').value:'',exit:g('f-exit')?g('f-exit').value:'',pips:parseFloat(g('f-pips')?g('f-pips').value:'')||0,volume:g('f-volume')?g('f-volume').value:'',commission:parseFloat(g('f-commission')?g('f-commission').value:'')||0,images:window._tradeImages||[],links:window._tradeLinks||[]});
-    window._tradeImages=[];window._tradeLinks=[];
+    if(idx>=0) S.trades[idx]=Object.assign({},S.trades[idx],{date:date,time:g('f-time').value,asset:g('f-asset').value,result:curR,direction:curD,pnl:pnl,strategy:g('f-strategy').value,notes:g('f-notes').value,tf:g('f-tf').value,session:g('f-session').value,rr:parseFloat(g('f-rr').value)||0,tags:g('f-tags').value,entry:g('f-entry')?g('f-entry').value:'',exit:g('f-exit')?g('f-exit').value:'',pips:parseFloat(g('f-pips')?g('f-pips').value:'')||0,volume:g('f-volume')?g('f-volume').value:'',commission:parseFloat(g('f-commission')?g('f-commission').value:'')||0,images:imgs,links:lnks});
+    window._tradeImages=[];window._tradeLinks=[];window._formImages=[];window._formLinks=[];
     toast('✓ Operación actualizada');cancelEdit();
   }else{
     var uid=Date.now()*1000+Math.floor(Math.random()*999);
-    S.trades.push({id:uid,date:date,time:g('f-time').value,asset:g('f-asset').value,result:curR,direction:curD,pnl:pnl,strategy:g('f-strategy').value,notes:g('f-notes').value,tf:g('f-tf').value,session:g('f-session').value,rr:parseFloat(g('f-rr').value)||0,tags:g('f-tags').value,entry:g('f-entry')?g('f-entry').value:'',exit:g('f-exit')?g('f-exit').value:'',pips:parseFloat(g('f-pips')?g('f-pips').value:'')||0,volume:g('f-volume')?g('f-volume').value:'',commission:parseFloat(g('f-commission')?g('f-commission').value:'')||0,images:window._tradeImages||[],links:window._tradeLinks||[],createdAt:new Date().toISOString()});
+    S.trades.push({id:uid,date:date,time:g('f-time').value,asset:g('f-asset').value,result:curR,direction:curD,pnl:pnl,strategy:g('f-strategy').value,notes:g('f-notes').value,tf:g('f-tf').value,session:g('f-session').value,rr:parseFloat(g('f-rr').value)||0,tags:g('f-tags').value,entry:g('f-entry')?g('f-entry').value:'',exit:g('f-exit')?g('f-exit').value:'',pips:parseFloat(g('f-pips')?g('f-pips').value:'')||0,volume:g('f-volume')?g('f-volume').value:'',commission:parseFloat(g('f-commission')?g('f-commission').value:'')||0,images:imgs,links:lnks,createdAt:new Date().toISOString()});
     g('f-pnl').value='';g('f-notes').value='';g('pnl-prev').textContent='';
     g('f-tf').value='';g('f-session').value='';g('f-rr').value='';
     g('f-tags').value='';if(g('tags-display'))g('tags-display').innerHTML='';
     if(g('f-entry'))g('f-entry').value='';if(g('f-exit'))g('f-exit').value='';
     if(g('f-pips'))g('f-pips').value='';if(g('f-volume'))g('f-volume').value='';
     if(g('f-commission'))g('f-commission').value='';
-    window._tradeImages=[];window._tradeLinks=[];
+    window._tradeImages=[];window._tradeLinks=[];window._formImages=[];window._formLinks=[];
     if(g('form-img-preview'))g('form-img-preview').innerHTML='';
     if(g('form-links-list'))g('form-links-list').innerHTML='';
     toast('✓ Operación guardada');
   }
   save();refresh();
+  closeNewOpPanel();
 }
 function syncSelectsFromHidden(){
   var dv=g('f-date');if(!dv||!dv.value)return;
@@ -4831,7 +4834,7 @@ button:active, [onclick]:active, .ni:active, .cal-nav-btn:active, .rb:active, .t
     </div>
     <div style="display:flex;gap:8px;margin-top:6px">
       <button class="btn btn-r" id="btn-cancel" style="display:none;flex:1;justify-content:center" onclick="cancelEdit();closeNewOpPanel()">✕ Cancelar</button>
-      <button class="btn btn-g" id="btn-save" style="flex:1;justify-content:center;padding:11px" onclick="if(window._spawnRipple)window._spawnRipple(event.clientX,event.clientY);if(window._playClick)window._playClick();saveTrade();closeNewOpPanel()">
+      <button class="btn btn-g" id="btn-save" style="flex:1;justify-content:center;padding:11px" onclick="if(window._spawnRipple)window._spawnRipple(event.clientX,event.clientY);if(window._playClick)window._playClick();saveTrade()">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M13 2H5L2 5v9a1 1 0 001 1h10a1 1 0 001-1V3a1 1 0 00-1-1z"/><polyline points="5,2 5,7 11,7"/><polyline points="11,11 8,14 5,11"/></svg>
         Registrar operación
       </button>
@@ -4967,20 +4970,22 @@ function resetFormMedia(trade) {
 // ── Open/Close new op panel ───────────────────────────
 window.openNewOpPanel = function(trade) {
   window._playClick && window._playClick();
-  // Inicializar imágenes y links
+  // Resetear ambos sistemas de imágenes
   if(!trade || !trade._skipMediaInit) {
     window._tradeImages = (trade && trade.images) ? trade.images.slice() : [];
     window._tradeLinks  = (trade && trade.links)  ? trade.links.slice()  : [];
-    if(typeof renderFormImages === 'function') renderFormImages();
-    if(typeof renderFormLinks  === 'function') renderFormLinks();
+    window._formImages  = (trade && trade.images) ? trade.images.slice() : [];
+    window._formLinks   = (trade && trade.links)  ? trade.links.slice()  : [];
+    if(typeof renderFormImagesPreview === 'function') renderFormImagesPreview();
+    if(typeof renderFormLinksPreview  === 'function') renderFormLinksPreview();
   }
-  // Siempre asegurar fecha válida al abrir para nueva operación
+  // Siempre setear fecha de hoy para nueva operación
   if(editId === null) {
     var fd = g('f-date');
-    if(fd) { fd.value = tod(); }
+    if(fd) fd.value = tod();
     if(typeof syncSelectsFromHidden === 'function') syncSelectsFromHidden();
   }
-  // Asegurar que haya un activo seleccionado
+  // Asegurar activo seleccionado
   var fa = g('f-asset');
   if(fa && !fa.value && fa.options && fa.options.length > 0) fa.selectedIndex = 0;
   // Título del modal
