@@ -110,19 +110,14 @@ body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(r
 .fi:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.12)}
 .fi-lg{font-size:18px;font-weight:700;padding:11px;font-family:'Exo 2',sans-serif}
 .fg2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.rbw{display:flex;gap:7px;width:100%}
-.rb{flex:1;padding:11px 10px;border-radius:9px;border:2px solid var(--bdr3);background:rgba(255,255,255,.04);color:var(--text2);font-size:12px;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;font-family:'Exo 2',sans-serif;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;gap:5px;min-height:44px}
-/* BUY — siempre azul/morado */
-#btn-buy{border-color:#4361ee;color:#818cf8;background:rgba(67,97,238,.1)}
-#btn-buy:hover{background:rgba(67,97,238,.18)}
-/* SELL — siempre rojo */
-#btn-sell{border-color:var(--red);color:var(--red);background:rgba(255,56,96,.08)}
-#btn-sell:hover{background:rgba(255,56,96,.18)}
-/* Activos — más brillantes */
+.rbw{display:flex;gap:8px;width:100%}
+.rb{flex:1;padding:14px 10px;border-radius:10px;border:2px solid var(--bdr3);background:rgba(255,255,255,.04);color:var(--text2);font-size:13px;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;font-family:'Exo 2',sans-serif;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;gap:6px;min-height:50px}
+#btn-buy{border-color:#4361ee;color:#818cf8;background:rgba(67,97,238,.15)}
+#btn-buy:hover,#btn-buy.abuy{border-color:#818cf8;color:#a5b4fc;background:rgba(67,97,238,.28);box-shadow:0 0 16px rgba(67,97,238,.4)}
+#btn-sell{border-color:#ff3860;color:#ff3860;background:rgba(255,56,96,.12)}
+#btn-sell:hover,#btn-sell.asell{border-color:#ff6b8a;color:#ff6b8a;background:rgba(255,56,96,.28);box-shadow:0 0 16px rgba(255,56,96,.4)}
 .rb.atp{border-color:var(--green);background:rgba(0,229,176,.15);color:var(--green);box-shadow:var(--glow-g)}
 .rb.asl{border-color:var(--red);background:rgba(255,56,96,.15);color:var(--red);box-shadow:var(--glow-r)}
-.rb.abuy{border-color:#818cf8;background:rgba(67,97,238,.25);color:#a5b4fc;box-shadow:0 0 14px rgba(67,97,238,.35)}
-.rb.asell{border-color:var(--red);background:rgba(255,56,96,.22);color:#ff6b8a;box-shadow:0 0 14px rgba(255,56,96,.35)}
 /* CALENDAR LAYOUT */
 .cal-layout{display:grid;grid-template-columns:1fr 280px;gap:16px}
 .cal-main{min-width:0}
