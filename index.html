@@ -13,6 +13,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;800;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+
+<!-- ═══════════════════════════════════════════════════════════
+     §1 — CSS / ESTILOS GLOBALES
+     Aquí están todos los estilos: variables, layout, componentes,
+     calendario, tabla, formulario, panel derecho, móvil.
+═══════════════════════════════════════════════════════════ -->
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -302,6 +308,17 @@ tr:hover td{background:rgba(14,18,41,.8)}
 @media(max-width:1100px){#reg-right-panel{width:280px}}
 @media(max-width:860px){.tsec.act.reg-split{flex-direction:column}#reg-right-panel{width:100%;position:static;height:auto}}
 
+/* ── Panel derecho: sección agregar media ── */
+.rp-add-section{background:var(--card2);border:1px solid var(--bdr);border-radius:10px;padding:10px 12px;margin-top:10px}
+.rp-add-title{font-size:8px;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;font-family:'Exo 2',sans-serif}
+.rp-add-row{display:flex;gap:6px;align-items:center}
+.rp-add-file-btn{background:var(--card);border:1px solid var(--bdr2);border-radius:7px;color:var(--text2);font-size:10px;font-weight:600;padding:7px 10px;cursor:pointer;white-space:nowrap;transition:all .2s;font-family:'DM Sans',sans-serif;display:inline-flex;align-items:center;gap:5px}
+.rp-add-file-btn:hover{border-color:var(--bdr3);color:var(--text)}
+.rp-img-thumb-del{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.7);border:none;color:#fff;border-radius:4px;width:18px;height:18px;font-size:10px;cursor:pointer;display:none;align-items:center;justify-content:center;line-height:1}
+.rp-img-thumb:hover .rp-img-thumb-del{display:flex}
+.rp-link-del{background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;padding:2px 4px;flex-shrink:0;opacity:.6;transition:opacity .2s}
+.rp-link-del:hover{opacity:1}
+
 /* ── MOBILE NAV BAR (oculto en desktop) ── */
 #mob-nav{display:none}
 #mob-drawer{display:none}
@@ -507,6 +524,11 @@ tr:hover td{background:rgba(14,18,41,.8)}
   .reg-kpi-item:nth-child(even){border-right:none}
   .reg-kpi-item:nth-child(odd):not(:nth-child(5)){border-right:1px solid rgba(30,37,64,.6)}
 }
+
+<!-- ═══════════════════════════════════════════════════════════
+     §2 — SIDEBAR Y NAVEGACIÓN
+     Logo, menú lateral, lista de cuentas, botón instalar PWA.
+═══════════════════════════════════════════════════════════ -->
 </style>
 </head>
 <body>
@@ -556,6 +578,11 @@ tr:hover td{background:rgba(14,18,41,.8)}
 </div>
 
 
+
+<!-- ═══════════════════════════════════════════════════════════
+     §8a — MODAL: CONFIRMACIÓN (Eliminar operación / Borrar todo)
+     Modal genérico de confirmación reutilizado en toda la app.
+═══════════════════════════════════════════════════════════ -->
 <!-- CONFIRM MODAL -->
 <div class="mo" id="cmo">
   <div class="mb" style="border:1px solid rgba(255,23,68,.25);box-shadow:0 0 40px rgba(255,23,68,.08);">
@@ -670,6 +697,12 @@ tr:hover td{background:rgba(14,18,41,.8)}
 
   <div class="content">
 
+
+<!-- ═══════════════════════════════════════════════════════════
+     §3 — TAB: DASHBOARD
+     KPIs principales, curva de equity, gráficos mensuales,
+     TP/SL por día y hora, últimas 5 operaciones.
+═══════════════════════════════════════════════════════════ -->
   <!-- ═══ DASHBOARD ═══ -->
   <div id="tab-dash" class="tsec act">
     <div id="dd-wrap" style="display:none;margin-bottom:13px">
@@ -712,6 +745,14 @@ tr:hover td{background:rgba(14,18,41,.8)}
     </div>
   </div>
 
+
+<!-- ═══════════════════════════════════════════════════════════
+     §4 — TAB: REGISTRO DE OPERACIONES
+     Toolbar con tabs (Calendario / Tabla / Gráficos),
+     barra de filtros, navegación de mes, vista calendario,
+     vista tabla, vista gráficos, zona de peligro.
+     Panel derecho permanente (rp-*) incluido aquí.
+═══════════════════════════════════════════════════════════ -->
   <!-- ═══ REGISTRO ═══ -->
   <div id="tab-registro" class="tsec reg-split">
   <div id="reg-main-col">
@@ -882,6 +923,12 @@ tr:hover td{background:rgba(14,18,41,.8)}
 
   </div><!-- /tab-registro -->
 
+
+<!-- ═══════════════════════════════════════════════════════════
+     §6 — TAB: ESTADÍSTICAS
+     Filtro por año, KPIs anuales, equity anual,
+     P&L mensual, resumen mensual detallado.
+═══════════════════════════════════════════════════════════ -->
   <!-- ═══ ESTADÍSTICAS ═══ -->
   <div id="tab-stats" class="tsec">
     <div class="fbar">
@@ -902,6 +949,13 @@ tr:hover td{background:rgba(14,18,41,.8)}
     </div>
   </div>
 
+
+<!-- ═══════════════════════════════════════════════════════════
+     §5 — TAB: ANÁLISIS
+     Filtros multi-criterio, KPIs de análisis,
+     TP/SL por día de semana, mapa de calor por hora,
+     tabla por hora exacta, rachas, métricas avanzadas, insights.
+═══════════════════════════════════════════════════════════ -->
   <!-- ═══ ANÁLISIS ═══ -->
   <div id="tab-analisis" class="tsec">
     <div class="fbar">
@@ -937,6 +991,12 @@ tr:hover td{background:rgba(14,18,41,.8)}
       <div id="insights-panel" style="display:flex;flex-direction:column;gap:8px;padding:4px 0;"></div></div>
   </div>
 
+
+<!-- ═══════════════════════════════════════════════════════════
+     §7 — TAB: CONFIGURACIÓN Y CUENTAS
+     Información general, color/ícono, pares, modo fondeo,
+     reglas de riesgo, sincronización, zona de peligro.
+═══════════════════════════════════════════════════════════ -->
   <!-- ═══ CUENTAS (CONFIG) — módulo unificado ═══ -->
   <div id="tab-config" class="tsec">
     <!-- Barra superior: título + botones -->
@@ -1282,6 +1342,12 @@ tr:hover td{background:rgba(14,18,41,.8)}
   </div><!-- /content -->
 </div><!-- /main -->
 
+
+<!-- ═══════════════════════════════════════════════════════════
+     §8b — PANTALLA DE ACTIVACIÓN DE LICENCIA
+     Overlay de login con código de acceso (Firebase).
+     Se muestra antes de cargar la app.
+═══════════════════════════════════════════════════════════ -->
 <!-- ═══════════════════════════════════════════════════════════ -->
 <!-- PANTALLA DE ACTIVACIÓN DE LICENCIA — TRADETRACK PRO       -->
 <!-- ═══════════════════════════════════════════════════════════ -->
@@ -1338,6 +1404,12 @@ tr:hover td{background:rgba(14,18,41,.8)}
 </div>
 
 <script>
+
+// ════════════════════════════════════════════════════════════
+//  §10 — SISTEMA DE LICENCIAS (Firebase)
+//  Verificación del código de acceso, fingerprint del dispositivo,
+//  activación, polling cada 30s, freeze de app si se revoca.
+// ════════════════════════════════════════════════════════════
 'use strict';
 
 // ═══════════════════════════════════════════════════════════════
@@ -1784,7 +1856,15 @@ function checkAlerts(){
   }
 }
 
+
+// ════════════════════════════════════════════════════════════
+//  §11 — ALMACENAMIENTO LOCAL + SYNC EN NUBE (Supabase)
+//  save() / load() en localStorage particionado por licencia.
+//  syncToCloud() / syncFromCloud() con Supabase.
+//  migrateData() para versiones futuras.
+// ════════════════════════════════════════════════════════════
 // STORAGE — ✅ FIX CACHE: claves prefijadas con license_key
+function save()// STORAGE — ✅ FIX CACHE: claves prefijadas con license_key
 function save(){
   try{
     var pfx = getLicensePrefix();
@@ -2145,6 +2225,14 @@ function loadSample(){return;// datos de muestra desactivados
   save();
 }
 
+
+// ════════════════════════════════════════════════════════════
+//  §12 — LÓGICA DE OPERACIONES
+//  setR / setDir: botones TP/SL y BUY/SELL.
+//  saveTrade(): guardar o editar operación.
+//  cancelEdit() / editTrade() / delTrade() / delAll().
+// ════════════════════════════════════════════════════════════
+// FORM
 // FORM
 function setR(r){curR=r;g('btn-tp').className='rb'+(r==='TP'?' atp':'');g('btn-sl').className='rb'+(r==='SL'?' asl':'');}
 function setDir(d){curD=d;g('btn-buy').className='rb'+(d==='BUY'?' abuy':'');g('btn-sell').className='rb'+(d==='SELL'?' asell':'');}
@@ -2251,7 +2339,13 @@ function delAll(){
   },null,'⚠ Borrar todo');
 }
 
+
+// ════════════════════════════════════════════════════════════
+//  §8c — MODAL CONFIRMACIÓN (JS)
+//  showConfirm(): abre modal con título, cuerpo y callback.
+// ════════════════════════════════════════════════════════════
 // CONFIRM MODAL
+function showConfirm(// CONFIRM MODAL
 function showConfirm(title,body,fn,prev,confirmLabel){
   g('cmot').textContent=title;g('cmob').textContent=body;
   var p=g('cmoprev');if(prev){p.innerHTML=prev;p.style.display='block';}else p.style.display='none';
@@ -2283,7 +2377,16 @@ function addAsset(){
 }
 function rmAsset(sym){S.settings.assets=S.settings.assets.filter(function(a){return a!==sym;});save();renderAssets();renderASels();renderPairsTags();updatePreview();}
 
+
+// ════════════════════════════════════════════════════════════
+//  §13 — RENDER: CALENDARIO Y SELECTORES DE FECHA
+//  renderYrSels(), renderCalSels(), calGoTo(), calNav().
+//  renderCal(): dibuja el grid mensual con colores por resultado.
+//  renderDayDetail(): tabla de operaciones del día seleccionado.
+//  renderMonthSummary(): barra KPI debajo del calendario.
+// ════════════════════════════════════════════════════════════
 // YR SELS
+function renderYrSels(// YR SELS
 function renderYrSels(){
   var yrs=[...new Set(S.trades.map(function(t){return t.date.split('-')[0];}))].sort();
   ['ay','yr-sel'].forEach(function(id){
@@ -2421,6 +2524,12 @@ function renderConfigAccounts(){
   html += '<button onclick="prepararNuevaCuenta()" style="width:100%;margin-top:4px;background:rgba(0,212,255,.08);border:1px dashed rgba(0,212,255,.3);color:#00d4ff;font-weight:700;font-size:11px;padding:9px;border-radius:9px;cursor:pointer;letter-spacing:.5px;">＋ Nueva cuenta</button>';
   el.innerHTML = html;
 }
+
+// ════════════════════════════════════════════════════════════
+//  §18 — CUENTAS Y CONFIGURACIÓN (JS)
+//  showAcctTab(), togChallenge(), saveF(), renderConfig().
+//  renderPairsTags(), guardarCuenta(), renderFondeo(), etc.
+// ════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════
 //  MÓDULO UNIFICADO DE CUENTAS — sub-tabs
 // ═══════════════════════════════════════════════════════════
@@ -2754,7 +2863,13 @@ function mkC(id,type,labels,datasets,ex){
 }
 
 // DASHBOARD
-function renderDash(){
+
+// ════════════════════════════════════════════════════════════
+//  §17 — RENDER: DASHBOARD
+//  renderDash(): KPIs, equity, gráficos, últimas 5 operaciones.
+//  mkC(): helper para crear gráficos Chart.js.
+// ════════════════════════════════════════════════════════════
+function renderDash()function renderDash(){
   var to=totals(),s=S.settings,a=acct();
   var hkpis=[
     {l:'Total Ops',v:String(S.trades.length),c:'',sub:'',cls:'b'},
@@ -2914,7 +3029,13 @@ function syncCalFromDate(val){
   renderCalSels();renderCal();renderMonthSummary();renderMonthStats();renderDayDetail();
 }
 
-function renderCal(){
+
+// ════════════════════════════════════════════════════════════
+//  §13b — RENDER: CALENDARIO (grid mensual)
+//  renderCal(): celdas con colores TP/SL, día seleccionado.
+//  renderDayDetail(): lista de operaciones del día.
+// ════════════════════════════════════════════════════════════
+function renderCal()function renderCal(){
   var el=g('cal-label');if(el)el.textContent=MONTHS[calMonth]+' '+calYear;
   var grid=g('cal-grid');if(!grid)return;
   var yrS=String(calYear),mS=String(calMonth+1).padStart(2,'0');
@@ -3086,7 +3207,12 @@ function setLogView(v){
   if(v==='chart' && typeof renderRegCharts==='function')renderRegCharts();
 }
 
-function renderTable(){
+
+// ════════════════════════════════════════════════════════════
+//  §14 — RENDER: TABLA DE OPERACIONES
+//  renderTable(): lista paginada con filtros activos.
+// ════════════════════════════════════════════════════════════
+function renderTable()function renderTable(){
   var asel=g('f-filter-asset');if(asel){var cur=asel.value;asel.innerHTML='<option value="">Todos los activos</option>'+(S.settings.assets||[]).map(function(a){return'<option value="'+a+'"'+(a===cur?' selected':'')+'>'+a+'</option>';}).join('');}
   var sorted=[].concat(getSorted()).reverse();var a=acct();
   document.querySelector('#tlog tbody').innerHTML=sorted.length?sorted.map(function(t,i){
@@ -3099,7 +3225,12 @@ function renderTable(){
 }
 
 // STATS
-function renderStats(){
+
+// ════════════════════════════════════════════════════════════
+//  §16 — RENDER: ESTADÍSTICAS
+//  renderStats(): KPIs anuales, equity anual, resumen mensual.
+// ════════════════════════════════════════════════════════════
+function renderStats()function renderStats(){
   var yr=parseInt(g('yr-sel').value||String(calYear));var a=acct();
   var mSt=MONTHS.map(function(_,i){
     var f=S.trades.filter(function(t){return t.date.startsWith(String(yr))&&+t.date.split('-')[1]===i+1;});
@@ -3128,7 +3259,13 @@ function renderStats(){
 }
 
 // ANÁLISIS
-function renderA(){
+
+// ════════════════════════════════════════════════════════════
+//  §15 — RENDER: ANÁLISIS
+//  renderA(): gráficos por día/hora, tabla horaria, rachas,
+//  métricas avanzadas, insights automáticos.
+// ════════════════════════════════════════════════════════════
+function renderA()function renderA(){
   try{
     var aY=g('ay').value,aM=g('am').value,aA=g('aa').value,aDr=g('adir').value;
     var mIdx=aM?MSS.indexOf(aM)+1:0;
@@ -3259,6 +3396,13 @@ function refresh(){
 
 // INIT
 
+
+// ════════════════════════════════════════════════════════════
+//  §18b — SISTEMA DE MÚLTIPLES CUENTAS
+//  getAccounts() / saveAccounts() / switchAccount().
+//  getAccountTrades() / saveAccountData() / loadAccountData().
+//  createAccount(), editAccount(), deleteAccount().
+// ════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════
 //  SISTEMA DE MÚLTIPLES CUENTAS
 // ═══════════════════════════════════════════════════════════
@@ -4195,6 +4339,12 @@ function renderInsights(trades){
   }).join('');
 }
 
+
+// ════════════════════════════════════════════════════════════
+//  §APP — INICIALIZACIÓN DE LA APP
+//  initApp(): punto de entrada tras validar licencia.
+//  Carga datos, sincroniza con nube, renderiza todo.
+// ════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════
 //  initApp() — Solo se llama DESPUÉS de que la licencia fue validada
 //  NUNCA carga datos sin llave confirmada
@@ -4283,6 +4433,11 @@ document.addEventListener('DOMContentLoaded',function(){
 </script>
 
 <script>
+// ════════════════════════════════════════════════════════════
+//  §20 — PWA / SERVICE WORKER
+//  Manifest dinámico, botón instalar, Service Worker
+//  con cache network-first para modo offline.
+// ════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════
 //  PWA — INSTALACIÓN COMO APP
 // ═══════════════════════════════════════
@@ -4381,6 +4536,10 @@ self.addEventListener('fetch', e => {
 </script>
 
 
+<!-- ════════════════════════════════════════════════════════════
+     §8d — MODAL: GESTIÓN DE CUENTAS
+     Lista de cuentas activas, crear nueva, editar nombre/balance.
+════════════════════════════════════════════════════════════ -->
 <!-- ═══════════════════════════════════════════════════════════ -->
 <!-- MODAL DE CUENTAS                                           -->
 <!-- ═══════════════════════════════════════════════════════════ -->
@@ -4500,6 +4659,12 @@ button:active, [onclick]:active, .ni:active, .cal-nav-btn:active, .rb:active, .t
 })();
 </script>
 
+
+<!-- ════════════════════════════════════════════════════════════
+     §9 — PANEL FLOTANTE DETALLE DE OPERACIÓN
+     Panel deslizable desde la derecha (position:fixed).
+     Se abre al hacer clic en editar desde la tabla.
+════════════════════════════════════════════════════════════ -->
 <!-- TRADE DETAIL RIGHT PANEL -->
 <div id="trade-detail-panel">
   <div class="tdp-hdr">
@@ -4529,6 +4694,11 @@ button:active, [onclick]:active, .ni:active, .cal-nav-btn:active, .rb:active, .t
 </div>
 <div id="tdp-overlay" onclick="closeTDP()"></div>
 
+
+<!-- ════════════════════════════════════════════════════════════
+     §8e — LIGHTBOX (visor de imágenes)
+     Overlay para ver capturas de pantalla en tamaño completo.
+════════════════════════════════════════════════════════════ -->
 <!-- LIGHTBOX -->
 <div id="lightbox" onclick="if(event.target===this)closeLightbox()">
   <button id="lightbox-close" onclick="closeLightbox()">✕</button>
@@ -4536,6 +4706,13 @@ button:active, [onclick]:active, .ni:active, .cal-nav-btn:active, .rb:active, .t
 </div>
 
 
+
+<!-- ════════════════════════════════════════════════════════════
+     §8f — MODAL: NUEVA / EDITAR OPERACIÓN
+     Formulario completo: fecha, hora, activo, resultado,
+     dirección, P&L, precios, pips, RR, TF, sesión,
+     estrategia, etiquetas, notas, imágenes, enlaces.
+════════════════════════════════════════════════════════════ -->
 <!-- NEW OPERATION PANEL (modal) -->
 <div id="new-op-modal" class="mo">
   <div class="mb" style="max-width:560px;max-height:90vh;overflow-y:auto">
@@ -4672,6 +4849,15 @@ button:active, [onclick]:active, .ni:active, .cal-nav-btn:active, .rb:active, .t
 
 
 <script>
+
+// ════════════════════════════════════════════════════════════
+//  §19 — PREMIUM UI (Sonidos, Efectos, Media, Panel Derecho)
+//  Sonidos Web Audio API: TP/SL/click.
+//  Ripple visual en botones.
+//  openTDP() / populateRightPanel(): panel detalle.
+//  addImgFromURL(), renderFormImages(), addFormLink().
+//  Lightbox, setLogView(), toggleRegFilters().
+// ════════════════════════════════════════════════════════════
 // ════════════════════════════════════════════════════════
 //  PREMIUM UI — PANEL DERECHO + SONIDOS + EFECTOS + MEDIA
 // ════════════════════════════════════════════════════════
@@ -5166,10 +5352,14 @@ function populateRightPanel(trade) {
   ph.style.display = 'none';
   cnt.style.display = 'block';
 
-  var isWin  = trade.result === 'TP';
-  var pnl    = trade.pnl || 0;
-  var images = trade.images || [];
-  var links  = trade.links  || [];
+  // Siempre trabajar con la copia viva del trade desde S.trades
+  var liveTrade = S.trades.find(function(t){ return t.id === trade.id; }) || trade;
+  _currentTrade = liveTrade;
+
+  var isWin  = liveTrade.result === 'TP';
+  var pnl    = liveTrade.pnl || 0;
+  var images = liveTrade.images || [];
+  var links  = liveTrade.links  || [];
 
   var acctName = '—';
   try {
@@ -5187,81 +5377,186 @@ function populateRightPanel(trade) {
 
   var html = '';
 
-  // Badge + PnL
+  // ── Badge + PnL ──────────────────────────────────
   html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
   html += '<span class="rp-badge '+(isWin?'win':'loss')+'">'+(isWin?'✓ TP — Ganadora':'✕ SL — Perdedora')+'</span>';
   html += '<span class="rp-pnl '+(pnl>=0?'pos':'neg')+'">'+(pnl>=0?'+$':'-$')+Math.abs(pnl).toFixed(2)+'</span>';
   html += '</div>';
 
-  // Asset + dirección
+  // ── Asset + dirección ────────────────────────────
   html += '<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--card2);border-radius:10px;border:1px solid var(--bdr);margin-bottom:10px">';
-  html += '<div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff;font-family:\'Exo 2\',sans-serif;flex-shrink:0">'+(trade.asset||'?').substring(0,2)+'</div>';
-  html += '<div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:900;font-family:\'Exo 2\',sans-serif;color:var(--text)">'+(trade.asset||'—')+'</div>';
-  html += '<div style="font-size:10px;font-weight:600;color:'+(trade.direction==='BUY'?'var(--green)':'var(--red)')+'">'+( trade.direction==='BUY'?'▲ Long':'▼ Short')+'</div></div>';
-  if(trade.time) html += '<div style="font-size:11px;color:var(--gray2);font-family:\'JetBrains Mono\',monospace;text-align:right">'+(trade.date||'').slice(5)+'<br>'+trade.time+'</div>';
+  html += '<div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff;font-family:\'Exo 2\',sans-serif;flex-shrink:0">'+(liveTrade.asset||'?').substring(0,2)+'</div>';
+  html += '<div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:900;font-family:\'Exo 2\',sans-serif;color:var(--text)">'+(liveTrade.asset||'—')+'</div>';
+  html += '<div style="font-size:10px;font-weight:600;color:'+(liveTrade.direction==='BUY'?'var(--green)':'var(--red)')+'">'+( liveTrade.direction==='BUY'?'▲ Long':'▼ Short')+'</div></div>';
+  if(liveTrade.time) html += '<div style="font-size:11px;color:var(--gray2);font-family:\'JetBrains Mono\',monospace;text-align:right">'+(liveTrade.date||'').slice(5)+'<br>'+liveTrade.time+'</div>';
   html += '</div>';
 
-  // Mini grid
+  // ── Mini grid: precios / pips / RR ───────────────
   html += '<div class="rp-mini-grid">';
-  html += '<div class="rp-mini"><div class="rp-mini-l">Entrada</div><div class="rp-mini-v" style="font-size:10px">'+(trade.entry||'—')+'</div></div>';
-  html += '<div class="rp-mini"><div class="rp-mini-l">Salida</div><div class="rp-mini-v" style="font-size:10px">'+(trade.exit||'—')+'</div></div>';
-  html += '<div class="rp-mini"><div class="rp-mini-l">Pips</div><div class="rp-mini-v">'+(trade.pips?trade.pips:'—')+'</div></div>';
-  html += '<div class="rp-mini"><div class="rp-mini-l">RR</div><div class="rp-mini-v">'+(trade.rr?'1:'+trade.rr:'—')+'</div></div>';
+  html += '<div class="rp-mini"><div class="rp-mini-l">Entrada</div><div class="rp-mini-v" style="font-size:10px">'+(liveTrade.entry||'—')+'</div></div>';
+  html += '<div class="rp-mini"><div class="rp-mini-l">Salida</div><div class="rp-mini-v" style="font-size:10px">'+(liveTrade.exit||'—')+'</div></div>';
+  html += '<div class="rp-mini"><div class="rp-mini-l">Pips</div><div class="rp-mini-v">'+(liveTrade.pips?liveTrade.pips:'—')+'</div></div>';
+  html += '<div class="rp-mini"><div class="rp-mini-l">RR</div><div class="rp-mini-v">'+(liveTrade.rr?'1:'+liveTrade.rr:'—')+'</div></div>';
   html += '</div>';
 
-  // Detalles
+  // ── Detalles ─────────────────────────────────────
   html += '<div style="background:var(--card2);border-radius:10px;border:1px solid var(--bdr);padding:2px 10px;margin-bottom:10px">';
   html += rRow('🏠','Cuenta', acctName);
-  html += rRow('📅','Fecha', (trade.date||'—')+(trade.time?' · '+trade.time:''));
-  html += rRow('⏱','Timeframe', trade.tf||'—');
-  html += rRow('🎯','Estrategia', trade.strategy||'—');
-  html += rRow('🌍','Sesión', trade.session||'—');
-  if(trade.volume) html += rRow('📊','Volumen', trade.volume+' lotes');
-  if(trade.commission) html += rRow('💸','Comisión', '$'+trade.commission);
+  html += rRow('📅','Fecha', (liveTrade.date||'—')+(liveTrade.time?' · '+liveTrade.time:''));
+  html += rRow('⏱','Timeframe', liveTrade.tf||'—');
+  html += rRow('🎯','Estrategia', liveTrade.strategy||'—');
+  html += rRow('🌍','Sesión', liveTrade.session||'—');
+  if(liveTrade.volume) html += rRow('📊','Volumen', liveTrade.volume+' lotes');
+  if(liveTrade.commission) html += rRow('💸','Comisión', '$'+liveTrade.commission);
   html += '</div>';
 
-  // Notas
-  if(trade.notes) {
+  // ── Notas ─────────────────────────────────────────
+  if(liveTrade.notes) {
     html += '<div style="background:var(--card2);border:1px solid var(--bdr);border-radius:10px;padding:10px;margin-bottom:10px">';
     html += '<div style="font-size:8px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;font-family:\'Exo 2\',sans-serif">📝 Notas</div>';
-    html += '<div style="font-size:11px;color:var(--text2);line-height:1.6">'+trade.notes+'</div>';
+    html += '<div style="font-size:11px;color:var(--text2);line-height:1.6">'+liveTrade.notes+'</div>';
     html += '</div>';
   }
 
-  // Imágenes
+  // ── Imágenes (ver + borrar) ───────────────────────
+  html += '<div style="margin-bottom:4px">';
+  html += '<div style="font-size:8px;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px;font-family:\'Exo 2\',sans-serif">📸 Capturas';
+  if(images.length) html += ' <span style="background:rgba(124,58,237,.2);color:var(--purp);border-radius:10px;padding:1px 7px;font-size:9px">'+images.length+'</span>';
+  html += '</div>';
   if(images.length) {
-    html += '<div style="margin-bottom:10px">';
-    html += '<div style="font-size:8px;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px;font-family:\'Exo 2\',sans-serif">📸 Capturas <span style="background:rgba(124,58,237,.2);color:var(--purp);border-radius:10px;padding:1px 7px;font-size:9px">'+images.length+'</span></div>';
     html += '<div class="rp-img-grid">';
-    images.forEach(function(img) {
+    images.forEach(function(img, i) {
       var s = img.src || img;
-      html += '<div class="rp-img-thumb" onclick="openLightbox(\''+s.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\')">';
-      html += '<img src="'+s+'" loading="lazy" onerror="this.parentElement.style.opacity=\'.4\';" style="width:100%;height:100%;object-fit:cover">';
+      html += '<div class="rp-img-thumb" style="position:relative">';
+      html += '<img src="'+s+'" loading="lazy" onclick="openLightbox(\''+s.replace(/'/g,"\\'")+'\')" onerror="this.parentElement.style.opacity=\'.4\';" style="width:100%;height:100%;object-fit:cover">';
+      html += '<button class="rp-img-thumb-del" onclick="event.stopPropagation();rpRemoveImg('+i+')" title="Eliminar">✕</button>';
       html += '</div>';
     });
-    html += '</div></div>';
-  }
-
-  // Links
-  if(links.length) {
-    html += '<div>';
-    html += '<div style="font-size:8px;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px;font-family:\'Exo 2\',sans-serif">🔗 Enlaces <span style="background:rgba(77,159,255,.15);color:var(--blue);border-radius:10px;padding:1px 7px;font-size:9px">'+links.length+'</span></div>';
-    links.forEach(function(lk) {
-      var url = (typeof lk === 'string') ? lk : (lk.url || String(lk));
-      var short = url.replace(/^https?:\/\//,'').substring(0,38);
-      html += '<a class="rp-link" href="'+url+'" target="_blank" rel="noopener">🔗 '+short+'</a>';
-    });
     html += '</div>';
   }
+  html += '</div>';
 
-  // Botones de acción
+  // ── Agregar imágenes ─────────────────────────────
+  html += '<div class="rp-add-section">';
+  html += '<div class="rp-add-title">+ Agregar imagen</div>';
+  html += '<div class="rp-add-row" style="margin-bottom:6px">';
+  html += '<label class="rp-add-file-btn">📁 Dispositivo<input type="file" accept="image/*" multiple style="display:none" onchange="rpAddImgFile(this)"></label>';
+  html += '</div>';
+  html += '<div class="rp-add-row">';
+  html += '<input type="url" id="rp-img-url" class="fi" placeholder="URL imagen (TradingView...)" style="flex:1;font-size:10px;padding:7px 9px">';
+  html += '<button class="btn" style="padding:7px 9px;font-size:10px;white-space:nowrap" onclick="rpAddImgUrl()">+ URL</button>';
+  html += '</div>';
+  html += '</div>';
+
+  // ── Links (ver + borrar) ──────────────────────────
+  html += '<div style="margin-top:10px">';
+  html += '<div style="font-size:8px;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px;font-family:\'Exo 2\',sans-serif">🔗 Enlaces';
+  if(links.length) html += ' <span style="background:rgba(77,159,255,.15);color:var(--blue);border-radius:10px;padding:1px 7px;font-size:9px">'+links.length+'</span>';
+  html += '</div>';
+  links.forEach(function(lk, i) {
+    var url = (typeof lk === 'string') ? lk : (lk.url || String(lk));
+    var short = url.replace(/^https?:\/\//,'').substring(0,32);
+    html += '<div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">';
+    html += '<a class="rp-link" href="'+url+'" target="_blank" rel="noopener" style="flex:1;min-width:0">🔗 '+short+'</a>';
+    html += '<button class="rp-link-del" onclick="rpRemoveLink('+i+')" title="Eliminar enlace">✕</button>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  // ── Agregar link ──────────────────────────────────
+  html += '<div class="rp-add-section">';
+  html += '<div class="rp-add-title">+ Agregar enlace</div>';
+  html += '<div class="rp-add-row">';
+  html += '<input type="url" id="rp-link-url" class="fi" placeholder="https://tradingview.com/..." style="flex:1;font-size:10px;padding:7px 9px" onkeydown="if(event.key===\'Enter\'){event.preventDefault();rpAddLink();}">';
+  html += '<button class="btn" style="padding:7px 9px;font-size:10px;white-space:nowrap" onclick="rpAddLink()">+ Agregar</button>';
+  html += '</div>';
+  html += '</div>';
+
+  // ── Botones editar / eliminar ─────────────────────
   html += '<div style="display:flex;gap:6px;margin-top:12px;padding-top:10px;border-top:1px solid var(--bdr)">';
-  html += '<button class="btn" style="flex:1;justify-content:center;font-size:10px" onclick="if(window._currentTrade)editTrade(window._currentTrade.id)">✏ Editar</button>';
+  html += '<button class="btn" style="flex:1;justify-content:center;font-size:10px" onclick="if(window._currentTrade)editTrade(window._currentTrade.id)">✏ Editar todo</button>';
   html += '<button class="btn" style="flex:1;justify-content:center;font-size:10px;border-color:rgba(255,56,96,.3);color:var(--red)" onclick="if(window._currentTrade)delTrade(window._currentTrade.id)">🗑 Eliminar</button>';
   html += '</div>';
 
   cnt.innerHTML = html;
 }
+
+// ── Funciones del panel derecho: agregar/quitar media ──────
+window.rpAddImgFile = function(input) {
+  if(!_currentTrade) return;
+  var files = Array.from(input.files);
+  if(!files.length) return;
+  var trade = S.trades.find(function(t){ return t.id === _currentTrade.id; });
+  if(!trade) return;
+  if(!trade.images) trade.images = [];
+  var pending = files.filter(function(f){ return f.type.startsWith('image/'); }).length;
+  if(!pending) return;
+  files.forEach(function(file) {
+    if(!file.type.startsWith('image/')) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      trade.images.push({ src: e.target.result, name: file.name, type: 'file' });
+      pending--;
+      if(pending <= 0) {
+        if(typeof save==='function') save();
+        populateRightPanel(trade);
+        if(typeof toast==='function') toast('✓ '+(files.length>1?files.length+' imágenes guardadas':'Imagen guardada'), 'var(--green)');
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+};
+
+window.rpAddImgUrl = function() {
+  if(!_currentTrade) return;
+  var inp = g('rp-img-url');
+  var url = inp ? inp.value.trim() : '';
+  if(!url) { if(typeof toast==='function') toast('Pega una URL de imagen','var(--red)'); return; }
+  if(!url.startsWith('http')) url = 'https://' + url;
+  var trade = S.trades.find(function(t){ return t.id === _currentTrade.id; });
+  if(!trade) return;
+  if(!trade.images) trade.images = [];
+  trade.images.push({ src: url, name: url.split('/').pop().split('?')[0] || 'Imagen', type: 'url' });
+  if(inp) inp.value = '';
+  if(typeof save==='function') save();
+  populateRightPanel(trade);
+  if(typeof toast==='function') toast('✓ Imagen guardada', 'var(--green)');
+};
+
+window.rpAddLink = function() {
+  if(!_currentTrade) return;
+  var inp = g('rp-link-url');
+  var url = inp ? inp.value.trim() : '';
+  if(!url) { if(typeof toast==='function') toast('Pega un enlace','var(--red)'); return; }
+  if(!url.startsWith('http')) url = 'https://' + url;
+  var trade = S.trades.find(function(t){ return t.id === _currentTrade.id; });
+  if(!trade) return;
+  if(!trade.links) trade.links = [];
+  trade.links.push(url);
+  if(inp) inp.value = '';
+  if(typeof save==='function') save();
+  populateRightPanel(trade);
+  if(typeof toast==='function') toast('✓ Enlace guardado', 'var(--green)');
+};
+
+window.rpRemoveImg = function(idx) {
+  if(!_currentTrade) return;
+  var trade = S.trades.find(function(t){ return t.id === _currentTrade.id; });
+  if(!trade || !trade.images) return;
+  trade.images.splice(idx, 1);
+  if(typeof save==='function') save();
+  populateRightPanel(trade);
+};
+
+window.rpRemoveLink = function(idx) {
+  if(!_currentTrade) return;
+  var trade = S.trades.find(function(t){ return t.id === _currentTrade.id; });
+  if(!trade || !trade.links) return;
+  trade.links.splice(idx, 1);
+  if(typeof save==='function') save();
+  populateRightPanel(trade);
+};
 
 window.handleImgUpload = function(input) {
   var files = Array.from(input.files);
