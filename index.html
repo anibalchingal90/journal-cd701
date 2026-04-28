@@ -1303,8 +1303,13 @@ function unfreezeApp() {
   });
   var ov = document.getElementById('freeze-overlay');
   if (ov) ov.remove();
-  // Mostrar pantalla de licencia
+  // Mostrar pantalla de código — el usuario re-ingresa para restaurar acceso
   showLicOverlay();
+  // Limpiar error anterior si hubiese
+  var errEl = document.getElementById('lic-error');
+  if (errEl) errEl.textContent = '';
+  var inp = document.getElementById('lic-input');
+  if (inp) { inp.value = ''; inp.focus(); }
 }
 
 async function checkLicenseOnLoad() {
@@ -1507,7 +1512,40 @@ async function activateLicense() {
 
     startLicensePolling();
     hideLicOverlay();
-    initApp();
+
+    // ✅ FIX DATOS: Si la app ya estaba inicializada (re-activación post-freeze),
+    // NO llamar initApp() de nuevo — solo re-sincronizar desde Supabase.
+    // Esto evita conflictos de Chart.js y preserva el estado de la app.
+    if (_appInitialized) {
+      showSyncStatus('⏳ Recuperando datos...');
+      setTimeout(async function(){
+        var synced = await syncFromCloud();
+        if (synced) {
+          initAccounts();
+          if(typeof render==='function') render();
+          if(typeof renderStats==='function') renderStats();
+          if(typeof renderAnalysis==='function') renderAnalysis();
+          if(typeof renderSidebarAccounts==='function') renderSidebarAccounts();
+          if(typeof refresh==='function') refresh();
+          if(typeof toast==='function') toast('☁ Acceso restaurado — datos sincronizados','var(--green)');
+        } else {
+          // Sin datos en nube: usar lo que hay en localStorage (puede ser de sesión anterior)
+          initAccounts();
+          if(typeof refresh==='function') refresh();
+          if(typeof renderSidebarAccounts==='function') renderSidebarAccounts();
+          // Si hay datos locales, subirlos; si no, mostrar bienvenida
+          if(S.trades.length > 0){
+            syncToCloud();
+            if(typeof toast==='function') toast('✓ Sesión restaurada','var(--green)');
+          } else {
+            if(typeof toast==='function') toast('👋 Sesión restaurada — journal listo','#4d9fff');
+          }
+        }
+      }, 200);
+    } else {
+      // Primera vez: inicializar app completa (incluye sync)
+      initApp();
+    }
 
   } catch(e) {
     errEl.textContent = '⚠ Sin conexión a internet. Necesitas internet para activar.';
@@ -3955,6 +3993,8 @@ function renderInsights(trades){
 //  initApp() — Solo se llama DESPUÉS de que la licencia fue validada
 //  NUNCA carga datos sin llave confirmada
 // ═══════════════════════════════════════════════════════════
+var _appInitialized = false; // ✅ Evita doble inicialización en re-activación post-freeze
+
 function initApp(){
   load();
   migrateData();
@@ -4020,6 +4060,7 @@ function initApp(){
       if(S.trades.length > 0) syncToCloud();
       else setTimeout(function(){toast('👋 Bienvenido — toca el Registro y luego un día para empezar');},800);
     }
+    _appInitialized = true; // ✅ Marcar como inicializado DESPUÉS del primer sync completo
   }, 150);
 }
 
