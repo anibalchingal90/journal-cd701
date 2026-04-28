@@ -111,12 +111,18 @@ body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(r
 .fi-lg{font-size:18px;font-weight:700;padding:11px;font-family:'Exo 2',sans-serif}
 .fg2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .rbw{display:flex;gap:7px;width:100%}
-.rb{flex:1;padding:11px 10px;border-radius:9px;border:2px solid var(--bdr3);background:rgba(255,255,255,.06);color:var(--text);font-size:12px;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;font-family:'Exo 2',sans-serif;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;gap:5px;min-height:44px}
-.rb:hover{border-color:var(--bdr3);background:rgba(255,255,255,.1)}
+.rb{flex:1;padding:11px 10px;border-radius:9px;border:2px solid var(--bdr3);background:rgba(255,255,255,.04);color:var(--text2);font-size:12px;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;font-family:'Exo 2',sans-serif;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;gap:5px;min-height:44px}
+/* BUY — siempre azul/morado */
+#btn-buy{border-color:#4361ee;color:#818cf8;background:rgba(67,97,238,.1)}
+#btn-buy:hover{background:rgba(67,97,238,.18)}
+/* SELL — siempre rojo */
+#btn-sell{border-color:var(--red);color:var(--red);background:rgba(255,56,96,.08)}
+#btn-sell:hover{background:rgba(255,56,96,.18)}
+/* Activos — más brillantes */
 .rb.atp{border-color:var(--green);background:rgba(0,229,176,.15);color:var(--green);box-shadow:var(--glow-g)}
 .rb.asl{border-color:var(--red);background:rgba(255,56,96,.15);color:var(--red);box-shadow:var(--glow-r)}
-.rb.abuy{border-color:var(--green);background:rgba(0,229,176,.15);color:var(--green);box-shadow:0 0 12px rgba(0,229,176,.2)}
-.rb.asell{border-color:var(--red);background:rgba(255,56,96,.15);color:var(--red);box-shadow:0 0 12px rgba(255,56,96,.2)}
+.rb.abuy{border-color:#818cf8;background:rgba(67,97,238,.25);color:#a5b4fc;box-shadow:0 0 14px rgba(67,97,238,.35)}
+.rb.asell{border-color:var(--red);background:rgba(255,56,96,.22);color:#ff6b8a;box-shadow:0 0 14px rgba(255,56,96,.35)}
 /* CALENDAR LAYOUT */
 .cal-layout{display:grid;grid-template-columns:1fr 280px;gap:16px}
 .cal-main{min-width:0}
@@ -189,9 +195,9 @@ tr:hover td{background:rgba(14,18,41,.8)}
 /* TOAST */
 #toast{position:fixed;bottom:20px;right:20px;background:var(--card2);border:1px solid var(--bdr2);border-radius:12px;padding:12px 18px;font-size:12px;font-weight:600;z-index:99999;display:none;box-shadow:0 8px 40px rgba(0,0,0,.6);min-width:220px}
 /* MODAL */
-.mo{position:fixed;inset:0;background:rgba(2,4,14,.96);z-index:10000;display:none;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.mo{position:fixed;inset:0;background:transparent;z-index:10000;display:none;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
 .mo.show{display:flex}
-.mb{background:var(--card);border-radius:16px;padding:20px;max-width:420px;width:100%;border:1px solid var(--bdr2);margin:auto;box-shadow:0 0 80px rgba(99,102,241,.2)}
+.mb{background:var(--card);border-radius:14px;padding:16px;max-width:360px;width:100%;border:1px solid var(--bdr2);margin:auto;box-shadow:0 8px 40px rgba(0,0,0,.8),0 0 0 1px rgba(99,102,241,.15)}
 .mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
 .mt2{font-weight:800;font-size:15px;color:var(--cyan);font-family:'Exo 2',sans-serif}
 .mcl{background:none;border:none;color:var(--gray2);cursor:pointer;font-size:22px;line-height:1;transition:color .2s}
@@ -4783,21 +4789,10 @@ button:active, [onclick]:active, .ni:active, .cal-nav-btn:active, .rb:active, .t
         <input type="number" id="f-rr" class="fi" step="0.1" min="0" placeholder="Ej: 2.5">
       </div>
     </div>
-    <div class="fg2" style="margin-bottom:12px">
-      <div class="fg" style="margin:0"><label class="fl">Timeframe</label>
-        <select id="f-tf" class="fi"><option value="">—</option><option>M1</option><option>M5</option><option>M15</option><option>M30</option><option>H1</option><option>H4</option><option>D1</option><option>W1</option></select>
-      </div>
+    <div class="fg" style="margin-bottom:12px">
       <div class="fg" style="margin:0"><label class="fl">Sesión</label>
         <select id="f-session" class="fi"><option value="">—</option><option>Asia</option><option>Londres</option><option>Nueva York</option><option>Londres+NY</option><option>Pre-Mercado</option></select>
       </div>
-    </div>
-    <div class="fg">
-      <label class="fl">Etiquetas</label>
-      <div id="tag-input-wrap" style="background:var(--bg2);border:1px solid var(--bdr);border-radius:9px;padding:7px 10px;min-height:38px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;cursor:text" onclick="document.getElementById('f-tag-input').focus()">
-        <div id="tags-display" style="display:flex;flex-wrap:wrap;gap:4px"></div>
-        <input id="f-tag-input" type="text" placeholder="Añadir etiqueta..." style="border:none;background:transparent;color:var(--text);font-size:12px;outline:none;min-width:100px;flex:1" onkeydown="handleTagInput(event)">
-      </div>
-      <input type="hidden" id="f-tags" value="">
     </div>
     <div class="fg">
       <label class="fl">Notas</label>
