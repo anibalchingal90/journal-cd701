@@ -1168,44 +1168,89 @@ var EMPRESA = 'CD701';
 var FB_BASE = 'https://firestore.googleapis.com/v1/projects/' + FB_PROJECT + '/databases/(default)/documents/' + FB_COL;
 
 function getDeviceFingerprint() {
-  // Genera una huella estable basada en características del hardware/navegador
-  // Sobrevive al borrado de caché porque usa propiedades del dispositivo, no almacenamiento
+  // ═══════════════════════════════════════════════════════
+  //  DEVICE FINGERPRINT v2 — ESTABLE Y HARDWARE-BOUND
+  //  ✅ NO usa userAgent ni vendor (cambian con actualizaciones del browser)
+  //  ✅ Solo propiedades de hardware/sistema que son inmutables
+  //  ✅ Sobrevive: borrado de caché, cierre del browser, modo privado
+  // ═══════════════════════════════════════════════════════
   var nav = window.navigator;
-  var screen = window.screen;
+  var scr = window.screen;
   var parts = [
-    nav.userAgent || '',
-    nav.language || '',
-    nav.platform || '',
-    (nav.hardwareConcurrency || 0).toString(),
-    (nav.deviceMemory || 0).toString(),
-    screen.width + 'x' + screen.height,
-    screen.colorDepth || 0,
-    Intl.DateTimeFormat().resolvedOptions().timeZone || '',
-    nav.vendor || '',
-    (nav.maxTouchPoints || 0).toString()
+    // Hardware estable
+    (nav.hardwareConcurrency || 0).toString(),      // Núcleos CPU
+    (nav.deviceMemory || 0).toString(),             // RAM del dispositivo
+    scr.width + 'x' + scr.height,                  // Resolución física
+    (scr.colorDepth || 24).toString(),              // Profundidad de color
+    // Sistema/zona
+    Intl.DateTimeFormat().resolvedOptions().timeZone || '', // Zona horaria
+    nav.platform || '',                             // SO (Win32, MacIntel, Linux…)
+    nav.language || '',                             // Idioma del sistema
+    (nav.maxTouchPoints || 0).toString(),           // Táctil vs desktop
+    // Contexto canvas (diferencia tarjetas gráficas)
+    (function(){
+      try {
+        var c = document.createElement('canvas');
+        var gl = c.getContext('webgl') || c.getContext('experimental-webgl');
+        if(gl) {
+          var ext = gl.getExtension('WEBGL_debug_renderer_info');
+          if(ext) return gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) || '';
+        }
+      } catch(e) {}
+      return '';
+    })()
   ];
-  var raw = parts.join('|');
-  // Hash simple pero consistente
-  var hash = 0;
+  var raw = parts.join('||');
+  // djb2 hash — distribución uniforme y determinista
+  var hash = 5381;
   for (var i = 0; i < raw.length; i++) {
-    var chr = raw.charCodeAt(i);
-    hash = ((hash << 5) - hash) + chr;
-    hash |= 0;
+    hash = ((hash << 5) + hash) ^ raw.charCodeAt(i);
+    hash = hash & hash; // Forzar 32-bit signed
   }
-  return 'FP' + Math.abs(hash).toString(36).toUpperCase();
+  return 'FP' + Math.abs(hash).toString(36).toUpperCase().padStart(7, '0');
 }
 
 function getDeviceId() {
-  // ✅ FIX FINGERPRINT: Combina fingerprint (estable ante borrado de caché)
-  // con un ID guardado en localStorage como respaldo secundario
+  // ═══════════════════════════════════════════════════════
+  //  DEVICE ID v2 — SIN SUFIJO ALEATORIO
+  //  ✅ El fingerprint ES el device_id. Determinista y hardware-bound.
+  //  ✅ No depende de localStorage para su unicidad.
+  //  ✅ El mismo equipo siempre produce el mismo ID, sin importar si
+  //     el localStorage fue borrado o si el browser fue cerrado.
+  //  ✅ Compatibilidad hacia atrás: si el stored empieza con el mismo FP,
+  //     se reutiliza para no expulsar a usuarios ya registrados con ID viejo.
+  // ═══════════════════════════════════════════════════════
   var fp = getDeviceFingerprint();
   var stored = localStorage.getItem('tt_did');
-  // Si el stored empieza con el fingerprint, usarlo tal cual (mismo dispositivo)
-  if (stored && stored.startsWith(fp)) return stored;
-  // Si no hay stored o es de otro dispositivo, crear nuevo ID basado en fingerprint
-  var id = fp + '_' + Math.random().toString(36).substr(2,4).toUpperCase();
-  localStorage.setItem('tt_did', id);
-  return id;
+
+  // Retrocompatibilidad: si el stored era el formato viejo (FP_XXXX), migrar silenciosamente
+  if (stored && stored.startsWith(fp)) {
+    // Si el stored ya ES el fingerprint limpio, perfecto
+    // Si era FP_XXXX (sufijo viejo), igualmente lo reconocemos por la misma razón
+    // No actualizar Firebase — el chequeo de autorización ya maneja esto
+    if (stored !== fp) {
+      // Migrar: actualizar localStorage al ID limpio
+      localStorage.setItem('tt_did', fp);
+    }
+    return fp; // Siempre devolver el fingerprint puro
+  }
+
+  // Nuevo dispositivo o localStorage limpio → usar fingerprint puro
+  localStorage.setItem('tt_did', fp);
+  return fp;
+}
+
+// Devuelve el fingerprint base (sin sufijos), para matching amplio en Firebase
+function getDeviceFingerprintBase() {
+  return getDeviceFingerprint();
+}
+
+// Verifica si un device_id de Firebase corresponde a ESTE dispositivo
+// Maneja tanto el formato nuevo (fingerprint puro) como el viejo (fingerprint_XXXX)
+function isThisDevice(storedDeviceId) {
+  if (!storedDeviceId) return false;
+  var fp = getDeviceFingerprint();
+  return storedDeviceId === fp || storedDeviceId.startsWith(fp + '_') || storedDeviceId.startsWith(fp);
 }
 
 function showLicOverlay(msg) {
@@ -1217,6 +1262,49 @@ function showLicOverlay(msg) {
 function hideLicOverlay() {
   var o = document.getElementById('lic-overlay');
   if (o) { o.style.display = 'none'; document.body.style.overflow = ''; }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  FREEZE / UNFREEZE APP — Congela la UI sin destruir el estado
+//  Se usa cuando el polling detecta revocación o reseteo
+// ═══════════════════════════════════════════════════════════
+var _appFrozen = false;
+function freezeApp(reason) {
+  if (_appFrozen) return;
+  _appFrozen = true;
+  // Crear overlay de bloqueo inmediato sobre toda la app
+  var existing = document.getElementById('freeze-overlay');
+  if (existing) existing.remove();
+  var ov = document.createElement('div');
+  ov.id = 'freeze-overlay';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:999998;background:rgba(5,7,18,.97);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;backdrop-filter:blur(12px);';
+  ov.innerHTML = '<div style="font-size:48px;animation:pulse 2s ease-in-out infinite;">🔒</div>'
+    + '<div style="font-size:18px;font-weight:900;color:#f5f5f5;font-family:Exo 2,sans-serif;letter-spacing:-0.5px;">Sesión Bloqueada</div>'
+    + '<div style="font-size:13px;color:#8a9bb0;max-width:320px;text-align:center;line-height:1.7;">' + (reason || 'Tu acceso fue modificado por el administrador.') + '</div>'
+    + '<div style="width:40px;height:2px;background:linear-gradient(90deg,#ff3860,#ff6b6b);border-radius:99px;margin:4px 0"></div>'
+    + '<div style="font-size:11px;color:#3a4a5a;text-align:center;line-height:1.7;">Vuelve a ingresar tu código de acceso<br>para continuar.</div>'
+    + '<button onclick="unfreezeApp()" style="background:linear-gradient(135deg,#00b341,#00e676);color:#000;font-weight:900;padding:14px 32px;border-radius:12px;border:none;font-size:13px;cursor:pointer;letter-spacing:1px;box-shadow:0 4px 20px rgba(0,230,118,.3);">INGRESAR CÓDIGO</button>';
+  document.body.appendChild(ov);
+  // Deshabilitar todos los inputs y botones del journal
+  document.querySelectorAll('button, input, textarea, select').forEach(function(el) {
+    if (el.id !== 'freeze-overlay' && !el.closest('#freeze-overlay') && !el.closest('#lic-overlay')) {
+      el.setAttribute('data-frozen', '1');
+      el.disabled = true;
+    }
+  });
+}
+
+function unfreezeApp() {
+  _appFrozen = false;
+  // Rehabilitar controles
+  document.querySelectorAll('[data-frozen]').forEach(function(el) {
+    el.removeAttribute('data-frozen');
+    el.disabled = false;
+  });
+  var ov = document.getElementById('freeze-overlay');
+  if (ov) ov.remove();
+  // Mostrar pantalla de licencia
+  showLicOverlay();
 }
 
 async function checkLicenseOnLoad() {
@@ -1235,39 +1323,39 @@ async function checkLicenseOnLoad() {
     var f = data.fields || {};
 
     // Verificar si fue revocada
-    // ✅ FIX: Solo bloquear si active existe Y es explícitamente false
     if (f.active && f.active.booleanValue === false) {
-      // Guardar la key para recuperar datos cuando se restaure
       localStorage.setItem('ttlic_revoked_key', stored.key);
       localStorage.removeItem('ttlic');
       showLicOverlay('❌ Tu licencia fue revocada. Contacta a quien te vendió el producto.');
       return;
     }
 
-    var deviceId = getDeviceId();
+    var deviceId = getDeviceId(); // fingerprint puro
     var maxActivations = parseInt((f.maxActivations && f.maxActivations.integerValue) || '2');
 
-    // ✅ NUEVO: Leer lista de dispositivos autorizados (array en Firebase)
+    // Leer lista de dispositivos autorizados
     var authorizedDevices = [];
     if (f.devices && f.devices.arrayValue && f.devices.arrayValue.values) {
-      authorizedDevices = f.devices.arrayValue.values.map(function(v){ return v.stringValue || ''; });
+      authorizedDevices = f.devices.arrayValue.values.map(function(v){ return v.stringValue || ''; }).filter(Boolean);
     } else if (f.lastDevice && f.lastDevice.stringValue) {
-      // Compatibilidad con licencias antiguas que solo tienen lastDevice
       authorizedDevices = [f.lastDevice.stringValue];
     }
 
-    var isAuthorized = authorizedDevices.indexOf(deviceId) !== -1;
+    // ✅ FIX v2: Verificar con matching amplio (fingerprint puro O formato viejo FP_XXXX)
+    var isAuthorized = authorizedDevices.some(function(d) { return isThisDevice(d); });
 
     if (!isAuthorized) {
       if (authorizedDevices.length >= maxActivations) {
-        // Sin cupo — dispositivo no autorizado
+        // ✅ No consume cupo — solo bloquea
         localStorage.removeItem('ttlic');
-        showLicOverlay('⚠ Esta licencia ya está activada en ' + maxActivations + ' dispositivo(s). Contacta soporte para agregar este dispositivo.');
+        showLicOverlay('⚠ Esta licencia ya está activada en el máximo de dispositivos permitidos (' + maxActivations + ').\nContacta soporte para agregar este dispositivo.');
         return;
       }
-      // Hay cupo — registrar este dispositivo en la lista
-      authorizedDevices.push(deviceId);
-      var devValues = authorizedDevices.map(function(d){ return {stringValue: d}; });
+      // Hay cupo — registrar este dispositivo (con fingerprint limpio, sin sufijo)
+      // ✅ Limpiar entradas viejas de ESTE mismo dispositivo con formato antiguo
+      var devicesLimpios = authorizedDevices.filter(function(d) { return !isThisDevice(d); });
+      devicesLimpios.push(deviceId);
+      var devValues = devicesLimpios.map(function(d){ return {stringValue: d}; });
       var patchUrl = FB_BASE + '/' + stored.key + '?key=' + FB_KEY
         + '&updateMask.fieldPaths=devices'
         + '&updateMask.fieldPaths=activations'
@@ -1278,11 +1366,30 @@ async function checkLicenseOnLoad() {
         body: JSON.stringify({
           fields: {
             devices: {arrayValue: {values: devValues}},
-            activations: {integerValue: String(authorizedDevices.length)},
+            activations: {integerValue: String(devicesLimpios.length)},
             lastDevice: {stringValue: deviceId}
           }
         })
       });
+    } else {
+      // ✅ Dispositivo ya autorizado — migrar silenciosamente al fingerprint limpio si usaba formato viejo
+      var oldEntry = authorizedDevices.find(function(d) { return isThisDevice(d) && d !== deviceId; });
+      if (oldEntry) {
+        // Reemplazar entrada vieja por fingerprint limpio
+        var migrated = authorizedDevices.filter(function(d){ return !isThisDevice(d); });
+        migrated.push(deviceId);
+        var migratedVals = migrated.map(function(d){ return {stringValue: d}; });
+        var migrateUrl = FB_BASE + '/' + stored.key + '?key=' + FB_KEY
+          + '&updateMask.fieldPaths=devices&updateMask.fieldPaths=lastDevice';
+        fetch(migrateUrl, {
+          method: 'PATCH',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({fields: {
+            devices: {arrayValue: {values: migratedVals}},
+            lastDevice: {stringValue: deviceId}
+          }})
+        }).catch(function(){});
+      }
     }
 
     stored.lastCheck = Date.now();
@@ -1291,7 +1398,6 @@ async function checkLicenseOnLoad() {
   } catch(e) {
     console.log('[TradeTrack] Sin conexión — usando licencia local');
     if (!stored || !stored.key) { showLicOverlay('⚠ Sin internet. Conéctate para verificar tu licencia.'); return; }
-    // Sin internet pero tiene licencia guardada — inicializar con datos locales
     hideLicOverlay();
     initApp();
     return;
@@ -1299,7 +1405,6 @@ async function checkLicenseOnLoad() {
 
   startLicensePolling();
   hideLicOverlay();
-  // La licencia está confirmada — ahora sí inicializar la app con los datos del usuario
   initApp();
 }
 async function activateLicense() {
@@ -1329,34 +1434,42 @@ async function activateLicense() {
     var data = await res.json();
     var f = data.fields || {};
 
-    // ✅ FIX: Solo bloquear si active existe Y es explícitamente false
     if (f.active && f.active.booleanValue === false) {
       errEl.textContent = '❌ Este código está desactivado. Contacta a tu revendedor.';
       loadEl.style.display = 'none'; btn.disabled = false; btn.style.opacity = '1'; return;
     }
 
-    var deviceId = getDeviceId();
+    var deviceId = getDeviceId(); // fingerprint puro y estable
     var maxActivations = parseInt((f.maxActivations && f.maxActivations.integerValue) || '2');
 
-    // ✅ Leer lista de dispositivos autorizados
+    // Leer lista de dispositivos autorizados
     var authorizedDevices = [];
     if (f.devices && f.devices.arrayValue && f.devices.arrayValue.values) {
-      authorizedDevices = f.devices.arrayValue.values.map(function(v){ return v.stringValue || ''; });
+      authorizedDevices = f.devices.arrayValue.values.map(function(v){ return v.stringValue || ''; }).filter(Boolean);
     } else if (f.lastDevice && f.lastDevice.stringValue) {
       authorizedDevices = [f.lastDevice.stringValue];
     }
 
-    var isAuthorized = authorizedDevices.indexOf(deviceId) !== -1;
+    // ✅ FIX v2: Matching amplio — reconoce este dispositivo aunque el ID viejo era FP_XXXX
+    var isAuthorized = authorizedDevices.some(function(d) { return isThisDevice(d); });
 
     if (!isAuthorized) {
       if (authorizedDevices.length >= maxActivations) {
-        errEl.textContent = '⚠ Este código ya está activado en ' + maxActivations + ' dispositivo(s). Contacta soporte para transferirlo.';
+        errEl.textContent = '⚠ Este código ya está activado en ' + maxActivations + ' dispositivo(s). Contacta soporte para agregar este dispositivo.';
         loadEl.style.display = 'none'; btn.disabled = false; btn.style.opacity = '1'; return;
       }
-      authorizedDevices.push(deviceId);
+      // ✅ Agregar este dispositivo con fingerprint limpio (sin duplicados del mismo FP)
+      var devicesLimpios = authorizedDevices.filter(function(d) { return !isThisDevice(d); });
+      devicesLimpios.push(deviceId);
+      authorizedDevices = devicesLimpios;
+    } else {
+      // ✅ Ya autorizado — normalizar entrada a fingerprint limpio (migración silenciosa)
+      var normalizado = authorizedDevices.filter(function(d) { return !isThisDevice(d); });
+      normalizado.push(deviceId);
+      authorizedDevices = normalizado;
     }
 
-    // Registrar en Firebase
+    // Registrar en Firebase (con deduplicación garantizada)
     var devValues = authorizedDevices.map(function(d){ return {stringValue: d}; });
     var patchUrl = FB_BASE + '/' + code + '?key=' + FB_KEY
       + '&updateMask.fieldPaths=activatedAt'
@@ -1384,9 +1497,16 @@ async function activateLicense() {
       lastCheck: Date.now()
     }));
 
+    // Descongelar si estaba congelado
+    _appFrozen = false;
+    var fov = document.getElementById('freeze-overlay');
+    if (fov) fov.remove();
+    document.querySelectorAll('[data-frozen]').forEach(function(el){
+      el.removeAttribute('data-frozen'); el.disabled = false;
+    });
+
     startLicensePolling();
     hideLicOverlay();
-    // Licencia confirmada — inicializar app y luego recuperar datos de la nube
     initApp();
 
   } catch(e) {
@@ -1497,7 +1617,7 @@ function load(){
 //  SUPABASE — SINCRONIZACIÓN EN LA NUBE
 // ═══════════════════════════════════════════════════════════
 // ── Versioning & Auto-migration ──────────────────────────────────────────────
-var APP_VERSION = '2.1'; // ⬅ Sube este número cada vez que hagas cambios
+var APP_VERSION = '2.2'; // ⬅ v2.2: Device binding robusto, sin duplicados, freeze inmediato
 
 function migrateData(){
   var pfxV = getLicensePrefix();
@@ -1709,63 +1829,88 @@ async function syncAllAccounts(){
   return await syncFromCloud();
 }
 
-// ✅ FIX REVOKE: Polling periódico — verifica la licencia cada 60s mientras la app está abierta
-// Esto garantiza que si el admin revoca o resetea, el usuario queda bloqueado INMEDIATAMENTE
+// ✅ FIX v2: Polling mejorado con bloqueo INMEDIATO y visibilitychange
+// — Detecta revocación/reseteo cada 30s (en lugar de 60s)
+// — También verifica cuando el usuario vuelve a la pestaña
+// — Al detectar problema: congela la UI inmediatamente (freezeApp)
 var _licCheckInterval = null;
+var _licVisibilityListener = null;
+
 function startLicensePolling(){
   if(_licCheckInterval) clearInterval(_licCheckInterval);
-  _licCheckInterval = setInterval(async function(){
+
+  async function doLicCheck() {
     var stored = null;
     try { stored = JSON.parse(localStorage.getItem('ttlic') || 'null'); } catch(e) {}
     if(!stored || !stored.key){
-      clearInterval(_licCheckInterval);
-      _licCheckInterval = null;
-      showLicOverlay();
+      _stopPolling();
+      freezeApp('Tu sesión expiró. Vuelve a ingresar tu código de acceso.');
       return;
     }
     try{
       var res = await fetch(FB_BASE + '/' + stored.key + '?key=' + FB_KEY);
       if(!res.ok){
-        clearInterval(_licCheckInterval);
-        _licCheckInterval = null;
+        _stopPolling();
         localStorage.removeItem('ttlic');
-        showLicOverlay('⚠ Licencia no encontrada. Contacta a tu revendedor.');
+        freezeApp('⚠ Licencia no encontrada. Contacta a tu revendedor.');
         return;
       }
       var data = await res.json();
       var f = data.fields || {};
-      // Si fue REVOCADA → bloquear
+
+      // ❶ Licencia REVOCADA
       if(f.active && f.active.booleanValue === false){
-        clearInterval(_licCheckInterval);
-        _licCheckInterval = null;
+        _stopPolling();
         localStorage.setItem('ttlic_revoked_key', stored.key);
         localStorage.removeItem('ttlic');
-        showLicOverlay('❌ Tu licencia fue revocada. Contacta a quien te vendió el producto.');
+        freezeApp('❌ Tu licencia fue revocada por el administrador.\nContacta a quien te vendió el producto.');
         return;
       }
-      // Si fue RESETEADA → el deviceId ya no está en la lista autorizada → expulsar
-      var deviceId = getDeviceId();
+
+      // ❷ Verificar que ESTE dispositivo sigue en la lista
       var authorizedDevices = [];
       if(f.devices && f.devices.arrayValue && f.devices.arrayValue.values){
         authorizedDevices = f.devices.arrayValue.values.map(function(v){return v.stringValue||'';}).filter(Boolean);
       } else if(f.lastDevice && f.lastDevice.stringValue){
         authorizedDevices = [f.lastDevice.stringValue];
       }
-      if(authorizedDevices.length > 0 && authorizedDevices.indexOf(deviceId) === -1){
-        clearInterval(_licCheckInterval);
-        _licCheckInterval = null;
+
+      // ✅ FIX v2: Matching amplio (fingerprint puro O formato viejo)
+      var stillAuthorized = authorizedDevices.length === 0 || authorizedDevices.some(function(d){ return isThisDevice(d); });
+
+      if(!stillAuthorized){
+        // Dispositivo ya no está en la lista → fue reseteado
+        _stopPolling();
         localStorage.removeItem('ttlic');
-        showLicOverlay('⚠ Esta licencia fue reseteada por el administrador. Vuelve a ingresar tu código para continuar.');
+        freezeApp('⚠ Esta licencia fue reseteada por el administrador.\nVuelve a ingresar tu código para registrar este dispositivo.');
         return;
       }
-      // Todo OK — actualizar lastCheck
+
+      // ❸ Todo OK — actualizar lastCheck
       stored.lastCheck = Date.now();
       localStorage.setItem('ttlic', JSON.stringify(stored));
     }catch(e){
-      // Sin internet — no bloquear, solo ignorar
-      console.log('[TradeTrack] Polling sin conexión, se reintentará.');
+      // Sin internet — no bloquear, reintentar en el próximo ciclo
+      console.log('[TradeTrack] Polling: sin conexión, reintentará en 30s.');
     }
-  }, 60000); // cada 60 segundos
+  }
+
+  // Verificar cada 30 segundos (antes era 60)
+  _licCheckInterval = setInterval(doLicCheck, 30000);
+
+  // ✅ NUEVO: Verificar inmediatamente cuando el usuario vuelve a la pestaña
+  if(_licVisibilityListener) document.removeEventListener('visibilitychange', _licVisibilityListener);
+  _licVisibilityListener = function(){
+    if(document.visibilityState === 'visible' && !_appFrozen){
+      doLicCheck();
+    }
+  };
+  document.addEventListener('visibilitychange', _licVisibilityListener);
+}
+
+function _stopPolling(){
+  if(_licCheckInterval){ clearInterval(_licCheckInterval); _licCheckInterval = null; }
+  if(_licVisibilityListener){ document.removeEventListener('visibilitychange', _licVisibilityListener); _licVisibilityListener = null; }
 }
 
 function showSyncStatus(msg){
@@ -4413,7 +4558,7 @@ window.openTDP = function(trade, dayList, idx) {
 
   // Nav indicators
   var navInfo = _dayTrades.length > 1
-    ? '<span style="font-size:10px;color:var(--gray2);font-family:JetBrains Mono,monospace">'+(_dayTradeIdx+1)+'/'+_dayTrades.length+'</span>'
+    ? '<span style="font-size:10px;color:var(--gray2);font-family:'JetBrains Mono',monospace">'+(_dayTradeIdx+1)+'/'+_dayTrades.length+'</span>'
     : '';
 
   title.innerHTML = 'Operación <span style="color:var(--gray2);font-weight:600;font-size:12px">#'+String(trade.id).slice(-4)+'</span> '+navInfo;
@@ -4437,15 +4582,15 @@ window.openTDP = function(trade, dayList, idx) {
     // Asset + direction + prices
     '<div style="background:var(--card2);border-radius:12px;border:1px solid var(--bdr);padding:14px;margin-bottom:12px">' +
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">' +
-        '<div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff;font-family:Exo 2,sans-serif">'+( (trade.asset||'?').substring(0,2))+'</div>' +
+        '<div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff;font-family:'Exo 2',sans-serif">'+( (trade.asset||'?').substring(0,2))+'</div>' +
         '<div>' +
-          '<div style="font-size:15px;font-weight:900;font-family:Exo 2,sans-serif;color:var(--text)">'+(trade.asset||'—')+'</div>' +
+          '<div style="font-size:15px;font-weight:900;font-family:'Exo 2',sans-serif;color:var(--text)">'+(trade.asset||'—')+'</div>' +
           '<div style="font-size:10px;color:'+(trade.direction==='BUY'?'var(--green)':'var(--red)')+'">'+( trade.direction==='BUY'?'▲ Long':'▼ Short')+'</div>' +
         '</div>' +
         '<div style="margin-left:auto;text-align:right">' +
-          (trade.entry?'<div style="font-size:12px;font-weight:700;font-family:JetBrains Mono,monospace;color:var(--text)">'+trade.entry+'</div><div style="font-size:9px;color:var(--gray2)">Precio de entrada</div>':'') +
+          (trade.entry?'<div style="font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--text)">'+trade.entry+'</div><div style="font-size:9px;color:var(--gray2)">Precio de entrada</div>':'') +
         '</div>' +
-        (trade.exit?'<div style="text-align:right;margin-left:8px"><div style="font-size:12px;font-weight:700;font-family:JetBrains Mono,monospace;color:var(--text)">'+trade.exit+'</div><div style="font-size:9px;color:var(--gray2)">Precio de salida</div></div>':'') +
+        (trade.exit?'<div style="text-align:right;margin-left:8px"><div style="font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--text)">'+trade.exit+'</div><div style="font-size:9px;color:var(--gray2)">Precio de salida</div></div>':'') +
       '</div>' +
       '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;border-top:1px solid var(--bdr);padding-top:12px">' +
         _tdpMini(trade.entry||'—','Entrada') +
@@ -4509,7 +4654,7 @@ window.openTDP = function(trade, dayList, idx) {
     ) : '') +
 
     // Footer timestamps
-    '<div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--bdr);font-size:9px;color:var(--gray2);font-family:JetBrains Mono,monospace">' +
+    '<div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--bdr);font-size:9px;color:var(--gray2);font-family:'JetBrains Mono',monospace">' +
       'Creada: '+new Date(parseInt(String(trade.id).substring(0,13))).toLocaleDateString('es',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) +
     '</div>' +
 
@@ -4520,7 +4665,7 @@ window.openTDP = function(trade, dayList, idx) {
 };
 
 function _tdpMini(val, label) {
-  return '<div style="text-align:center"><div style="font-size:12px;font-weight:700;font-family:Exo 2,sans-serif;color:var(--text)">'+val+'</div><div style="font-size:8px;color:var(--gray2);text-transform:uppercase;letter-spacing:.8px">'+label+'</div></div>';
+  return '<div style="text-align:center"><div style="font-size:12px;font-weight:700;font-family:'Exo 2',sans-serif;color:var(--text)">'+val+'</div><div style="font-size:8px;color:var(--gray2);text-transform:uppercase;letter-spacing:.8px">'+label+'</div></div>';
 }
 function _tdpRow(icon, label, val) {
   if(!val||val==='—') return '';
@@ -4570,14 +4715,14 @@ window.renderDayDetail = function() {
   tbody.innerHTML=dt.map(function(t,i){
     var isWin=t.result==='TP';
     return '<tr onclick="openTDP(window._currentDayTrades['+i+'],window._currentDayTrades,'+i+');window._playClick&&window._playClick()" style="cursor:pointer">'+
-      '<td style="font-family:JetBrains Mono,monospace;font-size:11px;color:var(--gray2)">'+(t.time||'—')+'</td>'+
-      '<td style="font-weight:800;font-size:12px;font-family:Exo 2,sans-serif;color:var(--text)">'+( t.asset||'—')+'</td>'+
+      '<td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gray2)">'+(t.time||'—')+'</td>'+
+      '<td style="font-weight:800;font-size:12px;font-family:'Exo 2',sans-serif;color:var(--text)">'+( t.asset||'—')+'</td>'+
       '<td><span class="'+(t.direction==='BUY'?'bbuy':'bsell')+'">'+( t.direction==='BUY'?'▲ Long':'▼ Short')+'</span></td>'+
       '<td><span style="font-size:10px;background:rgba(124,58,237,.12);color:var(--purp);padding:2px 6px;border-radius:4px">'+(t.tf||'—')+'</span></td>'+
       '<td><span class="'+(isWin?'btp':'bsl')+'">'+t.result+'</span></td>'+
       '<td style="font-size:11px;color:var(--gray2)">'+(t.pips?t.pips:'—')+'</td>'+
-      '<td style="font-family:Exo 2,sans-serif;font-weight:700;color:'+(isWin?'var(--green)':'var(--red)')+';">'+(t.pnl>=0?'+$':'-$')+Math.abs(t.pnl||0).toFixed(2)+'</td>'+
-      '<td style="font-size:11px;color:var(--cyan);font-family:Exo 2,sans-serif">'+(t.rr?'1:'+t.rr:'—')+'</td>'+
+      '<td style="font-family:'Exo 2',sans-serif;font-weight:700;color:'+(isWin?'var(--green)':'var(--red)')+';">'+(t.pnl>=0?'+$':'-$')+Math.abs(t.pnl||0).toFixed(2)+'</td>'+
+      '<td style="font-size:11px;color:var(--cyan);font-family:'Exo 2',sans-serif">'+(t.rr?'1:'+t.rr:'—')+'</td>'+
       '<td style="white-space:nowrap">'+
         '<button class="icon-btn edit" onclick="event.stopPropagation();editTrade('+t.id+');resetFormMedia(S.trades.find(function(x){return x.id==='+t.id+';})||null);openNewOpPanel()" title="Editar">✏</button>'+
         '<button class="icon-btn del" onclick="event.stopPropagation();delTrade('+t.id+')" title="Eliminar" style="margin-left:3px">🗑</button>'+
@@ -4603,7 +4748,7 @@ window.renderDayDetail = function() {
     ].map(function(r){
       return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(30,37,64,.5)">'+
         '<span style="font-size:11px;color:var(--gray2)">'+r[0]+'</span>'+
-        '<span style="font-size:13px;font-weight:800;font-family:Exo 2,sans-serif;color:'+r[2]+'">'+r[1]+'</span>'+
+        '<span style="font-size:13px;font-weight:800;font-family:'Exo 2',sans-serif;color:'+r[2]+'">'+r[1]+'</span>'+
       '</div>';
     }).join('');
   }
