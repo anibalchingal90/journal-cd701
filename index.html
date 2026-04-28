@@ -127,7 +127,7 @@ body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(r
 /* CAL GRID */
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .cal-dow{text-align:center;font-size:8px;font-weight:700;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;padding:6px 0 8px;font-family:'Exo 2',sans-serif}
-.cal-cell{background:var(--card);border-radius:10px;min-height:82px;padding:8px;cursor:pointer;border:1px solid var(--bdr);transition:all .22s;position:relative;overflow:hidden}
+.cal-cell{background:var(--card);border-radius:10px;min-height:78px;padding:7px 8px;cursor:pointer;border:1px solid var(--bdr);transition:all .22s;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-start}
 .cal-cell::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.02),transparent);pointer-events:none}
 .cal-cell:hover{border-color:var(--bdr2);transform:scale(1.02);box-shadow:0 4px 20px rgba(0,0,0,.3);z-index:2}
 .cal-cell.other{opacity:.15;cursor:default;pointer-events:none}
@@ -137,10 +137,10 @@ body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(r
 .cal-cell.all-sl{background:linear-gradient(135deg,rgba(255,56,96,.16),rgba(255,56,96,.05))!important;border-color:rgba(255,56,96,.4)!important}
 .cal-cell.mix-win{background:linear-gradient(135deg,rgba(0,229,176,.09),rgba(0,229,176,.03))!important;border-color:rgba(0,229,176,.25)!important}
 .cal-cell.mix-loss{background:linear-gradient(135deg,rgba(255,56,96,.09),rgba(255,56,96,.03))!important;border-color:rgba(255,56,96,.25)!important}
-.cdn{font-size:11px;font-weight:700;color:var(--gray2);margin-bottom:5px;font-family:'Exo 2',sans-serif}
+.cdn{font-size:11px;font-weight:700;color:var(--gray2);margin-bottom:4px;font-family:'Exo 2',sans-serif}
 .cal-cell.today .cdn{color:#818cf8}
 .cal-cell.sel .cdn{color:var(--gold)}
-.cpnl{font-size:11px;font-weight:800;border-radius:6px;padding:2px 6px;display:inline-block;margin-bottom:4px;font-family:'Exo 2',sans-serif}
+.cpnl{font-size:12px;font-weight:800;border-radius:6px;padding:2px 6px;display:inline-block;margin-top:2px;font-family:'Exo 2',sans-serif}
 .cpnl.pos{background:rgba(0,229,176,.15);color:var(--green)}
 .cpnl.neg{background:rgba(255,56,96,.15);color:var(--red)}
 .ccnt{font-size:9px;color:var(--gray2);display:flex;align-items:center;gap:3px}
@@ -435,7 +435,20 @@ tr:hover td{background:rgba(14,18,41,.8)}
 .reg-kpi-lbl{font-size:8px;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;font-family:'Exo 2',sans-serif}
 
 /* CALENDAR CELL — updated */
-.cal-cell-ops{font-size:10px;color:var(--gray2);margin-top:3px;font-weight:600}
+.cal-cell-ops{font-size:10px;color:var(--gray2);font-weight:600;line-height:1.2}
+/* DAY DETAIL SECTION — wave glow background like target image */
+#day-detail{background:linear-gradient(180deg,rgba(10,14,35,.0) 0%,rgba(10,14,35,.0) 100%)}
+.day-detail-hdr{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:12px 0 10px}
+.day-count-badge{display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;font-size:10px;font-weight:800;font-family:'Exo 2',sans-serif;border-radius:50%;width:22px;height:22px;box-shadow:0 0 10px rgba(99,102,241,.4);flex-shrink:0}
+/* Day ops table */
+.day-ops-table{width:100%;border-collapse:collapse;font-size:11px}
+.day-ops-table th{background:rgba(10,14,30,.7);color:var(--gray2);font-weight:700;font-size:8px;padding:8px 10px;text-align:left;text-transform:uppercase;letter-spacing:1.2px;border-bottom:1px solid var(--bdr);font-family:'Exo 2',sans-serif}
+.day-ops-table td{padding:8px 10px;border-bottom:1px solid rgba(26,34,64,.5);vertical-align:middle;transition:background .12s}
+.day-ops-table tr:last-child td{border-bottom:none}
+.day-ops-table tr:hover td{background:rgba(99,102,241,.05)}
+.day-ops-table .sel-row td{background:rgba(247,201,72,.05)}
+.reg-add-inline-btn{background:none;border:none;color:var(--accent);font-size:11px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:'DM Sans',sans-serif;padding:2px 0;transition:color .2s}
+.reg-add-inline-btn:hover{color:#a78bfa}
 
 /* DAY DETAIL HEADER */
 .day-detail-hdr{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
@@ -2884,9 +2897,9 @@ function renderCal(){
     var inner='<div class="cdn">'+day+'</div>';
     if(data){
       var pc=data.pnl>=0?'pos':'neg';
-      inner+='<div class="cpnl '+pc+'">'+(data.pnl>=0?'+$':'-$')+Math.abs(data.pnl).toFixed(2)+'</div>';
       var tot=(data.tp||0)+(data.sl||0);
       if(tot>0)inner+='<div class="cal-cell-ops">'+tot+(tot===1?' operación':' operaciones')+'</div>';
+      inner+='<div class="cpnl '+pc+'">'+(data.pnl>=0?'+$':'-$')+Math.abs(data.pnl).toFixed(2)+'</div>';
     }
     html+='<div class="'+cls+'" onclick="selectDay('+day+')">'+inner+'</div>';
   }
