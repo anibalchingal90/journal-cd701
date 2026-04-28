@@ -1264,6 +1264,7 @@ tr:hover td{background:rgba(14,18,41,.8)}
             <div class="acct-color-dot" data-color="#06b6d4" onclick="setAcctColor('#06b6d4')" style="width:28px;height:28px;border-radius:50%;background:#06b6d4;cursor:pointer;border:2px solid transparent;transition:all .2s;"></div>
             <div class="acct-color-dot" data-color="#6b7280" onclick="setAcctColor('#6b7280')" style="width:28px;height:28px;border-radius:50%;background:#6b7280;cursor:pointer;border:2px solid transparent;transition:all .2s;"></div>
           </div>
+          <!-- Íconos -->
 
         </div>
 
@@ -3790,11 +3791,13 @@ function renderSidebarAccounts(){
     html += '<div style="display:flex;align-items:center;gap:5px;">';
 
     // Click para activar cuenta
-    html += '<div onclick="seleccionarCuentaSidebar(\''+a.id+'\')" style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;cursor:pointer;overflow:hidden;">';
-    html += '<div style="width:22px;height:22px;min-width:22px;background:'+col+'33;border:1px solid '+col+'55;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;">'+icon+'</div>';
+    html += '<div onclick="seleccionarCuentaSidebar(\''+a.id+'\')" style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;cursor:pointer;overflow:hidden;">';
+    // Círculo del color de la cuenta (más grande, sin ícono)
+    html += '<div style="width:32px;height:32px;min-width:32px;border-radius:50%;background:'+col+';flex-shrink:0;position:relative;">';
+    if(isActive) html += '<span class="active-dot-pulse" style="position:absolute;inset:0;border-radius:50%;background:'+col+';"></span>';
+    html += '</div>';
     html += '<div style="flex:1;overflow:hidden;">';
     html += '<div style="display:flex;align-items:center;gap:4px;">';
-    if(isActive) html += '<span class="active-dot-pulse"></span>';
     html += '<span style="font-size:11px;font-weight:700;color:'+nameColor+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px;" title="'+a.name+'">'+a.name+'</span>';
     html += fondeoLabel;
     html += '</div>';
@@ -4780,8 +4783,9 @@ button:active, [onclick]:active, .ni:active, .cal-nav-btn:active, .rb:active, .t
 /* ── Animaciones pulsantes para viñetas de cuenta ── */
 @keyframes fondeo-pulse{0%,100%{box-shadow:0 0 0 0 rgba(232,160,32,.7);opacity:1;}50%{box-shadow:0 0 0 5px rgba(232,160,32,0);opacity:.8;}}
 @keyframes active-pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,230,118,.8);opacity:1;}50%{box-shadow:0 0 0 4px rgba(0,230,118,0);opacity:.7;}}
+@keyframes active-pulse-col{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.6;transform:scale(1.35);}}
 .fondeo-badge-pulse{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:rgba(232,160,32,.25);border:1px solid #e8a020;color:#e8a020;font-size:8px;font-weight:900;animation:fondeo-pulse 1.6s ease-in-out infinite;flex-shrink:0;}
-.active-dot-pulse{width:7px;height:7px;min-width:7px;background:#00e676;border-radius:50%;display:inline-block;animation:active-pulse 1.4s ease-in-out infinite;flex-shrink:0;}
+.active-dot-pulse{width:11px;height:11px;min-width:11px;border-radius:50%;display:inline-block;animation:active-pulse-col 1.4s ease-in-out infinite;flex-shrink:0;}
 .ripple-fx{position:fixed;border-radius:50%;background:rgba(255,255,255,0.18);pointer-events:none;transform:scale(0);animation:ripplePop .45s ease-out forwards;z-index:9999;}
 @keyframes ripplePop{0%{transform:scale(0);opacity:.7;}100%{transform:scale(1);opacity:0;}}
 </style>
