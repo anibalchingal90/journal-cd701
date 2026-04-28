@@ -1346,55 +1346,41 @@ async function checkLicenseOnLoad() {
       authorizedDevices = [f.lastDevice.stringValue];
     }
 
-    // ✅ FIX v2: Verificar con matching amplio (fingerprint puro O formato viejo FP_XXXX)
+    // ✅ FIX v3: Verificar con matching amplio (fingerprint puro O formato viejo FP_XXXX)
     var isAuthorized = authorizedDevices.some(function(d) { return isThisDevice(d); });
 
     if (!isAuthorized) {
-      if (authorizedDevices.length >= maxActivations) {
-        // ✅ No consume cupo — solo bloquea
-        localStorage.removeItem('ttlic');
-        showLicOverlay('⚠ Esta licencia ya está activada en el máximo de dispositivos permitidos (' + maxActivations + ').\nContacta soporte para agregar este dispositivo.');
-        return;
-      }
-      // Hay cupo — registrar este dispositivo (con fingerprint limpio, sin sufijo)
-      // ✅ Limpiar entradas viejas de ESTE mismo dispositivo con formato antiguo
-      var devicesLimpios = authorizedDevices.filter(function(d) { return !isThisDevice(d); });
-      devicesLimpios.push(deviceId);
-      var devValues = devicesLimpios.map(function(d){ return {stringValue: d}; });
-      var patchUrl = FB_BASE + '/' + stored.key + '?key=' + FB_KEY
-        + '&updateMask.fieldPaths=devices'
-        + '&updateMask.fieldPaths=activations'
-        + '&updateMask.fieldPaths=lastDevice';
-      await fetch(patchUrl, {
+      // ✅ REGLA PRINCIPAL: si el dispositivo NO está autorizado (sea porque:
+      //    - la lista está vacía tras un reset
+      //    - fue eliminado individualmente
+      //    - la licencia fue reseteada/revocada y re-activada
+      //    - es un dispositivo completamente nuevo)
+      // → SIEMPRE forzar ingreso de código. NUNCA auto-registrar desde aquí.
+      // El registro solo ocurre en activateLicense() cuando el usuario ingresa el código explícitamente.
+      localStorage.removeItem('ttlic');
+      var msg = authorizedDevices.length >= maxActivations
+        ? '⚠ Esta licencia ya está activada en el máximo de dispositivos (' + maxActivations + ').\nContacta soporte para liberar un cupo.'
+        : '🔄 Esta licencia fue reseteada o es un dispositivo nuevo.\nIngresa tu código para continuar.';
+      showLicOverlay(msg);
+      return;
+    }
+
+    // Dispositivo autorizado: migrar silenciosamente al fingerprint limpio si usaba formato viejo
+    var oldEntry = authorizedDevices.find(function(d) { return isThisDevice(d) && d !== deviceId; });
+    if (oldEntry) {
+      var migrated = authorizedDevices.filter(function(d){ return !isThisDevice(d); });
+      migrated.push(deviceId);
+      var migratedVals = migrated.map(function(d){ return {stringValue: d}; });
+      var migrateUrl = FB_BASE + '/' + stored.key + '?key=' + FB_KEY
+        + '&updateMask.fieldPaths=devices&updateMask.fieldPaths=lastDevice';
+      fetch(migrateUrl, {
         method: 'PATCH',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          fields: {
-            devices: {arrayValue: {values: devValues}},
-            activations: {integerValue: String(devicesLimpios.length)},
-            lastDevice: {stringValue: deviceId}
-          }
-        })
-      });
-    } else {
-      // ✅ Dispositivo ya autorizado — migrar silenciosamente al fingerprint limpio si usaba formato viejo
-      var oldEntry = authorizedDevices.find(function(d) { return isThisDevice(d) && d !== deviceId; });
-      if (oldEntry) {
-        // Reemplazar entrada vieja por fingerprint limpio
-        var migrated = authorizedDevices.filter(function(d){ return !isThisDevice(d); });
-        migrated.push(deviceId);
-        var migratedVals = migrated.map(function(d){ return {stringValue: d}; });
-        var migrateUrl = FB_BASE + '/' + stored.key + '?key=' + FB_KEY
-          + '&updateMask.fieldPaths=devices&updateMask.fieldPaths=lastDevice';
-        fetch(migrateUrl, {
-          method: 'PATCH',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({fields: {
-            devices: {arrayValue: {values: migratedVals}},
-            lastDevice: {stringValue: deviceId}
-          }})
-        }).catch(function(){});
-      }
+        body: JSON.stringify({fields: {
+          devices: {arrayValue: {values: migratedVals}},
+          lastDevice: {stringValue: deviceId}
+        }})
+      }).catch(function(){});
     }
 
     stored.lastCheck = Date.now();
