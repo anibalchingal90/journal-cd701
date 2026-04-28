@@ -1859,7 +1859,6 @@ function checkAlerts(){
 //  migrateData() para versiones futuras.
 // ════════════════════════════════════════════════════════════
 // STORAGE — ✅ FIX CACHE: claves prefijadas con license_key
-function save()// STORAGE — ✅ FIX CACHE: claves prefijadas con license_key
 function save(){
   try{
     var pfx = getLicensePrefix();
@@ -2340,7 +2339,6 @@ function delAll(){
 //  showConfirm(): abre modal con título, cuerpo y callback.
 // ════════════════════════════════════════════════════════════
 // CONFIRM MODAL
-function showConfirm(// CONFIRM MODAL
 function showConfirm(title,body,fn,prev,confirmLabel){
   g('cmot').textContent=title;g('cmob').textContent=body;
   var p=g('cmoprev');if(prev){p.innerHTML=prev;p.style.display='block';}else p.style.display='none';
@@ -2381,7 +2379,6 @@ function rmAsset(sym){S.settings.assets=S.settings.assets.filter(function(a){ret
 //  renderMonthSummary(): barra KPI debajo del calendario.
 // ════════════════════════════════════════════════════════════
 // YR SELS
-function renderYrSels(// YR SELS
 function renderYrSels(){
   var yrs=[...new Set(S.trades.map(function(t){return t.date.split('-')[0];}))].sort();
   ['ay','yr-sel'].forEach(function(id){
@@ -2864,7 +2861,7 @@ function mkC(id,type,labels,datasets,ex){
 //  renderDash(): KPIs, equity, gráficos, últimas 5 operaciones.
 //  mkC(): helper para crear gráficos Chart.js.
 // ════════════════════════════════════════════════════════════
-function renderDash()function renderDash(){
+function renderDash(){
   var to=totals(),s=S.settings,a=acct();
   var hkpis=[
     {l:'Total Ops',v:String(S.trades.length),c:'',sub:'',cls:'b'},
@@ -3030,7 +3027,7 @@ function syncCalFromDate(val){
 //  renderCal(): celdas con colores TP/SL, día seleccionado.
 //  renderDayDetail(): lista de operaciones del día.
 // ════════════════════════════════════════════════════════════
-function renderCal()function renderCal(){
+function renderCal(){
   var el=g('cal-label');if(el)el.textContent=MONTHS[calMonth]+' '+calYear;
   var grid=g('cal-grid');if(!grid)return;
   var yrS=String(calYear),mS=String(calMonth+1).padStart(2,'0');
@@ -3207,7 +3204,7 @@ function setLogView(v){
 //  §14 — RENDER: TABLA DE OPERACIONES
 //  renderTable(): lista paginada con filtros activos.
 // ════════════════════════════════════════════════════════════
-function renderTable()function renderTable(){
+function renderTable(){
   var asel=g('f-filter-asset');if(asel){var cur=asel.value;asel.innerHTML='<option value="">Todos los activos</option>'+(S.settings.assets||[]).map(function(a){return'<option value="'+a+'"'+(a===cur?' selected':'')+'>'+a+'</option>';}).join('');}
   var sorted=[].concat(getSorted()).reverse();var a=acct();
   document.querySelector('#tlog tbody').innerHTML=sorted.length?sorted.map(function(t,i){
@@ -3225,7 +3222,7 @@ function renderTable()function renderTable(){
 //  §16 — RENDER: ESTADÍSTICAS
 //  renderStats(): KPIs anuales, equity anual, resumen mensual.
 // ════════════════════════════════════════════════════════════
-function renderStats()function renderStats(){
+function renderStats(){
   var yr=parseInt(g('yr-sel').value||String(calYear));var a=acct();
   var mSt=MONTHS.map(function(_,i){
     var f=S.trades.filter(function(t){return t.date.startsWith(String(yr))&&+t.date.split('-')[1]===i+1;});
@@ -3260,7 +3257,7 @@ function renderStats()function renderStats(){
 //  renderA(): gráficos por día/hora, tabla horaria, rachas,
 //  métricas avanzadas, insights automáticos.
 // ════════════════════════════════════════════════════════════
-function renderA()function renderA(){
+function renderA(){
   try{
     var aY=g('ay').value,aM=g('am').value,aA=g('aa').value,aDr=g('adir').value;
     var mIdx=aM?MSS.indexOf(aM)+1:0;
