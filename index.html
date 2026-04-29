@@ -3814,7 +3814,7 @@ function renderSidebarAccounts(){
     // Botón eliminar 🗑 — siempre visible, la lógica de "última cuenta" está en borrarCuentaDirecto
     html += '<button onclick="event.stopPropagation();borrarCuentaDirecto(\''+a.id+'\',\''+a.name.replace(/'/g,"\\'")+'\')" title="Eliminar" style="flex-shrink:0;background:rgba(255,23,68,.1);border:1px solid rgba(255,23,68,.35);color:#ff1744;border-radius:5px;width:24px;height:24px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;padding:0;">🗑</button>';
 
-    html += '</div></div>';
+    html += '</div></div></div>';
   }
   el.innerHTML = html;
 }
