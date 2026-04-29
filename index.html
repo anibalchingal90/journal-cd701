@@ -216,6 +216,10 @@ tr:hover td{background:rgba(14,18,41,.8)}
 .bc{background:rgba(255,56,96,.06);border:1px solid rgba(255,56,96,.2);border-radius:9px;padding:10px 12px;margin-bottom:5px;display:flex;justify-content:space-between;align-items:center}
 /* FILTER BAR */
 .fbar{background:var(--card);border-radius:11px;padding:12px;border:1px solid var(--bdr);margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ast-btn{background:none;border:none;border-bottom:2px solid transparent;color:var(--gray2);font-size:11px;font-weight:600;padding:7px 12px;cursor:pointer;white-space:nowrap;transition:all .2s;font-family:'DM Sans',sans-serif}
+.ast-btn:hover{color:var(--text)}
+.ast-btn.ast-act{color:var(--purp);border-bottom-color:var(--purp)}
+.ast-panel{display:flex;flex-direction:column;gap:0}
 /* BADGE PREMIUM */
 .premium-badge{background:linear-gradient(90deg,var(--accent),var(--cyan));color:#fff;font-size:7px;font-weight:900;padding:2px 7px;border-radius:4px;letter-spacing:1px;text-transform:uppercase;font-family:'Exo 2',sans-serif}
 /* OPS HEADER BAR */
@@ -1162,43 +1166,261 @@ tr:hover td{background:rgba(14,18,41,.8)}
 
 <!-- ═══════════════════════════════════════════════════════════
      §5 — TAB: ANÁLISIS
-     Filtros multi-criterio, KPIs de análisis,
-     TP/SL por día de semana, mapa de calor por hora,
-     tabla por hora exacta, rachas, métricas avanzadas, insights.
+     Nueva interfaz: sub-tabs + panel filtros derecho + todas las secciones de la imagen.
 ═══════════════════════════════════════════════════════════ -->
   <!-- ═══ ANÁLISIS ═══ -->
-  <div id="tab-analisis" class="tsec">
-    <div class="fbar">
-      <span style="color:var(--gold);font-weight:700;font-size:10px;letter-spacing:1px">FILTROS:</span>
-      <select id="ay" class="fi" style="width:auto;padding:5px 8px;font-size:11px" onchange="renderA()"><option value="">Todos los años</option></select>
-      <select id="am" class="fi" style="width:auto;padding:5px 8px;font-size:11px" onchange="renderA()"><option value="">Todos los meses</option></select>
-      <select id="aa" class="fi" style="width:auto;padding:5px 8px;font-size:11px" onchange="renderA()"><option value="">Todos los activos</option></select>
-      <select id="adir" class="fi" style="width:auto;padding:5px 8px;font-size:11px" onchange="renderA()"><option value="">BUY + SELL</option><option value="BUY">Solo BUY</option><option value="SELL">Solo SELL</option></select>
-      <select id="asess" class="fi" style="width:auto;padding:5px 8px;font-size:11px" onchange="renderA()"><option value="">Todas sesiones</option><option>Asia</option><option>Londres</option><option>Nueva York</option><option>Londres+NY</option></select>
-      <select id="atf" class="fi" style="width:auto;padding:5px 8px;font-size:11px" onchange="renderA()"><option value="">Todos TF</option><option>M1</option><option>M5</option><option>M15</option><option>M30</option><option>H1</option><option>H4</option><option>D1</option></select>
-      <button class="btn" onclick="clearAF()">✕ Limpiar</button>
-      <span style="margin-left:auto;color:var(--cyan);font-size:10px;font-weight:700" id="acnt"></span>
+  <div id="tab-analisis" class="tsec" style="overflow:hidden;display:none;gap:0">
+
+    <!-- Selects ocultos originales — el JS los sigue usando -->
+    <div style="display:none">
+      <select id="ay" onchange="renderA()"><option value="">Todos los años</option></select>
+      <select id="am" onchange="renderA()"><option value="">Todos los meses</option></select>
+      <select id="aa" onchange="renderA()"><option value="">Todos los activos</option></select>
+      <select id="adir" onchange="renderA()"><option value="">BUY + SELL</option><option value="BUY">Solo BUY</option><option value="SELL">Solo SELL</option></select>
+      <select id="asess" onchange="renderA()"><option value="">Todas sesiones</option><option>Asia</option><option>Londres</option><option>Nueva York</option><option>Londres+NY</option></select>
+      <select id="atf" onchange="renderA()"><option value="">Todos TF</option><option>M1</option><option>M5</option><option>M15</option><option>M30</option><option>H1</option><option>H4</option><option>D1</option></select>
     </div>
-    <div class="krow" id="akpis"></div>
-    <div class="g2">
-      <div class="card"><div class="card-hdr" style="color:var(--green);border-color:rgba(0,229,160,.2)">TP/SL por Día de Semana</div><div class="cw"><canvas id="cad" role="img" aria-label="por dia"></canvas></div><div class="ir" id="adi"></div></div>
-      <div class="card"><div class="card-hdr" style="color:var(--org);border-color:rgba(255,140,66,.2)">SL por Hora (mapa de calor)</div><div class="cw"><canvas id="cah" role="img" aria-label="por hora"></canvas></div><div class="ir" id="ahi"></div></div>
-    </div>
-    <div class="card" style="margin-bottom:12px">
-      <div class="card-hdr" style="color:var(--org);border-color:rgba(255,140,66,.2)">Tabla por Hora Exacta</div>
-      <div class="tw"><table id="thr"><thead><tr><th>Hora</th><th>TP</th><th>SL</th><th>Total</th><th>Win%</th><th>P&L ($)</th><th>Alerta</th></tr></thead><tbody></tbody></table></div>
-    </div>
-    <!-- Rachas -->
-    <div class="card">
-      <div class="card-hdr" style="color:var(--purp);border-color:rgba(168,85,247,.2)">🔥 Rachas Consecutivas</div>
-      <div class="krow" id="streak-kpis"></div>
-      <div class="tw"><table id="tstreak"><thead><tr><th>#</th><th>Fecha</th><th>Activo</th><th>Dir</th><th>Res.</th><th>P&L ($)</th><th>TP🔥</th><th>SL💀</th></tr></thead><tbody></tbody></table></div>
-    </div>
-    <!-- Métricas Avanzadas e Insights -->
-    <div class="card"><div class="card-hdr" style="color:var(--cyan);border-color:rgba(6,182,212,.2)">🧠 Métricas Avanzadas</div>
-      <div id="advanced-stats-panel"></div></div>
-    <div class="card"><div class="card-hdr" style="color:var(--green);border-color:rgba(0,229,160,.2)">💡 Insights Automáticos</div>
-      <div id="insights-panel" style="display:flex;flex-direction:column;gap:8px;padding:4px 0;"></div></div>
+
+    <!-- Layout principal: contenido + panel filtros -->
+    <div style="display:flex;flex:1;min-height:0;gap:0;overflow:hidden">
+
+      <!-- CONTENIDO IZQUIERDO -->
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;overflow-y:auto;padding:12px 14px 20px">
+
+        <!-- Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+          <div>
+            <div style="font-size:18px;font-weight:900;color:var(--text);font-family:'Exo 2',sans-serif">Estadísticas y Análisis</div>
+            <div style="font-size:11px;color:var(--gray2);margin-top:2px">Analiza tu rendimiento y mejora tu operativa con datos detallados.</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <div style="font-size:9px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px" id="acnt"></div>
+            <button class="btn" onclick="aExportReport()" style="display:flex;align-items:center;gap:5px;background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.4);color:#818cf8;font-size:10px">
+              <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" width="11" height="11"><path d="M7 1v8M4 6l3 3 3-3"/><path d="M1 10v1a2 2 0 002 2h8a2 2 0 002-2v-1"/></svg>
+              Exportar informe
+            </button>
+          </div>
+        </div>
+
+        <!-- Sub-tabs -->
+        <div style="display:flex;gap:2px;border-bottom:1px solid var(--bdr);margin-bottom:14px;overflow-x:auto;flex-shrink:0">
+          <button id="ast-resumen"   onclick="setAST('resumen')"   class="ast-btn ast-act" >Resumen</button>
+          <button id="ast-rend"      onclick="setAST('rend')"      class="ast-btn">Rendimiento</button>
+          <button id="ast-ops"       onclick="setAST('ops')"       class="ast-btn">Operaciones</button>
+          <button id="ast-tiempo"    onclick="setAST('tiempo')"    class="ast-btn">Tiempo</button>
+          <button id="ast-dias"      onclick="setAST('dias')"      class="ast-btn">Días de la semana</button>
+          <button id="ast-meses"     onclick="setAST('meses')"     class="ast-btn">Meses</button>
+          <button id="ast-instr"     onclick="setAST('instr')"     class="ast-btn">Instrumentos</button>
+          <button id="ast-estrategia" onclick="setAST('estrategia')" class="ast-btn">Estrategias</button>
+          <button id="ast-sesiones"  onclick="setAST('sesiones')"  class="ast-btn">Sesiones</button>
+        </div>
+
+        <!-- ── SUB-TAB: RESUMEN ── -->
+        <div id="ast-panel-resumen" class="ast-panel">
+
+          <!-- KPIs fila 1 -->
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px" id="a-kpi-row"></div>
+
+          <!-- Gráficas fila 1: Equity + Donut + Meses -->
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+            <div class="card" style="grid-column:1/3">
+              <div class="card-hdr" style="color:var(--purp);border-color:rgba(124,58,237,.2);padding-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+                <span>Evolución del capital</span>
+                <select id="a-equity-mode" onchange="renderA()" style="font-size:9px;background:var(--card2);border:1px solid var(--bdr);color:var(--text);border-radius:5px;padding:2px 5px">
+                  <option value="diario">Diario</option><option value="acum">Acumulado</option>
+                </select>
+              </div>
+              <div style="height:160px;position:relative"><canvas id="a-equity"></canvas></div>
+            </div>
+            <div class="card">
+              <div class="card-hdr" style="color:var(--cyan);border-color:rgba(6,182,212,.2)">Distribución de resultados</div>
+              <div style="height:130px;display:flex;align-items:center;justify-content:center;position:relative">
+                <canvas id="a-donut" style="max-width:130px;max-height:130px"></canvas>
+                <div id="a-donut-center" style="position:absolute;text-align:center;pointer-events:none"></div>
+              </div>
+              <div id="a-donut-legend" style="display:flex;gap:10px;justify-content:center;margin-top:4px;font-size:9px;color:var(--gray2)"></div>
+            </div>
+          </div>
+
+          <!-- Fila resultado por meses -->
+          <div class="card" style="margin-bottom:12px">
+            <div class="card-hdr" style="color:var(--gold);border-color:rgba(251,191,36,.2)">Resultado por meses</div>
+            <div style="height:120px;position:relative"><canvas id="a-monthly"></canvas></div>
+          </div>
+
+          <!-- Stats destacadas fila -->
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px" id="a-highlight-row"></div>
+
+          <!-- Fila: Días semana + Horas + Instrumento -->
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+            <div class="card">
+              <div class="card-hdr" style="color:var(--green);border-color:rgba(0,229,160,.2)">Mejores días de la semana</div>
+              <div id="a-daylist"></div>
+            </div>
+            <div class="card">
+              <div class="card-hdr" style="color:var(--org);border-color:rgba(255,140,66,.2)">Resultados por hora del día</div>
+              <div id="a-heatmap" style="overflow-x:auto"></div>
+            </div>
+            <div class="card">
+              <div class="card-hdr" style="color:var(--blue);border-color:rgba(77,159,255,.2)">Rendimiento por instrumento</div>
+              <div id="a-instrlist"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SUB-TAB: RENDIMIENTO ── -->
+        <div id="ast-panel-rend" class="ast-panel" style="display:none">
+          <div class="krow" id="akpis"></div>
+          <div class="card" style="margin-top:10px">
+            <div class="card-hdr" style="color:var(--cyan);border-color:rgba(6,182,212,.2)">🧠 Métricas Avanzadas</div>
+            <div id="advanced-stats-panel"></div>
+          </div>
+          <div class="card" style="margin-top:10px">
+            <div class="card-hdr" style="color:var(--green);border-color:rgba(0,229,160,.2)">💡 Insights Automáticos</div>
+            <div id="insights-panel" style="display:flex;flex-direction:column;gap:8px;padding:4px 0"></div>
+          </div>
+        </div>
+
+        <!-- ── SUB-TAB: OPERACIONES ── -->
+        <div id="ast-panel-ops" class="ast-panel" style="display:none">
+          <div class="card">
+            <div class="card-hdr" style="color:var(--purp);border-color:rgba(168,85,247,.2)">🔥 Rachas Consecutivas</div>
+            <div class="krow" id="streak-kpis"></div>
+            <div class="tw"><table id="tstreak"><thead><tr><th>#</th><th>Fecha</th><th>Activo</th><th>Dir</th><th>Res.</th><th>P&L ($)</th><th>TP🔥</th><th>SL💀</th></tr></thead><tbody></tbody></table></div>
+          </div>
+        </div>
+
+        <!-- ── SUB-TAB: TIEMPO ── -->
+        <div id="ast-panel-tiempo" class="ast-panel" style="display:none">
+          <div class="g2">
+            <div class="card"><div class="card-hdr" style="color:var(--org);border-color:rgba(255,140,66,.2)">SL por Hora (mapa de calor)</div><div class="cw"><canvas id="cah"></canvas></div><div class="ir" id="ahi"></div></div>
+            <div class="card"><div class="card-hdr" style="color:var(--green);border-color:rgba(0,229,160,.2)">TP/SL por Día de Semana</div><div class="cw"><canvas id="cad"></canvas></div><div class="ir" id="adi"></div></div>
+          </div>
+          <div class="card" style="margin-top:10px">
+            <div class="card-hdr" style="color:var(--org);border-color:rgba(255,140,66,.2)">Tabla por Hora Exacta</div>
+            <div class="tw"><table id="thr"><thead><tr><th>Hora</th><th>TP</th><th>SL</th><th>Total</th><th>Win%</th><th>P&L ($)</th><th>Alerta</th></tr></thead><tbody></tbody></table></div>
+          </div>
+        </div>
+
+        <!-- ── SUB-TAB: DÍAS ── -->
+        <div id="ast-panel-dias" class="ast-panel" style="display:none">
+          <div class="card">
+            <div class="card-hdr" style="color:var(--green);border-color:rgba(0,229,160,.2)">TP/SL por Día de Semana</div>
+            <div class="cw"><canvas id="cad2"></canvas></div>
+            <div id="a-daylist2" style="margin-top:10px"></div>
+          </div>
+        </div>
+
+        <!-- ── SUB-TAB: MESES ── -->
+        <div id="ast-panel-meses" class="ast-panel" style="display:none">
+          <div class="card">
+            <div class="card-hdr" style="color:var(--gold);border-color:rgba(251,191,36,.2)">Resultado por Mes</div>
+            <div style="height:200px;position:relative"><canvas id="a-monthly2"></canvas></div>
+          </div>
+        </div>
+
+        <!-- ── SUB-TAB: INSTRUMENTOS ── -->
+        <div id="ast-panel-instr" class="ast-panel" style="display:none">
+          <div class="card">
+            <div class="card-hdr" style="color:var(--blue);border-color:rgba(77,159,255,.2)">Rendimiento por Instrumento</div>
+            <div id="a-instrlist2" style="display:flex;flex-direction:column;gap:6px;padding:4px 0"></div>
+          </div>
+        </div>
+
+        <!-- ── SUB-TAB: ESTRATEGIAS ── -->
+        <div id="ast-panel-estrategia" class="ast-panel" style="display:none">
+          <div class="card">
+            <div class="card-hdr" style="color:var(--purp);border-color:rgba(168,85,247,.2)">Rendimiento por Estrategia</div>
+            <div id="a-stratlist" style="display:flex;flex-direction:column;gap:6px;padding:4px 0"></div>
+          </div>
+        </div>
+
+        <!-- ── SUB-TAB: SESIONES ── -->
+        <div id="ast-panel-sesiones" class="ast-panel" style="display:none">
+          <div class="card">
+            <div class="card-hdr" style="color:var(--cyan);border-color:rgba(6,182,212,.2)">Rendimiento por Sesión</div>
+            <div id="a-sesslist" style="display:flex;flex-direction:column;gap:6px;padding:4px 0"></div>
+          </div>
+        </div>
+
+      </div><!-- fin contenido izquierdo -->
+
+      <!-- PANEL FILTROS DERECHO -->
+      <div style="width:260px;flex-shrink:0;border-left:1px solid var(--bdr);background:var(--card);overflow-y:auto;padding:14px 12px;display:flex;flex-direction:column;gap:14px">
+
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:12px;font-weight:700;color:var(--text);font-family:'Exo 2',sans-serif">Filtros</span>
+          <button onclick="aResetFilters()" style="font-size:9px;color:var(--blue);background:none;border:none;cursor:pointer;font-weight:600">Restablecer</button>
+        </div>
+
+        <!-- Rango de fechas -->
+        <div>
+          <div style="font-size:9px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Rango de fechas</div>
+          <select id="af-daterange" onchange="aDateRangeChange()" style="width:100%;background:var(--card2);border:1px solid var(--bdr);color:var(--text);border-radius:7px;padding:6px 8px;font-size:11px;margin-bottom:6px">
+            <option value="all">Todo el historial</option>
+            <option value="thismonth">Este mes</option>
+            <option value="lastmonth">Mes anterior</option>
+            <option value="thisyear">Este año</option>
+            <option value="custom">Personalizado</option>
+          </select>
+          <div id="af-custom-dates" style="display:none;gap:5px;flex-direction:column">
+            <input type="date" id="af-date-from" onchange="renderA()" style="width:100%;background:var(--card2);border:1px solid var(--bdr);color:var(--text);border-radius:6px;padding:5px 8px;font-size:11px;box-sizing:border-box">
+            <input type="date" id="af-date-to"   onchange="renderA()" style="width:100%;background:var(--card2);border:1px solid var(--bdr);color:var(--text);border-radius:6px;padding:5px 8px;font-size:11px;box-sizing:border-box">
+          </div>
+        </div>
+
+        <!-- Instrumento -->
+        <div>
+          <div style="font-size:9px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Instrumento</div>
+          <select id="af-asset" onchange="renderA()" style="width:100%;background:var(--card2);border:1px solid var(--bdr);color:var(--text);border-radius:7px;padding:6px 8px;font-size:11px">
+            <option value="">Todos los instrumentos</option>
+          </select>
+        </div>
+
+        <!-- Estrategia -->
+        <div>
+          <div style="font-size:9px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Estrategia</div>
+          <select id="af-strategy" onchange="renderA()" style="width:100%;background:var(--card2);border:1px solid var(--bdr);color:var(--text);border-radius:7px;padding:6px 8px;font-size:11px">
+            <option value="">Todas las estrategias</option>
+          </select>
+        </div>
+
+        <!-- Sesión -->
+        <div>
+          <div style="font-size:9px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Sesión</div>
+          <select id="af-session" onchange="renderA()" style="width:100%;background:var(--card2);border:1px solid var(--bdr);color:var(--text);border-radius:7px;padding:6px 8px;font-size:11px">
+            <option value="">Todas las sesiones</option>
+            <option>Asia</option><option>Londres</option><option>Nueva York</option><option>Londres+NY</option>
+          </select>
+        </div>
+
+        <!-- Resultado -->
+        <div>
+          <div style="font-size:9px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Resultado</div>
+          <select id="af-result" onchange="renderA()" style="width:100%;background:var(--card2);border:1px solid var(--bdr);color:var(--text);border-radius:7px;padding:6px 8px;font-size:11px">
+            <option value="">Todos los resultados</option>
+            <option value="TP">Ganadoras (TP)</option>
+            <option value="SL">Perdedoras (SL)</option>
+          </select>
+        </div>
+
+        <!-- Dirección -->
+        <div>
+          <div style="font-size:9px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Dirección</div>
+          <select id="af-dir" onchange="renderA()" style="width:100%;background:var(--card2);border:1px solid var(--bdr);color:var(--text);border-radius:7px;padding:6px 8px;font-size:11px">
+            <option value="">BUY + SELL</option><option value="BUY">Solo BUY</option><option value="SELL">Solo SELL</option>
+          </select>
+        </div>
+
+        <!-- Resumen rápido -->
+        <div style="border-top:1px solid var(--bdr);padding-top:12px">
+          <div style="font-size:10px;font-weight:700;color:var(--text);font-family:'Exo 2',sans-serif;margin-bottom:8px">Resumen rápido</div>
+          <div id="a-quicksummary" style="display:flex;flex-direction:column;gap:5px;font-size:10px"></div>
+        </div>
+
+      </div><!-- fin panel filtros -->
+
+    </div><!-- fin layout -->
   </div>
 
 
@@ -3517,9 +3739,56 @@ function renderStats(){
 // ════════════════════════════════════════════════════════════
 function renderA(){
   try{
+    // ── Sincronizar filtros del panel derecho a selects ocultos ──
+    var afAsset   = g('af-asset');   var afSess  = g('af-session');
+    var afDir     = g('af-dir');     var afRes   = g('af-result');
+    var afStrat   = g('af-strategy');
+    var afFrom    = g('af-date-from'); var afTo = g('af-date-to');
+    var afRange   = g('af-daterange');
+
+    // Poblar selects de asset y strategy con opciones reales
+    var allAssets    = [...new Set(S.trades.map(function(t){return t.asset;}).filter(Boolean))].sort();
+    var allStrategies= [...new Set(S.trades.map(function(t){return t.strategy;}).filter(Boolean))].sort();
+    if(afAsset){
+      var prevA=afAsset.value;
+      afAsset.innerHTML='<option value="">Todos los instrumentos</option>';
+      allAssets.forEach(function(a){afAsset.innerHTML+='<option'+(a===prevA?' selected':'')+'>'+a+'</option>';});
+    }
+    if(afStrat){
+      var prevS=afStrat.value;
+      afStrat.innerHTML='<option value="">Todas las estrategias</option>';
+      allStrategies.forEach(function(s){afStrat.innerHTML+='<option'+(s===prevS?' selected':'')+'>'+s+'</option>';});
+    }
+
+    // Calcular fechas según rango
+    var dateFrom='', dateTo='';
+    if(afRange){
+      var now=new Date(), y=now.getFullYear(), m=now.getMonth();
+      if(afRange.value==='thismonth'){dateFrom=y+'-'+String(m+1).padStart(2,'0')+'-01';dateTo=now.toISOString().slice(0,10);}
+      else if(afRange.value==='lastmonth'){var lm=new Date(y,m,0);var fm=new Date(y,m-1,1);dateFrom=fm.toISOString().slice(0,10);dateTo=lm.toISOString().slice(0,10);}
+      else if(afRange.value==='thisyear'){dateFrom=y+'-01-01';dateTo=now.toISOString().slice(0,10);}
+      else if(afRange.value==='custom'){dateFrom=afFrom?afFrom.value:'';dateTo=afTo?afTo.value:'';}
+    }
+    // Sync hidden selects (for backward compat)
     var aY=g('ay').value,aM=g('am').value,aA=g('aa').value,aDr=g('adir').value;
     var mIdx=aM?MSS.indexOf(aM)+1:0;
-    var ft=S.trades.filter(function(t){return(!aY||t.date.startsWith(aY))&&(!aM||+t.date.split('-')[1]===mIdx)&&(!aA||t.asset===aA)&&(!aDr||t.direction===aDr);});
+
+    // Filtrar trades
+    var ft=S.trades.filter(function(t){
+      if(aY&&!t.date.startsWith(aY))return false;
+      if(aM&&+t.date.split('-')[1]!==mIdx)return false;
+      if(aA&&t.asset!==aA)return false;
+      if(aDr&&t.direction!==aDr)return false;
+      if(afAsset&&afAsset.value&&t.asset!==afAsset.value)return false;
+      if(afSess&&afSess.value&&t.session!==afSess.value)return false;
+      if(afDir&&afDir.value&&t.direction!==afDir.value)return false;
+      if(afRes&&afRes.value&&t.result!==afRes.value)return false;
+      if(afStrat&&afStrat.value&&t.strategy!==afStrat.value)return false;
+      if(dateFrom&&t.date<dateFrom)return false;
+      if(dateTo&&t.date>dateTo)return false;
+      return true;
+    });
+
     var ac=g('acnt');if(ac)ac.textContent=ft.length+' ops filtradas';
     var ftp=ft.filter(function(t){return t.result==='TP';}).length;
     var fsl=ft.filter(function(t){return t.result==='SL';}).length;
@@ -3528,7 +3797,18 @@ function renderA(){
     var buyT=ft.filter(function(t){return t.direction==='BUY';}),sellT=ft.filter(function(t){return t.direction==='SELL';});
     var buyWR=buyT.length?buyT.filter(function(t){return t.result==='TP';}).length/buyT.length*100:null;
     var sellWR=sellT.length?sellT.filter(function(t){return t.result==='TP';}).length/sellT.length*100:null;
-    g('akpis').innerHTML=[
+    var grossWin=ft.filter(function(t){return t.result==='TP';}).reduce(function(a,t){return a+(t.pnl||0);},0);
+    var grossLoss=Math.abs(ft.filter(function(t){return t.result==='SL';}).reduce(function(a,t){return a+(t.pnl||0);},0));
+    var pf=grossLoss>0?(grossWin/grossLoss):grossWin>0?999:0;
+    var wins=ft.filter(function(t){return t.result==='TP';});
+    var losses=ft.filter(function(t){return t.result==='SL';});
+    var avgWin=wins.length?wins.reduce(function(a,t){return a+(t.pnl||0);},0)/wins.length:0;
+    var avgLoss=losses.length?Math.abs(losses.reduce(function(a,t){return a+(t.pnl||0);},0)/losses.length):0;
+    var rr=avgLoss>0?avgWin/avgLoss:0;
+
+    // ── KPIs originales (para sub-tab Rendimiento) ──
+    var akpis=g('akpis');
+    if(akpis)akpis.innerHTML=[
       {l:'TP',v:String(ftp),c:'var(--green)',cls:'g'},{l:'SL',v:String(fsl),c:'var(--red)',cls:'r'},
       {l:'Win Rate',v:fwr.toFixed(1)+'%',c:fwr>=50?'var(--green)':'var(--red)',cls:fwr>=50?'g':'r'},
       {l:'P&L',v:fU(fpnl),c:clr(fpnl),cls:fpnl>=0?'g':'r'},
@@ -3536,27 +3816,291 @@ function renderA(){
       {l:'SELL WR',v:sellT.length?(sellWR.toFixed(1)+'%'):'—',c:sellWR>=50?'var(--green)':sellWR!==null?'var(--red)':'var(--gray2)',cls:sellWR>=50?'g':'r'}
     ].map(function(k){return'<div class="kcard '+k.cls+'"><div class="klbl">'+k.l+'</div><div class="kval" style="color:'+k.c+'">'+k.v+'</div></div>';}).join('');
 
-    var dayArr=DAYS.map(function(d,i){var f=ft.filter(function(t){return getDOW(t.date)===i;});return{d:d.slice(0,3),full:d,tp:f.filter(function(t){return t.result==='TP';}).length,sl:f.filter(function(t){return t.result==='SL';}).length,pnl:f.reduce(function(a,t){return a+(t.pnl||0);},0)};});
-    mkC('cad','bar',dayArr.map(function(d){return d.d;}),
-      [{data:dayArr.map(function(d){return d.tp;}),backgroundColor:'rgba(0,229,160,.8)',label:'TP',borderRadius:4,borderSkipped:false},{data:dayArr.map(function(d){return d.sl;}),backgroundColor:'rgba(255,77,106,.8)',label:'SL',borderRadius:4,borderSkipped:false}],
-      {plugins:{legend:{display:true,labels:{color:'#6b7aaa',font:{size:9},boxWidth:8}}}});
-    var bTP=dayArr.reduce(function(b,d){return d.tp>b.tp?d:b;},dayArr[0]);
-    var wSL=dayArr.reduce(function(b,d){return d.sl>b.sl?d:b;},dayArr[0]);
-    g('adi').innerHTML='<div class="ib" style="background:var(--gd);border-color:var(--green)"><div class="il">Mejor día TP</div><div class="iv" style="color:var(--green)">'+(bTP&&bTP.tp>0?bTP.full:'—')+'</div></div><div class="ib" style="background:var(--rd);border-color:var(--red)"><div class="il">Peor día SL</div><div class="iv" style="color:var(--red)">'+(wSL&&wSL.sl>0?wSL.full:'—')+'</div></div>';
+    // ── KPIs nuevos (sub-tab Resumen) ──
+    var kpiRow=g('a-kpi-row');
+    if(kpiRow){
+      var acct0=acct();
+      var kpis=[
+        {l:'Resultado neto',v:fU(fpnl),sub:(acct0>0?((fpnl/acct0)*100).toFixed(2)+'% del capital':null),c:clr(fpnl)},
+        {l:'Operaciones totales',v:String(ft.length),sub:ft.length&&S.trades.length?Math.round(ft.length/S.trades.length*100)+'% de '+S.trades.length:null,c:'var(--text)'},
+        {l:'Win rate',v:fwr.toFixed(2)+'%',sub:ftp+' ganadoras / '+fsl+' perdedoras',c:fwr>=50?'var(--green)':'var(--red)'},
+        {l:'Profit factor',v:pf>0?(pf>=999?'∞':pf.toFixed(2)):'0.00',sub:pf>=2?'Excelente':pf>=1.5?'Bueno':pf>=1?'Aceptable':'Negativo',c:pf>=1.5?'var(--green)':pf>=1?'var(--gold)':'var(--red)'},
+        {l:'Riesgo/Beneficio prom.',v:rr>0?'1:'+rr.toFixed(2):'—',sub:rr>=2?'Bueno':rr>=1?'Aceptable':rr>0?'Mejorable':null,c:rr>=1.5?'var(--green)':rr>=1?'var(--gold)':'var(--gray2)'}
+      ];
+      kpiRow.innerHTML=kpis.map(function(k){
+        return '<div class="card" style="padding:12px">'
+          +'<div style="font-size:9px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">'+k.l+'</div>'
+          +'<div style="font-size:17px;font-weight:900;color:'+k.c+';font-family:\'Exo 2\',sans-serif">'+k.v+'</div>'
+          +(k.sub?'<div style="font-size:9px;color:var(--gray2);margin-top:3px">'+k.sub+'</div>':'')
+          +'</div>';
+      }).join('');
+    }
 
-    var tg=getTimeGroups(ft);var maxSl=Math.max.apply(null,tg.map(function(h){return h.sl;}).concat([0]));var maxTp=Math.max.apply(null,tg.map(function(h){return h.tp;}).concat([0]));
+    // ── Highlight stats ──
+    var hlRow=g('a-highlight-row');
+    var st=getAdvancedStats(ft);
+    if(hlRow&&st){
+      var sorted2=ft.slice().sort(function(a,b){return a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||'');});
+      var mWS=0,mLS=0,cWS=0,cLS=0;
+      sorted2.forEach(function(t){if(t.result==='TP'){cWS++;cLS=0;if(cWS>mWS)mWS=cWS;}else{cLS++;cWS=0;if(cLS>mLS)mLS=cLS;}});
+      var hl=[
+        {l:'Mejor operación',v:st.best?fU(st.best.pnl):'—',sub:st.best?(st.best.asset+' · '+(st.best.direction==='BUY'?'Compra':'Venta')):null,c:'var(--green)'},
+        {l:'Peor operación',v:st.worst?fU(st.worst.pnl):'—',sub:st.worst?(st.worst.asset+' · '+(st.worst.direction==='BUY'?'Compra':'Venta')):null,c:'var(--red)'},
+        {l:'Promedio por operación',v:ft.length?fU(fpnl/ft.length):'—',sub:ft.length?(fU(fpnl)+' / '+ft.length+' operaciones'):null,c:fpnl>=0?'var(--green)':'var(--red)'},
+        {l:'Mayor racha ganadora',v:String(mWS),sub:null,c:'var(--green)'},
+        {l:'Mayor racha perdedora',v:String(mLS),sub:null,c:'var(--red)'}
+      ];
+      hlRow.innerHTML=hl.map(function(k){
+        return '<div class="card" style="padding:12px">'
+          +'<div style="font-size:9px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">'+k.l+'</div>'
+          +'<div style="font-size:15px;font-weight:900;color:'+k.c+';font-family:\'Exo 2\',sans-serif">'+k.v+'</div>'
+          +(k.sub?'<div style="font-size:9px;color:var(--gray2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+k.sub+'</div>':'')
+          +'</div>';
+      }).join('');
+    }
+
+    // ── Equity curve ──
+    aRenderEquity(ft);
+
+    // ── Donut distribución ──
+    aRenderDonut(ftp,fsl,ft.length);
+
+    // ── Resultado por meses ──
+    aRenderMonthly(ft,'a-monthly');
+    aRenderMonthly(ft,'a-monthly2');
+
+    // ── Días de la semana (Resumen + sub-tab) ──
+    aRenderDayList(ft,'a-daylist');
+    aRenderDayList(ft,'a-daylist2');
+    mkC('cad','bar',DAYS.map(function(d){return d.slice(0,3);}),
+      (function(){var d=DAYS.map(function(d,i){var f=ft.filter(function(t){return getDOW(t.date)===i;});return{tp:f.filter(function(t){return t.result==='TP';}).length,sl:f.filter(function(t){return t.result==='SL';}).length};});
+      return [{data:d.map(function(x){return x.tp;}),backgroundColor:'rgba(0,229,160,.8)',label:'TP',borderRadius:4,borderSkipped:false},{data:d.map(function(x){return x.sl;}),backgroundColor:'rgba(255,77,106,.8)',label:'SL',borderRadius:4,borderSkipped:false}];})(),
+      {plugins:{legend:{display:true,labels:{color:'#6b7aaa',font:{size:9},boxWidth:8}}}});
+
+    // ── Heatmap horas ──
+    aRenderHeatmap(ft);
+
+    // ── Instrumento ranking ──
+    aRenderInstrList(ft,'a-instrlist');
+    aRenderInstrList(ft,'a-instrlist2');
+
+    // ── Estrategias ──
+    aRenderGroupList(ft,'strategy','a-stratlist','Estrategia');
+
+    // ── Sesiones ──
+    aRenderGroupList(ft,'session','a-sesslist','Sesión');
+
+    // ── Mapa calor horas (sub-tab tiempo) ──
+    var tg=getTimeGroups(ft);
+    var maxSl=Math.max.apply(null,tg.map(function(h){return h.sl;}).concat([0]));
+    var maxTp=Math.max.apply(null,tg.map(function(h){return h.tp;}).concat([0]));
     mkC('cah','bar',tg.map(function(h){return h.time;}),
       [{data:tg.map(function(h){return h.sl;}),backgroundColor:tg.map(function(h){var p=maxSl>0?h.sl/maxSl:0;return'rgba('+(Math.round(255*p))+','+(Math.round(100*(1-p)))+',106,.85)';}),label:'SL',borderRadius:4,borderSkipped:false}]);
     var bTH=tg.reduce(function(b,h){return h.tp>b.tp?h:b;},tg[0]||{time:'—',tp:0});
     var wSH=tg.reduce(function(b,h){return h.sl>b.sl?h:b;},tg[0]||{time:'—',sl:0});
-    g('ahi').innerHTML='<div class="ib" style="background:var(--rd);border-color:var(--red)"><div class="il">Hora más SL</div><div class="iv" style="color:var(--red)">'+(wSH&&wSH.sl>0?wSH.time+' ('+wSH.sl+')':'—')+'</div></div><div class="ib" style="background:var(--gd);border-color:var(--green)"><div class="il">Hora más TP</div><div class="iv" style="color:var(--green)">'+(bTH&&bTH.tp>0?bTH.time+' ('+bTH.tp+')':'—')+'</div></div>';
+    var ahi=g('ahi');if(ahi)ahi.innerHTML='<div class="ib" style="background:var(--rd);border-color:var(--red)"><div class="il">Hora más SL</div><div class="iv" style="color:var(--red)">'+(wSH&&wSH.sl>0?wSH.time+' ('+wSH.sl+')':'—')+'</div></div><div class="ib" style="background:var(--gd);border-color:var(--green)"><div class="il">Hora más TP</div><div class="iv" style="color:var(--green)">'+(bTH&&bTH.tp>0?bTH.time+' ('+bTH.tp+')':'—')+'</div></div>';
+    var dayArr=DAYS.map(function(d,i){var f=ft.filter(function(t){return getDOW(t.date)===i;});return{d:d.slice(0,3),full:d,tp:f.filter(function(t){return t.result==='TP';}).length,sl:f.filter(function(t){return t.result==='SL';}).length,pnl:f.reduce(function(a,t){return a+(t.pnl||0);},0)};});
+    var bTP=dayArr.reduce(function(b,d){return d.tp>b.tp?d:b;},dayArr[0]);
+    var wSL=dayArr.reduce(function(b,d){return d.sl>b.sl?d:b;},dayArr[0]);
+    var adi=g('adi');if(adi)adi.innerHTML='<div class="ib" style="background:var(--gd);border-color:var(--green)"><div class="il">Mejor día TP</div><div class="iv" style="color:var(--green)">'+(bTP&&bTP.tp>0?bTP.full:'—')+'</div></div><div class="ib" style="background:var(--rd);border-color:var(--red)"><div class="il">Peor día SL</div><div class="iv" style="color:var(--red)">'+(wSL&&wSL.sl>0?wSL.full:'—')+'</div></div>';
+    var thr=document.querySelector('#thr tbody');
+    if(thr)thr.innerHTML=tg.length?tg.map(function(h){var bg=h.sl===maxSl&&h.sl>0?'background:rgba(255,77,106,.06)':h.tp===maxTp&&h.tp>0?'background:rgba(0,229,160,.06)':'';var wr=(h.tp+h.sl)>0?h.tp/(h.tp+h.sl)*100:null;return'<tr style="'+bg+'"><td style="font-weight:700;color:var(--blue)">'+h.time+'</td><td class="pp" style="text-align:center">'+h.tp+'</td><td class="pn" style="text-align:center">'+h.sl+'</td><td style="text-align:center">'+(h.tp+h.sl)+'</td><td style="text-align:center" class="'+(wr>=50?'wg':wr!==null?'wb':'')+'">'+(wr!==null?wr.toFixed(0)+'%':'—')+'</td><td style="text-align:center" class="'+(h.pnl>=0?'pp':'pn')+'">'+fU(h.pnl)+'</td><td style="text-align:center;font-size:10px;color:var(--gold)">'+(h.sl===maxSl&&h.sl>0?'🚨 Máx SL':h.tp===maxTp&&h.tp>0?'🏆 Máx TP':'')+'</td></tr>';}).join(''):'<tr><td colspan="7" style="text-align:center;color:var(--gray2);padding:16px">Sin datos</td></tr>';
 
-    document.querySelector('#thr tbody').innerHTML=tg.length?tg.map(function(h){var bg=h.sl===maxSl&&h.sl>0?'background:rgba(255,77,106,.06)':h.tp===maxTp&&h.tp>0?'background:rgba(0,229,160,.06)':'';var wr=(h.tp+h.sl)>0?h.tp/(h.tp+h.sl)*100:null;return'<tr style="'+bg+'"><td style="font-weight:700;color:var(--blue)">'+h.time+'</td><td class="pp" style="text-align:center">'+h.tp+'</td><td class="pn" style="text-align:center">'+h.sl+'</td><td style="text-align:center">'+( h.tp+h.sl)+'</td><td style="text-align:center" class="'+(wr>=50?'wg':wr!==null?'wb':'')+'">'+( wr!==null?wr.toFixed(0)+'%':'—')+'</td><td style="text-align:center" class="'+(h.pnl>=0?'pp':'pn')+'">'+fU(h.pnl)+'</td><td style="text-align:center;font-size:10px;color:var(--gold)">'+(h.sl===maxSl&&h.sl>0?'🚨 Máx SL':h.tp===maxTp&&h.tp>0?'🏆 Máx TP':'')+'</td></tr>';}).join(''):'<tr><td colspan="7" style="text-align:center;color:var(--gray2);padding:16px">Sin datos para los filtros seleccionados</td></tr>';
+    // ── Resumen rápido panel derecho ──
+    aRenderQuickSummary(ft,fpnl,ftp,fsl,fwr,st);
 
+    // ── Advanced stats + Insights ──
+    if(typeof renderAdvancedStatsPanel==='function') renderAdvancedStatsPanel(ft);
+    if(typeof renderInsights==='function') renderInsights(ft);
     renderStreaks(ft);
+
   }catch(e){console.error('AnalysisError',e);}
 }
 
+// ── Sub-tab switcher ──
+window.setAST = function(tab){
+  ['resumen','rend','ops','tiempo','dias','meses','instr','estrategia','sesiones'].forEach(function(t){
+    var btn=g('ast-'+t), panel=g('ast-panel-'+t);
+    if(btn){btn.classList.remove('ast-act');if(t===tab)btn.classList.add('ast-act');}
+    if(panel)panel.style.display=(t===tab?'flex':'none');
+  });
+};
+
+// ── Date range helper ──
+window.aDateRangeChange = function(){
+  var r=g('af-daterange'), cd=g('af-custom-dates');
+  if(cd)cd.style.display=(r&&r.value==='custom'?'flex':'none');
+  renderA();
+};
+
+// ── Reset filtros ──
+window.aResetFilters = function(){
+  ['af-asset','af-session','af-dir','af-result','af-strategy'].forEach(function(id){var el=g(id);if(el)el.value='';});
+  var dr=g('af-daterange');if(dr)dr.value='all';
+  var cd=g('af-custom-dates');if(cd)cd.style.display='none';
+  renderA();
+};
+
+// ── Equity curve ──
+function aRenderEquity(ft){
+  var el=g('a-equity');if(!el)return;
+  var mode=g('a-equity-mode');var daily=(mode&&mode.value==='diario');
+  var sorted=ft.slice().sort(function(a,b){return a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||'');});
+  var labels=[],data=[],cum=0;
+  sorted.forEach(function(t){
+    cum+=(t.pnl||0);
+    labels.push(t.date.slice(5));
+    data.push(daily?(t.pnl||0):cum);
+  });
+  mkC('a-equity',daily?'bar':'line',labels,[{
+    data:data,
+    borderColor:'rgba(124,58,237,.9)',
+    backgroundColor:daily?data.map(function(v){return v>=0?'rgba(0,229,160,.7)':'rgba(255,77,106,.7)'}):'rgba(124,58,237,.1)',
+    fill:!daily,tension:.35,borderWidth:2,pointRadius:0
+  }],{plugins:{legend:{display:false}},scales:{x:{ticks:{maxTicksLimit:8,font:{size:8}}},y:{ticks:{font:{size:8}}}}});
+}
+
+// ── Donut ──
+function aRenderDonut(tp,sl,total){
+  var el=g('a-donut');if(!el)return;
+  var center=g('a-donut-center'),legend=g('a-donut-legend');
+  if(center)center.innerHTML='<div style="font-size:22px;font-weight:900;color:var(--text);font-family:\'Exo 2\',sans-serif">'+total+'</div><div style="font-size:9px;color:var(--gray2)">Total</div>';
+  if(legend)legend.innerHTML='<span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:50%;background:#00e5a0;display:inline-block"></span>Ganadoras '+tp+' ('+(total?Math.round(tp/total*100):0)+'%)</span><span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:50%;background:#ff3d5a;display:inline-block"></span>Perdedoras '+sl+' ('+(total?Math.round(sl/total*100):0)+'%)</span>';
+  mkC('a-donut','doughnut',['Ganadoras','Perdedoras'],[{data:[tp,sl],backgroundColor:['rgba(0,229,160,.85)','rgba(255,61,90,.85)'],borderWidth:0,borderRadius:4}],{plugins:{legend:{display:false}},cutout:'72%'});
+}
+
+// ── Meses ──
+function aRenderMonthly(ft,canvasId){
+  var el=g(canvasId);if(!el)return;
+  var byMonth={};
+  ft.forEach(function(t){var m=t.date.slice(0,7);if(!byMonth[m])byMonth[m]=0;byMonth[m]+=(t.pnl||0);});
+  var months=Object.keys(byMonth).sort();
+  var MNAMES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  var labels=months.map(function(m){var p=m.split('-');return MNAMES[+p[1]-1]+' \''+p[0].slice(2);});
+  var vals=months.map(function(m){return byMonth[m];});
+  mkC(canvasId,'bar',labels,[{data:vals,backgroundColor:vals.map(function(v){return v>=0?'rgba(0,229,160,.8)':'rgba(255,77,106,.8)';}),borderRadius:4,borderSkipped:false}],{plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:8}}},y:{ticks:{font:{size:8}}}}});
+}
+
+// ── Días de la semana lista ──
+function aRenderDayList(ft,targetId){
+  var el=g(targetId);if(!el)return;
+  var dayTotals=DAYS.map(function(d,i){var f=ft.filter(function(t){return getDOW(t.date)===i;});return{name:d,pnl:f.reduce(function(a,t){return a+(t.pnl||0);},0),total:f.length,tp:f.filter(function(t){return t.result==='TP';}).length};});
+  var maxAbs=Math.max.apply(null,dayTotals.map(function(d){return Math.abs(d.pnl);}).concat([1]));
+  el.innerHTML=dayTotals.map(function(d){
+    var pct=Math.round(Math.abs(d.pnl)/maxAbs*100);
+    var col=d.pnl>=0?'var(--green)':'var(--red)';
+    var barCol=d.pnl>=0?'rgba(0,229,160,.7)':'rgba(255,77,106,.7)';
+    return '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(30,38,64,.4)">'
+      +'<div style="width:40px;font-size:10px;color:var(--text2)">'+d.name.slice(0,3)+'</div>'
+      +'<div style="flex:1;height:6px;background:var(--bdr);border-radius:3px;overflow:hidden">'
+      +'<div style="width:'+pct+'%;height:100%;background:'+barCol+';border-radius:3px"></div></div>'
+      +'<div style="width:60px;text-align:right;font-size:10px;font-weight:700;color:'+col+';font-family:\'Exo 2\',sans-serif">'+fU(d.pnl)+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+// ── Heatmap por hora ──
+function aRenderHeatmap(ft){
+  var el=g('a-heatmap');if(!el)return;
+  var DAYS_SHORT=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+  var byDayHour={};
+  ft.forEach(function(t){
+    var d=getDOW(t.date);
+    var hr=t.time?t.time.slice(0,2):'??';
+    var key=d+'-'+hr;
+    if(!byDayHour[key])byDayHour[key]={tp:0,sl:0};
+    if(t.result==='TP')byDayHour[key].tp++;else byDayHour[key].sl++;
+  });
+  var hours=[...new Set(ft.map(function(t){return t.time?t.time.slice(0,2):'??';}).filter(function(h){return h!=='??';}))].sort();
+  if(!hours.length){el.innerHTML='<div style="color:var(--gray2);font-size:11px;text-align:center;padding:20px">Sin datos de hora</div>';return;}
+  var maxOps=1;
+  hours.forEach(function(h){DAYS_SHORT.forEach(function(d,i){var k=i+'-'+h;if(byDayHour[k])maxOps=Math.max(maxOps,byDayHour[k].tp+byDayHour[k].sl);});});
+  var html='<table style="font-size:8px;border-collapse:collapse;width:100%"><thead><tr><td style="padding:2px"></td>';
+  hours.forEach(function(h){html+='<th style="padding:2px;color:var(--gray2);text-align:center">'+h+'</th>';});
+  html+='</tr></thead><tbody>';
+  DAYS_SHORT.forEach(function(d,i){
+    html+='<tr><td style="padding:2px 4px;color:var(--gray2);white-space:nowrap">'+d+'</td>';
+    hours.forEach(function(h){
+      var key=i+'-'+h;var cell=byDayHour[key]||{tp:0,sl:0};var total=cell.tp+cell.sl;
+      var intensity=maxOps>0?total/maxOps:0;
+      var wr=total>0?cell.tp/total:0;
+      var r=Math.round(255*(1-wr)*intensity);var g2=Math.round(200*wr*intensity);
+      var bg=total>0?'rgba('+r+','+g2+',80,'+(0.2+intensity*0.7)+')':'transparent';
+      html+='<td style="width:20px;height:14px;background:'+bg+';border-radius:2px;text-align:center;padding:1px" title="'+d+' '+h+'h: '+total+' ops"></td>';
+    });
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  el.innerHTML=html;
+}
+
+// ── Instrumento lista ──
+function aRenderInstrList(ft,targetId){
+  var el=g(targetId);if(!el)return;
+  var byI={};
+  ft.forEach(function(t){var k=t.asset||'Sin activo';if(!byI[k])byI[k]={pnl:0,total:0,tp:0};byI[k].pnl+=(t.pnl||0);byI[k].total++;if(t.result==='TP')byI[k].tp++;});
+  var arr=Object.keys(byI).map(function(k){return{name:k,pnl:byI[k].pnl,total:byI[k].total,wr:byI[k].total?byI[k].tp/byI[k].total*100:0};}).sort(function(a,b){return b.pnl-a.pnl;});
+  var maxAbs=Math.max.apply(null,arr.map(function(d){return Math.abs(d.pnl);}).concat([1]));
+  el.innerHTML=arr.map(function(d){
+    var pct=Math.round(Math.abs(d.pnl)/maxAbs*100);
+    var col=d.pnl>=0?'var(--green)':'var(--red)';
+    var barCol=d.pnl>=0?'rgba(0,229,160,.7)':'rgba(255,77,106,.7)';
+    return '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(30,38,64,.4)">'
+      +'<div style="width:60px;font-size:10px;font-weight:700;color:var(--blue);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+d.name+'</div>'
+      +'<div style="flex:1;height:6px;background:var(--bdr);border-radius:3px;overflow:hidden">'
+      +'<div style="width:'+pct+'%;height:100%;background:'+barCol+';border-radius:3px"></div></div>'
+      +'<div style="width:55px;text-align:right;font-size:10px;font-weight:700;color:'+col+';font-family:\'Exo 2\',sans-serif">'+fU(d.pnl)+'</div>'
+      +'<div style="width:30px;text-align:right;font-size:9px;color:var(--gray2)">'+d.wr.toFixed(0)+'%</div>'
+      +'</div>';
+  }).join('');
+}
+
+// ── Grupos genéricos (estrategia, sesión) ──
+function aRenderGroupList(ft,field,targetId,label){
+  var el=g(targetId);if(!el)return;
+  var byG={};
+  ft.forEach(function(t){var k=t[field]||'Sin '+label;if(!byG[k])byG[k]={pnl:0,total:0,tp:0};byG[k].pnl+=(t.pnl||0);byG[k].total++;if(t.result==='TP')byG[k].tp++;});
+  var arr=Object.keys(byG).map(function(k){return{name:k,pnl:byG[k].pnl,total:byG[k].total,wr:byG[k].total?byG[k].tp/byG[k].total*100:0};}).sort(function(a,b){return b.pnl-a.pnl;});
+  if(!arr.length){el.innerHTML='<div style="color:var(--gray2);font-size:11px;text-align:center;padding:20px">Sin datos</div>';return;}
+  el.innerHTML=arr.map(function(d){
+    var col=d.pnl>=0?'var(--green)':'var(--red)';
+    var wr=d.wr.toFixed(0)+'%';
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(30,38,64,.4)">'
+      +'<div><div style="font-size:11px;font-weight:700;color:var(--text)">'+d.name+'</div>'
+      +'<div style="font-size:9px;color:var(--gray2)">'+d.total+' ops · '+wr+' win rate</div></div>'
+      +'<div style="font-size:13px;font-weight:800;color:'+col+';font-family:\'Exo 2\',sans-serif">'+fU(d.pnl)+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+// ── Resumen rápido panel derecho ──
+function aRenderQuickSummary(ft,fpnl,ftp,fsl,fwr,st){
+  var el=g('a-quicksummary');if(!el)return;
+  var acct0=acct();
+  var rows=[
+    ['Capital inicial','$'+(acct0||0).toLocaleString('en'),'var(--gold)'],
+    ['Capital actual','$'+(acct0+fpnl).toLocaleString('en',{minimumFractionDigits:2}),fpnl>=0?'var(--green)':'var(--red)'],
+    ['Rentabilidad',acct0?(((fpnl/acct0)*100).toFixed(2)+'%'):'—',fpnl>=0?'var(--green)':'var(--red)'],
+    ['Ops promedio / día',ft.length?(function(){var days=[...new Set(ft.map(function(t){return t.date;}))].length||1;return(ft.length/days).toFixed(2);}()):'—','var(--text2)'],
+  ];
+  if(st){
+    var sorted3=ft.slice().sort(function(a,b){return b.pnl-a.pnl;});
+    if(sorted3.length>0)rows.push(['Mejor día',sorted3[0].date.slice(5)+' ('+fU(sorted3[0].pnl)+')','var(--green)']);
+    if(sorted3.length>1)rows.push(['Peor día',sorted3[sorted3.length-1].date.slice(5)+' ('+fU(sorted3[sorted3.length-1].pnl)+')','var(--red)']);
+  }
+  el.innerHTML=rows.map(function(r){
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(30,38,64,.3)">'
+      +'<span style="color:var(--gray2)">'+r[0]+'</span>'
+      +'<span style="font-weight:700;color:'+r[2]+';font-size:11px">'+r[1]+'</span>'
+      +'</div>';
+  }).join('')+'<div style="margin-top:8px;padding:8px;background:rgba(124,58,237,.08);border-radius:8px;border:1px solid rgba(124,58,237,.2);font-size:9px;color:#a78bfa">🚀 Sigue mejorando. Mantén la consistencia y sigue trabajando en tu gestión de riesgo.</div>';
+}
+
+// ── Export report placeholder ──
+window.aExportReport = function(){toast('📄 Exportando informe...','var(--purp)');setTimeout(function(){exportCSV();},100);};
+
+// ── clearAF (retrocompat) ──
+function clearAF(){window.aResetFilters&&window.aResetFilters();}
 function renderStreaks(trades){
   var se=g('streak-kpis'),st=document.querySelector('#tstreak tbody');if(!se||!st)return;
   var srt=[].concat(trades).sort(function(a,b){var r=a.date.localeCompare(b.date);return r!==0?r:(a.time||'').localeCompare(b.time||'');});
