@@ -999,14 +999,7 @@ tr:hover td{background:rgba(14,18,41,.8)}
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="13" height="13"><rect x="1" y="2" width="14" height="12" rx="1.5"/><line x1="1" y1="5.5" x2="15" y2="5.5"/><line x1="5.5" y1="5.5" x2="5.5" y2="14"/></svg>
           Tabla
         </button>
-        <button class="reg-tab" id="vbtn-chart" onclick="setLogView('chart')">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="13" height="13"><polyline points="1,13 4.5,8 7.5,10.5 11,5 15,7.5"/><polyline points="11,5 15,5 15,7.5"/></svg>
-          Gráficos
-        </button>
-        <button class="reg-tab" id="vbtn-stats2" onclick="showTab('stats',document.getElementById('nav-stats'))">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="13" height="13"><rect x="1" y="9" width="3" height="6" rx=".8"/><rect x="6" y="5" width="3" height="10" rx=".8"/><rect x="11" y="2" width="3" height="13" rx=".8"/></svg>
-          Estadísticas
-        </button>
+
       </div>
       <!-- Acciones derecha -->
       <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
@@ -3281,6 +3274,20 @@ function selectDay(d){
   var fd=g('f-date');if(fd&&!editId)fd.value=dateVal;
   // Show registro tab if not there
   var reg=g('tab-registro');if(reg&&!reg.classList.contains('act')){showTab('registro',g('nav-registro'));}
+  // ── PANEL DETALLE: mostrar operaciones del día en panel derecho ──
+  try{
+    var _ds=dateVal;
+    var _dt=(S&&S.trades?S.trades:[]).filter(function(t){return t.date===_ds;}).sort(function(a,b){return(a.time||'').localeCompare(b.time||'');});
+    var _ph=document.getElementById('rp-placeholder'),_cn=document.getElementById('rp-content');
+    if(!_dt.length){
+      if(_ph)_ph.style.display='flex';
+      if(_cn)_cn.style.display='none';
+    } else if(_dt.length===1){
+      if(typeof openTDP==='function') openTDP(_dt[0],_dt,0);
+    } else {
+      if(typeof populateDayPanel==='function') populateDayPanel(_dt,_ds);
+    }
+  }catch(e){console.error('[selectDay]',e);}
 }
 
 function renderDayDetail(){
@@ -5339,7 +5346,7 @@ function populateDayPanel(trades, dateStr) {
 window._rpSelectTrade = function(idx) {
   var trades = window._rpDayTrades || [];
   var t = trades[idx];
-  if(t) populateRightPanel(t);
+  if(t) openTDP(t, trades, idx);
 };
 
 var _currentTrade = null;
@@ -6465,66 +6472,6 @@ document.addEventListener('keydown',function(e){ if(e.key==='Escape') mobSidebar
       if(target) target.classList.add('act');
     };
   }
-})();
-
-// ════════════════════════════════════════════════════════════
-//  OVERRIDE: clic en día del calendario → panel derecho / deslizante
-//  Reemplaza selectDay para garantizar que al tocar un día
-//  con operaciones se muestren los detalles inmediatamente.
-// ════════════════════════════════════════════════════════════
-(function() {
-  function showDayInPanel(d) {
-    var mo = String(calMonth+1).padStart(2,'0');
-    var dy = String(d).padStart(2,'0');
-    var ds = calYear + '-' + mo + '-' + dy;
-    var dt = (S && S.trades ? S.trades : [])
-               .filter(function(t){ return t.date === ds; })
-               .sort(function(a,b){ return (a.time||'').localeCompare(b.time||''); });
-
-    if (!dt.length) {
-      // Sin operaciones: mostrar placeholder
-      var ph = document.getElementById('rp-placeholder');
-      var cn = document.getElementById('rp-content');
-      if(ph) ph.style.display = 'flex';
-      if(cn) cn.style.display = 'none';
-      return;
-    }
-
-    if (dt.length === 1) {
-      // Una sola op → abrir detalle directo (panel fijo o deslizante)
-      if (typeof openTDP === 'function') openTDP(dt[0], dt, 0);
-    } else {
-      // Múltiples ops → lista de viñetas en panel derecho
-      if (typeof populateDayPanel === 'function') populateDayPanel(dt, ds);
-    }
-  }
-
-  // Override selectDay
-  var _origSelectDay = window.selectDay;
-  window.selectDay = function(d) {
-    selDay = d;
-    if (typeof renderCal === 'function') renderCal();
-    if (typeof populateYearSelect === 'function') populateYearSelect();
-    if (typeof setFormDate === 'function') setFormDate();
-    var mo = String(calMonth+1).padStart(2,'0'), dy = String(d).padStart(2,'0');
-    var dateVal = calYear + '-' + mo + '-' + dy;
-    var fd = document.getElementById('f-date'); if(fd && !editId) fd.value = dateVal;
-    // Asegurar que estamos en la pestaña de registro
-    var reg = document.getElementById('tab-registro');
-    if(reg && !reg.classList.contains('act') && typeof showTab === 'function'){
-      showTab('registro', document.getElementById('nav-registro'));
-    }
-    // Mostrar en panel
-    showDayInPanel(d);
-  };
-
-  // Override _rpSelectTrade para que use openTDP (funciona en panel fijo y móvil)
-  window._rpSelectTrade = function(idx) {
-    var trades = window._rpDayTrades || [];
-    var t = trades[idx];
-    if(t && typeof openTDP === 'function') openTDP(t, trades, idx);
-  };
-
 })();
 
 </script>
