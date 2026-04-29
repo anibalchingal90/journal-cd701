@@ -63,7 +63,7 @@ body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(r
 .ni.act svg{opacity:1}
 /* MAIN */
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;position:relative;z-index:1}
-.topbar{background:rgba(8,11,28,.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--bdr);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:relative}
+.topbar{background:rgba(8,11,28,.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--bdr);padding:5px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:relative}
 .topbar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(67,97,238,.5),rgba(0,207,255,.3),transparent)}
 .page-title{font-size:20px;font-weight:800;font-family:'Exo 2',sans-serif;background:linear-gradient(90deg,var(--text),#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-0.5px}
 .page-sub{color:var(--gray2);font-size:11px;margin-top:2px}
@@ -896,7 +896,17 @@ tr:hover td{background:rgba(14,18,41,.8)}
     <!-- Lista de cuentas -->
     <div style="margin-top:8px;padding:8px 0 4px;border-top:1px solid var(--bdr)">
       <div class="ns" style="padding-top:6px">Cuentas</div>
-      <div id="sb-acct-list" style="display:flex;flex-direction:column;gap:3px;max-height:200px;overflow-y:auto;padding:0 2px"></div>
+      <div id="sb-acct-list" style="display:flex;flex-direction:column;gap:2px;max-height:180px;overflow-y:auto;padding:0 2px"></div>
+    </div>
+    <!-- Sección MetaTrader -->
+    <div style="margin-top:6px;padding:6px 0 4px;border-top:1px solid var(--bdr)">
+      <div class="ns" style="padding-top:4px;display:flex;align-items:center;gap:5px">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" width="10" height="10" style="opacity:.5"><rect x="1" y="3" width="14" height="10" rx="1.5"/><polyline points="4,8 7,6 10,9 13,7"/></svg>
+        MetaTrader
+      </div>
+      <div id="sb-mt-list" style="display:flex;flex-direction:column;gap:2px;padding:4px 2px 0">
+        <div style="font-size:9px;color:#444;padding:4px;text-align:center;">Próximamente</div>
+      </div>
     </div>
     <!-- Bottom user area -->
     <div style="margin-top:auto;padding:10px 0 4px;border-top:1px solid var(--bdr)">
@@ -3851,29 +3861,22 @@ function renderSidebarAccounts(){
       ? '<span class="fondeo-badge-pulse" title="Modo Fondeo activo">F</span>'
       : '';
 
-    html += '<div style="background:'+bg+';border:1px solid '+bdr+';border-radius:8px;padding:6px 8px;margin-bottom:3px;">';
-    html += '<div style="display:flex;align-items:center;gap:5px;">';
-
-    // Click para activar cuenta
-    html += '<div onclick="seleccionarCuentaSidebar(\''+a.id+'\')" style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;cursor:pointer;overflow:hidden;">';
-    // Un solo punto pequeño a la izquierda — pulsa si está activa
-    html += '<span style="display:inline-block;width:9px;height:9px;min-width:9px;border-radius:50%;flex-shrink:0;background:'+col+';'+(isActive?'animation:active-pulse-col 1.4s ease-in-out infinite;box-shadow:0 0 6px '+col+'bb;':'opacity:.3;')+'"></span>';
-    html += '<div style="flex:1;overflow:hidden;">';
+    html += '<div style="background:'+bg+';border:1px solid '+bdr+';border-radius:7px;padding:3px 6px;margin-bottom:2px;">';
     html += '<div style="display:flex;align-items:center;gap:4px;">';
-    html += '<span style="font-size:11px;font-weight:700;color:'+nameColor+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="'+a.name+'">'+a.name+'</span>';
-    html += '</div>';
-    // Fila inferior: balance + 'activa' + F — separados del nombre para que no interfieran
-    html += '<div style="display:flex;align-items:center;gap:4px;margin-top:2px;flex-wrap:wrap;">';
-    html += '<span style="font-size:9px;color:#555;">$'+Number(a.initialBalance||0).toLocaleString('en')+'</span>';
-    if(isActive) html += '<span style="font-size:7px;font-weight:700;letter-spacing:.4px;color:#00e676;animation:active-pulse 2s ease-in-out infinite;font-family:\'Exo 2\',sans-serif;text-transform:uppercase;flex-shrink:0;">activa</span>';
+    // Click para activar cuenta
+    html += '<div onclick="seleccionarCuentaSidebar(\''+a.id+'\')" style="display:flex;align-items:center;gap:5px;flex:1;min-width:0;cursor:pointer;overflow:hidden;">';
+    html += '<span style="display:inline-block;width:7px;height:7px;min-width:7px;border-radius:50%;flex-shrink:0;background:'+col+';'+(isActive?'animation:active-pulse-col 1.4s ease-in-out infinite;box-shadow:0 0 5px '+col+'bb;':'opacity:.3;')+'"></span>';
+    html += '<span style="font-size:10px;font-weight:700;color:'+nameColor+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;" title="'+a.name+'">'+a.name+'</span>';
+    html += '<span style="font-size:8px;color:#555;flex-shrink:0;">$'+Number(a.initialBalance||0).toLocaleString('en')+'</span>';
+    if(isActive) html += '<span style="font-size:6px;font-weight:700;color:#00e676;animation:active-pulse 2s ease-in-out infinite;font-family:\'Exo 2\',sans-serif;text-transform:uppercase;flex-shrink:0;">ACTIVA</span>';
     html += fondeoLabel;
-    html += '</div></div>';
+    html += '</div>';
 
     // Botón editar ✏
-    html += '<button onclick="event.stopPropagation();editarCuentaSidebar(\''+a.id+'\')" title="Editar" style="flex-shrink:0;background:rgba(77,159,255,.1);border:1px solid rgba(77,159,255,.35);color:#4d9fff;border-radius:5px;width:24px;height:24px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;padding:0;">✏</button>';
+    html += '<button onclick="event.stopPropagation();editarCuentaSidebar(\''+a.id+'\')" title="Editar" style="flex-shrink:0;background:rgba(77,159,255,.1);border:1px solid rgba(77,159,255,.35);color:#4d9fff;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;padding:0;">✏</button>';
 
     // Botón eliminar 🗑 — siempre visible, la lógica de "última cuenta" está en borrarCuentaDirecto
-    html += '<button onclick="event.stopPropagation();borrarCuentaDirecto(\''+a.id+'\',\''+a.name.replace(/'/g,"\\'")+'\')" title="Eliminar" style="flex-shrink:0;background:rgba(255,23,68,.1);border:1px solid rgba(255,23,68,.35);color:#ff1744;border-radius:5px;width:24px;height:24px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;padding:0;">🗑</button>';
+    html += '<button onclick="event.stopPropagation();borrarCuentaDirecto(\''+a.id+'\',\''+a.name.replace(/'/g,"\\'")+'\')" title="Eliminar" style="flex-shrink:0;background:rgba(255,23,68,.1);border:1px solid rgba(255,23,68,.35);color:#ff1744;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;padding:0;">🗑</button>';
 
     html += '</div></div></div>';
   }
