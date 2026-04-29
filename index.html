@@ -1939,6 +1939,11 @@ async function activateLicense() {
     if (_appInitialized) {
       showSyncStatus('⏳ Recuperando datos...');
       setTimeout(async function(){
+        // ✅ FIX AISLAMIENTO: limpiar S con datos del nuevo código antes de sincronizar
+        // Sin esto, S.trades tiene datos del código anterior y se subirían al nuevo cliente
+        S.trades = [];
+        S.settings = {accountSize:10000,assets:[].concat(DEF_ASSETS),challengeActive:false,maxDailyLoss:5,maxTotalLoss:10,profitTarget:10,alertAt:80};
+        if(typeof load==='function') load(); // carga localStorage del nuevo prefijo (vacío para código nuevo)
         var synced = await syncFromCloud();
         if (synced) {
           initAccounts();
@@ -5341,7 +5346,10 @@ function populateDayPanel(trades, dateStr) {
   html += '</div>';
 
   cnt.innerHTML = html;
-}
+  // Reset scroll del panel derecho
+  var _rpPanel = document.getElementById('reg-right-panel');
+  if(_rpPanel) _rpPanel.scrollTop = 0;
+};
 
 window._rpSelectTrade = function(idx) {
   var trades = window._rpDayTrades || [];
@@ -5445,8 +5453,9 @@ window.openTDP = function(trade, dayList, idx) {
         '<div class="tdp-section-title">Capturas / Archivos <span style="background:rgba(124,58,237,.2);color:var(--purp);border-radius:10px;padding:1px 7px;font-size:9px">'+images.length+'</span></div>' +
         '<div class="img-gallery">' +
           images.map(function(img,i) {
-            return '<div class="img-thumb" onclick="openLightbox('"+img.src+"')">' +
-              '<img src="'+img.src+'" loading="lazy" onerror="this.parentElement.innerHTML='<div style=\"display:flex;align-items:center;justify-content:center;height:100%;color:var(--gray2);font-size:10px\">Sin vista<br>previa</div>'" style="width:100%;height:100%;object-fit:cover">' +
+            var _src = (img && img.src) ? img.src : String(img);
+            return '<div class="img-thumb" onclick="openLightbox(this.querySelector(\'img\').src)" style="cursor:zoom-in">' +
+              '<img src="'+_src+'" loading="lazy" onerror="this.style.opacity=\'.3\'" style="width:100%;height:100%;object-fit:cover">' +
             '</div>';
           }).join('') +
         '</div>' +
@@ -5839,6 +5848,8 @@ function populateRightPanel(trade) {
   html += '</div>';
 
   cnt.innerHTML = html;
+  var _rpPanel2 = document.getElementById('reg-right-panel');
+  if(_rpPanel2) _rpPanel2.scrollTop = 0;
 }
 
 // ── Funciones del panel derecho: agregar/quitar media ──────
