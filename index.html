@@ -6030,6 +6030,100 @@ window.closeLightbox = function() {
   if(lb) lb.classList.remove('open');
 };
 
+
+// ═══════════════════════════════════════════════════════════════
+//  CONEXIÓN DIRECTA: tabla de operaciones → panel derecho
+//  Usa event delegation en el documento (no depende de onclick
+//  del tr ni de renderDayDetail) y override de selectDay.
+//  Solo §19 — no toca ninguna otra sección.
+// ═══════════════════════════════════════════════════════════════
+
+// ── 1. Event delegation: clic en fila de operaciones ─────────
+document.addEventListener('click', function(e) {
+  // Ignorar clics en botones (editar, eliminar, etc.)
+  if(e.target.closest('button')) return;
+
+  // Verificar si el clic fue dentro de #day-trades
+  var tbody = document.getElementById('day-trades');
+  if(!tbody || !tbody.contains(e.target)) return;
+
+  // Encontrar la fila (tr) clickeada
+  var tr = e.target.closest('tr');
+  if(!tr) return;
+
+  // Obtener el índice de esa fila
+  var trs = Array.from(tbody.querySelectorAll('tr'));
+  var idx = trs.indexOf(tr);
+  if(idx < 0) return;
+
+  // Obtener la operación correspondiente
+  var trades = window._currentDayTrades || [];
+  var trade  = trades[idx];
+  if(!trade) return;
+
+  // ✅ Mostrar en el panel derecho
+  _currentTrade = trade;
+  if(typeof populateRightPanel === 'function') {
+    populateRightPanel(trade);
+  }
+}, false);
+
+// ── 2. Override de selectDay: actualizar panel derecho al seleccionar día ─
+(function() {
+  // Esperar a que el DOM esté listo para capturar la función original
+  function hookSelectDay() {
+    var _orig = window.selectDay;
+    if(typeof _orig !== 'function') return;
+
+    window.selectDay = function(d) {
+      // Llamar la función original primero
+      _orig(d);
+
+      // Pequeño delay para que renderDayDetail termine de poblar _currentDayTrades
+      setTimeout(function() {
+        var mo = String(calMonth + 1).padStart(2, '0');
+        var dy = String(d).padStart(2, '0');
+        var ds = calYear + '-' + mo + '-' + dy;
+
+        // Filtrar y ordenar operaciones del día
+        var dt = S.trades
+          .filter(function(t) { return t.date === ds; })
+          .sort(function(a, b) { return (a.time || '').localeCompare(b.time || ''); });
+
+        // Guardar globalmente (para que el event delegation sepa el orden)
+        window._currentDayTrades = dt;
+
+        var ph = document.getElementById('rp-placeholder');
+        var cn = document.getElementById('rp-content');
+
+        if(!dt.length) {
+          // Sin operaciones: mostrar placeholder
+          if(ph) ph.style.display = 'flex';
+          if(cn) cn.style.display = 'none';
+        } else if(dt.length === 1) {
+          // Una sola operación: mostrar detalle directo
+          if(typeof populateRightPanel === 'function') populateRightPanel(dt[0]);
+        } else {
+          // Múltiples operaciones: mostrar viñetas
+          if(typeof populateDayPanel === 'function') {
+            populateDayPanel(dt, ds);
+          }
+        }
+      }, 30);
+    };
+  }
+
+  // Hookear después de que la página cargue
+  if(document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', hookSelectDay);
+  } else {
+    hookSelectDay();
+  }
+  // Respaldo con timeout
+  setTimeout(hookSelectDay, 600);
+})();
+
+
 console.log('[TradeTrack] 🚀 Premium UI cargado');
 </script>
 
