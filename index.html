@@ -6031,96 +6031,97 @@ window.closeLightbox = function() {
 };
 
 
-// ═══════════════════════════════════════════════════════════════
-//  CONEXIÓN DIRECTA: tabla de operaciones → panel derecho
-//  Usa event delegation en el documento (no depende de onclick
-//  del tr ni de renderDayDetail) y override de selectDay.
-//  Solo §19 — no toca ninguna otra sección.
-// ═══════════════════════════════════════════════════════════════
 
-// ── 1. Event delegation: clic en fila de operaciones ─────────
-document.addEventListener('click', function(e) {
-  // Ignorar clics en botones (editar, eliminar, etc.)
-  if(e.target.closest('button')) return;
+// ═══════════════════════════════════════════════════════════
+// PANEL DERECHO ↔ TABLA DE OPERACIONES — conexión directa
+// Método primario : extrae el trade ID del onclick del tr
+// Método secundario: índice en window._currentDayTrades
+// Solo §19 — no toca ninguna otra sección
+// ═══════════════════════════════════════════════════════════
 
-  // Verificar si el clic fue dentro de #day-trades
-  var tbody = document.getElementById('day-trades');
-  if(!tbody || !tbody.contains(e.target)) return;
+(function () {
+  'use strict';
 
-  // Encontrar la fila (tr) clickeada
-  var tr = e.target.closest('tr');
-  if(!tr) return;
-
-  // Obtener el índice de esa fila
-  var trs = Array.from(tbody.querySelectorAll('tr'));
-  var idx = trs.indexOf(tr);
-  if(idx < 0) return;
-
-  // Obtener la operación correspondiente
-  var trades = window._currentDayTrades || [];
-  var trade  = trades[idx];
-  if(!trade) return;
-
-  // ✅ Mostrar en el panel derecho
-  _currentTrade = trade;
-  if(typeof populateRightPanel === 'function') {
-    populateRightPanel(trade);
+  // ── helper: buscar trade por ID ──────────────────────────
+  function findTrade(id) {
+    return (S && S.trades && S.trades.find(function (t) { return t.id === id; })) || null;
   }
-}, false);
 
-// ── 2. Override de selectDay: actualizar panel derecho al seleccionar día ─
-(function() {
-  // Esperar a que el DOM esté listo para capturar la función original
-  function hookSelectDay() {
-    var _orig = window.selectDay;
-    if(typeof _orig !== 'function') return;
+  // ── helper: mostrar detalle en panel derecho ─────────────
+  function showInPanel(trade) {
+    if (!trade) return;
+    _currentTrade = trade;
+    if (typeof populateRightPanel === 'function') populateRightPanel(trade);
+  }
 
-    window.selectDay = function(d) {
-      // Llamar la función original primero
-      _orig(d);
+  // ── 1. Event delegation — clic en fila de la tabla ───────
+  document.addEventListener('click', function (e) {
+    // Ignorar botones (editar, eliminar)
+    if (e.target.closest('button')) return;
 
-      // Pequeño delay para que renderDayDetail termine de poblar _currentDayTrades
-      setTimeout(function() {
-        var mo = String(calMonth + 1).padStart(2, '0');
-        var dy = String(d).padStart(2, '0');
-        var ds = calYear + '-' + mo + '-' + dy;
+    var tbody = document.getElementById('day-trades');
+    if (!tbody || !tbody.contains(e.target)) return;
 
-        // Filtrar y ordenar operaciones del día
-        var dt = S.trades
-          .filter(function(t) { return t.date === ds; })
-          .sort(function(a, b) { return (a.time || '').localeCompare(b.time || ''); });
+    var tr = e.target.closest('tr');
+    if (!tr) return;
 
-        // Guardar globalmente (para que el event delegation sepa el orden)
-        window._currentDayTrades = dt;
+    var trade = null;
 
-        var ph = document.getElementById('rp-placeholder');
-        var cn = document.getElementById('rp-content');
+    // MÉTODO 1: extraer ID del onclick generado por §13
+    // Formato: onclick="openTDP(S.trades.find(function(x){return x.id===1234567;})||{},...)"
+    var onclk = tr.getAttribute('onclick') || '';
+    var m = onclk.match(/x\.id===(\d+)/);
+    if (m) {
+      trade = findTrade(parseInt(m[1], 10));
+    }
 
-        if(!dt.length) {
-          // Sin operaciones: mostrar placeholder
-          if(ph) ph.style.display = 'flex';
-          if(cn) cn.style.display = 'none';
-        } else if(dt.length === 1) {
-          // Una sola operación: mostrar detalle directo
-          if(typeof populateRightPanel === 'function') populateRightPanel(dt[0]);
-        } else {
-          // Múltiples operaciones: mostrar viñetas
-          if(typeof populateDayPanel === 'function') {
-            populateDayPanel(dt, ds);
+    // MÉTODO 2: fallback por índice en _currentDayTrades
+    if (!trade) {
+      var idx = Array.from(tbody.querySelectorAll('tr')).indexOf(tr);
+      var pool = window._currentDayTrades || [];
+      if (idx >= 0 && pool[idx]) trade = pool[idx];
+    }
+
+    if (!trade) return;
+    showInPanel(trade);
+  }, false);
+
+  // ── 2. Override de selectDay — panel derecho al elegir día ─
+  if (!window._rpSelectDayHooked) {
+    window._rpSelectDayHooked = true;
+    var _origSD = window.selectDay;
+
+    window.selectDay = function (d) {
+      if (typeof _origSD === 'function') _origSD(d);
+
+      setTimeout(function () {
+        try {
+          var mo = String(calMonth + 1).padStart(2, '0');
+          var dy = String(d).padStart(2, '0');
+          var ds = calYear + '-' + mo + '-' + dy;
+
+          var dt = (S.trades || [])
+            .filter(function (t) { return t.date === ds; })
+            .sort(function (a, b) { return (a.time || '').localeCompare(b.time || ''); });
+
+          window._currentDayTrades = dt;
+
+          var ph = document.getElementById('rp-placeholder');
+          var cn = document.getElementById('rp-content');
+
+          if (!dt.length) {
+            if (ph) ph.style.display = 'flex';
+            if (cn) cn.style.display = 'none';
+          } else if (dt.length === 1) {
+            showInPanel(dt[0]);
+          } else {
+            if (typeof populateDayPanel === 'function') populateDayPanel(dt, ds);
           }
-        }
-      }, 30);
+        } catch (err) { /* silencioso */ }
+      }, 60);
     };
   }
 
-  // Hookear después de que la página cargue
-  if(document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', hookSelectDay);
-  } else {
-    hookSelectDay();
-  }
-  // Respaldo con timeout
-  setTimeout(hookSelectDay, 600);
 })();
 
 
