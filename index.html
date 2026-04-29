@@ -2504,6 +2504,8 @@ function editTrade(id){
   if(g('f-commission'))g('f-commission').value=t.commission||'';
   window._tradeImages=t.images?[].concat(t.images):[];
   window._tradeLinks=t.links?[].concat(t.links):[];
+  window._formImages=window._tradeImages.slice();
+  window._formLinks=window._tradeLinks.slice();
   renderFormImages();renderFormLinks();
   var ft=g('form-title-modal');if(ft)ft.textContent='✏ Editar Operación';
   if(g('btn-cancel'))g('btn-cancel').style.display='block';
@@ -6170,7 +6172,7 @@ window.closeLightbox = function() {
     // ── Botones editar / eliminar ─────────────────────────
     var tid = t.id;
     h += '<div style="display:flex;gap:6px;padding-top:10px;border-top:1px solid var(--bdr)">';
-    h += '<button onclick="editTrade(' + tid + ');if(typeof openNewOpPanel===\'function\')openNewOpPanel()"'
+    h += '<button onclick="var _et=S.trades.find(function(x){return x.id==='+tid+';});editTrade(' + tid + ');if(typeof openNewOpPanel===\'function\')openNewOpPanel(_et)"'
        + ' style="flex:1;padding:8px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.3);'
        + 'color:#818cf8;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">✏ Editar</button>';
     h += '<button onclick="delTrade(' + tid + ')"'
