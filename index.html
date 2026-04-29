@@ -2447,9 +2447,14 @@ function saveTrade(){
   var date=g('f-date').value, pnl=pN(g('f-pnl').value);
   if(!date){toast('Selecciona una fecha','var(--red)');return;}
   if(pnl===null){toast('Ingresa un monto válido','var(--red)');return;}
-  // Unificar arrays de imágenes (_formImages y _tradeImages apuntan al mismo contenido)
-  var imgs = (window._formImages && window._formImages.length) ? window._formImages : (window._tradeImages || []);
-  var lnks = (window._formLinks  && window._formLinks.length)  ? window._formLinks  : (window._tradeLinks  || []);
+  // En edición usar SIEMPRE _formImages (ya prepobalado por editTrade)
+  // En nueva operación usar _formImages si tiene algo, si no _tradeImages
+  var imgs = (editId !== null)
+    ? (window._formImages  || [])
+    : ((window._formImages && window._formImages.length)  ? window._formImages  : (window._tradeImages  || []));
+  var lnks = (editId !== null)
+    ? (window._formLinks   || [])
+    : ((window._formLinks  && window._formLinks.length)   ? window._formLinks   : (window._tradeLinks   || []));
   if(editId!==null){
     var idx=S.trades.findIndex(function(t){return t.id===editId;});
     if(idx>=0) S.trades[idx]=Object.assign({},S.trades[idx],{date:date,time:g('f-time').value,asset:g('f-asset').value,result:curR,direction:curD,pnl:pnl,strategy:g('f-strategy').value,notes:g('f-notes').value,tf:g('f-tf').value,session:g('f-session').value,rr:parseFloat(g('f-rr').value)||0,tags:g('f-tags').value,entry:g('f-entry')?g('f-entry').value:'',exit:g('f-exit')?g('f-exit').value:'',pips:parseFloat(g('f-pips')?g('f-pips').value:'')||0,volume:g('f-volume')?g('f-volume').value:'',commission:parseFloat(g('f-commission')?g('f-commission').value:'')||0,images:imgs,links:lnks});
@@ -6140,11 +6145,11 @@ window.closeLightbox = function() {
       h += '<div style="margin-bottom:10px">';
       h += '<div style="font-size:8px;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px;font-family:\'Exo 2\',sans-serif">📸 Capturas '
          + '<span style="background:rgba(124,58,237,.2);color:var(--purp);border-radius:10px;padding:1px 7px;font-size:9px">' + imgs.length + '</span></div>';
-      h += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px">';
+      h += '<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;scrollbar-width:thin">';
       imgs.forEach(function (img) {
         var s = (img && img.src) ? img.src : String(img);
         var sEsc = s.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-        h += '<div style="aspect-ratio:1;border-radius:7px;overflow:hidden;border:1px solid var(--bdr);cursor:zoom-in">'
+        h += '<div style="width:80px;height:80px;flex-shrink:0;border-radius:7px;overflow:hidden;border:1px solid var(--bdr);cursor:zoom-in">'
            + '<img src="' + s + '" loading="lazy" style="width:100%;height:100%;object-fit:cover"'
            + ' onclick="if(window.openLightbox)openLightbox(\'' + sEsc + '\')"'
            + ' onerror="this.parentElement.style.opacity=\'.3\'">'
@@ -6289,7 +6294,34 @@ console.log('[TradeTrack] 🚀 Premium UI cargado');
   }
 
   // Sobreescribir closeNewOpPanel para que use nuestra función directa
-  window.closeNewOpPanel = function() { closeModal(); };
+  // y además refresque el panel derecho con los datos actualizados
+  window.closeNewOpPanel = function() {
+    closeModal();
+    // Refrescar panel derecho con el trade actualizado
+    setTimeout(function() {
+      try {
+        var lastId = window.editId !== null ? window.editId : null;
+        // editId ya fue limpiado por cancelEdit(), buscar por selDay
+        var mo = String(calMonth+1).padStart(2,'0');
+        var dy = String(selDay||1).padStart(2,'0');
+        var ds = calYear+'-'+mo+'-'+dy;
+        var dt = (window.S && window.S.trades ? window.S.trades : [])
+          .filter(function(t){ return t.date === ds; })
+          .sort(function(a,b){ return (a.time||'').localeCompare(b.time||''); });
+        window._rpDayTrades = dt;
+        if(dt.length === 1){
+          window._rpDayIdx = 0;
+          if(typeof window._rpShow === 'function') window._rpShow(dt[0]);
+        } else if(dt.length > 1){
+          // Restaurar el trade que se estaba viendo
+          var idx = window._rpDayIdx || 0;
+          idx = Math.min(idx, dt.length-1);
+          window._rpDayIdx = idx;
+          if(typeof window._rpShow === 'function') window._rpShow(dt[idx]);
+        }
+      } catch(e) {}
+    }, 50);
+  };
 
   function hookAll() {
     if (_hooked) return true;
