@@ -3794,8 +3794,9 @@ function renderSidebarAccounts(){
     // Click para activar cuenta
     html += '<div onclick="seleccionarCuentaSidebar(\''+a.id+'\')" style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;cursor:pointer;overflow:hidden;">';
     // Círculo del color de la cuenta (más grande, sin ícono)
-    html += '<div style="width:32px;height:32px;min-width:32px;border-radius:50%;background:'+col+';flex-shrink:0;position:relative;">';
-    if(isActive) html += '<span class="active-dot-pulse" style="position:absolute;inset:0;border-radius:50%;background:'+col+';"></span>';
+    html += '<div style="position:relative;width:32px;height:32px;min-width:32px;flex-shrink:0;">';
+    html += '<div style="width:32px;height:32px;border-radius:50%;background:'+col+';"></div>';
+    if(isActive) html += '<span style="position:absolute;bottom:0;right:0;width:9px;height:9px;border-radius:50%;background:'+col+';border:2px solid var(--sb);animation:active-pulse-col 1.4s ease-in-out infinite;display:block;box-shadow:0 0 5px '+col+'99;"></span>';
     html += '</div>';
     html += '<div style="flex:1;overflow:hidden;">';
     html += '<div style="display:flex;align-items:center;gap:4px;">';
@@ -6036,27 +6037,42 @@ function renderMobAccounts(){
   }
   el.innerHTML = accounts.map(function(a){
     var isAct = a.id===activeId;
-    var col = a.color||'#8b5cf6';
-    var bg  = isAct?'rgba(0,229,176,.1)':'rgba(255,255,255,.03)';
-    var bdr = isAct?'rgba(0,229,176,.35)':'rgba(255,255,255,.08)';
-    var pfx = (typeof getLicensePrefix==='function')?getLicensePrefix():'';
+    var col   = a.color||'#8b5cf6';
+    var bg    = isAct?'rgba(0,229,176,.1)':'rgba(255,255,255,.03)';
+    var bdr   = isAct?'rgba(0,229,176,.35)':'rgba(255,255,255,.08)';
+    var pfx   = (typeof getLicensePrefix==='function')?getLicensePrefix():'';
     var cfg=null; try{cfg=JSON.parse(localStorage.getItem(pfx+'cfg_'+a.id)||'null');}catch(e){}
-    var bal = cfg&&cfg.accountSize ? '$'+Number(cfg.accountSize).toLocaleString('en') : '—';
-    // FIX: cerrar el sidebar PRIMERO antes de que refresh() destruya el DOM clickeado
-    var safeId   = JSON.stringify(a.id);
-    var safeName = JSON.stringify(a.name);
-    return '<div style="background:'+bg+';border:1px solid '+bdr+';border-radius:10px;padding:8px 10px;display:flex;align-items:center;gap:8px">\'
-      +'<div onclick="mobSidebarClose();setTimeout(function(){seleccionarCuentaSidebar('+safeId+')},60)" style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer;padding:4px 2px;">\'
-      +'<div style="position:relative;width:28px;height:28px;min-width:28px;border-radius:50%;background:'+col+';flex-shrink:0;">'+( isAct?'<span style="position:absolute;inset:0;border-radius:50%;animation:active-pulse-col 1.4s ease-in-out infinite;background:'+col+';"></span>':'' )+'</div>\'
-      +'<div style="flex:1;min-width:0">\'
-      +'<div style="font-size:13px;font-weight:700;color:'+( isAct?'var(--green)':'var(--text)')+'">'+a.name+'</div>\'
-      +'<div style="font-size:11px;color:var(--gray2)">'+bal+'</div>\'
-      +'</div>\'
-      +( isAct?'<div style="font-size:10px;color:var(--green);font-weight:700;background:rgba(0,229,176,.1);padding:3px 7px;border-radius:5px;border:1px solid rgba(0,229,176,.3);white-space:nowrap">Activa</div>':'')+'</div>\'
-      +'<div style="display:flex;gap:5px;flex-shrink:0;">\'
-      +'<button onclick="event.stopPropagation();mobSidebarClose();setTimeout(function(){editarCuentaSidebar('+safeId+')},60)" title="Editar" style="background:rgba(77,159,255,.1);border:1px solid rgba(77,159,255,.35);color:#4d9fff;border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;">✏</button>\'
-      +'<button onclick="event.stopPropagation();borrarCuentaDirecto('+safeId+','+safeName+')" title="Eliminar" style="background:rgba(255,23,68,.1);border:1px solid rgba(255,23,68,.35);color:#ff1744;border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;">🗑</button>\'
-      +'</div>\'
+    var bal   = cfg&&cfg.accountSize ? '$'+Number(cfg.accountSize).toLocaleString('en') : '—';
+    // Usar comillas simples escapadas para los onclick (NO JSON.stringify que genera comillas dobles)
+    var sid   = a.id;
+    var sname = a.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    var dotIndicator = isAct
+      ? '<span style="display:inline-block;width:8px;height:8px;min-width:8px;border-radius:50%;background:'+col+';animation:active-pulse-col 1.4s ease-in-out infinite;box-shadow:0 0 5px '+col+'99;flex-shrink:0;"></span>'
+      : '';
+    return ''
+      +'<div style="background:'+bg+';border:1px solid '+bdr+';border-radius:10px;padding:8px 10px;display:flex;align-items:center;gap:8px;">'
+        // Zona clickeable (seleccionar cuenta): cierra sidebar ANTES para evitar que refresh() destruya el elemento clickeado
+        +'<div onclick="mobSidebarClose();setTimeout(function(){seleccionarCuentaSidebar(\''+sid+'\')},60)"'
+          +' style="display:flex;align-items:center;gap:9px;flex:1;min-width:0;cursor:pointer;">'
+          // Círculo sólido del color — sin animación, solo indica el color de la cuenta
+          +'<div style="width:28px;height:28px;min-width:28px;border-radius:50%;background:'+col+';flex-shrink:0;"></div>'
+          +'<div style="flex:1;min-width:0;">'
+            +'<div style="display:flex;align-items:center;gap:5px;">'
+              +'<span style="font-size:13px;font-weight:700;color:'+(isAct?'var(--green)':'var(--text)')+'">'+a.name+'</span>'
+              // Viñeta palpitante del color de la cuenta — solo aparece si está activa
+              +dotIndicator
+            +'</div>'
+            +'<div style="font-size:11px;color:var(--gray2);margin-top:1px;">'+bal+'</div>'
+          +'</div>'
+          +(isAct?'<div style="font-size:10px;color:var(--green);font-weight:700;background:rgba(0,229,176,.1);padding:3px 7px;border-radius:5px;border:1px solid rgba(0,229,176,.3);white-space:nowrap;flex-shrink:0;">Activa</div>':'')
+        +'</div>'
+        // Botones editar y borrar
+        +'<div style="display:flex;gap:5px;flex-shrink:0;">'
+          +'<button onclick="event.stopPropagation();mobSidebarClose();setTimeout(function(){editarCuentaSidebar(\''+sid+'\')},60)"'
+            +' title="Editar" style="background:rgba(77,159,255,.1);border:1px solid rgba(77,159,255,.35);color:#4d9fff;border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;">&#9998;</button>'
+          +'<button onclick="event.stopPropagation();borrarCuentaDirecto(\''+sid+'\',\''+sname+'\')"'
+            +' title="Eliminar" style="background:rgba(255,23,68,.1);border:1px solid rgba(255,23,68,.35);color:#ff1744;border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;">&#128465;</button>'
+        +'</div>'
       +'</div>';
   }).join('');
 }
