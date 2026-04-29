@@ -3799,12 +3799,13 @@ function renderSidebarAccounts(){
     html += '<span style="display:inline-block;width:9px;height:9px;min-width:9px;border-radius:50%;flex-shrink:0;background:'+col+';'+(isActive?'animation:active-pulse-col 1.4s ease-in-out infinite;box-shadow:0 0 6px '+col+'bb;':'opacity:.3;')+'"></span>';
     html += '<div style="flex:1;overflow:hidden;">';
     html += '<div style="display:flex;align-items:center;gap:4px;">';
-    html += '<span style="font-size:11px;font-weight:700;color:'+nameColor+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px;" title="'+a.name+'">'+a.name+'</span>';
-    // Label ACTIVA palpitante — solo para la cuenta activa
-    if(isActive) html += '<span style="font-size:7px;font-weight:800;letter-spacing:.8px;color:var(--green);animation:active-pulse-col 1.4s ease-in-out infinite;font-family:\'Exo 2\',sans-serif;text-transform:uppercase;flex-shrink:0;">ACTIVA</span>';
-    html += fondeoLabel;
+    html += '<span style="font-size:11px;font-weight:700;color:'+nameColor+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="'+a.name+'">'+a.name+'</span>';
     html += '</div>';
-    html += '<div style="font-size:9px;color:#666;margin-top:1px;">$'+Number(a.initialBalance||0).toLocaleString('en')+'</div>';
+    // Fila inferior: balance + 'activa' + F — separados del nombre para que no interfieran
+    html += '<div style="display:flex;align-items:center;gap:4px;margin-top:2px;flex-wrap:wrap;">';
+    html += '<span style="font-size:9px;color:#555;">$'+Number(a.initialBalance||0).toLocaleString('en')+'</span>';
+    if(isActive) html += '<span style="font-size:7px;font-weight:700;letter-spacing:.4px;color:#00e676;animation:active-pulse 2s ease-in-out infinite;font-family:\'Exo 2\',sans-serif;text-transform:uppercase;flex-shrink:0;">activa</span>';
+    html += fondeoLabel;
     html += '</div></div>';
 
     // Botón editar ✏
@@ -6047,7 +6048,12 @@ function renderMobAccounts(){
     var bal   = cfg&&cfg.accountSize ? '$'+Number(cfg.accountSize).toLocaleString('en') : '—';
     var sid   = a.id;
     var sname = a.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    // Un solo punto pequeño a la izquierda del nombre
+    // Fondeo: cuenta activa usa S.settings (fuente de verdad), inactiva usa localStorage
+    var challengeOn = isAct ? !!S.settings.challengeActive : !!(cfg&&cfg.challengeActive);
+    var fondeoLabel = challengeOn
+      ? '<span class="fondeo-badge-pulse" title="Modo Fondeo activo" style="width:13px;height:13px;font-size:7px;">F</span>'
+      : '';
+    // Punto pulsante izquierda
     var dotStyle = 'display:inline-block;width:9px;height:9px;min-width:9px;border-radius:50%;flex-shrink:0;background:'+col+';'
                  + (isAct ? 'animation:active-pulse-col 1.4s ease-in-out infinite;box-shadow:0 0 6px '+col+'bb;' : 'opacity:.3;');
     return ''
@@ -6056,8 +6062,14 @@ function renderMobAccounts(){
           +' style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;cursor:pointer;">'
           +'<span style="'+dotStyle+'"></span>'
           +'<div style="flex:1;min-width:0;">'
-            +'<div style="font-size:13px;font-weight:700;color:'+(isAct?'var(--green)':'var(--text)')+'">'+a.name+'</div>'
-            +'<div style="font-size:11px;color:var(--gray2);margin-top:1px;">'+bal+'</div>'
+            // Fila nombre — solo el nombre, sin labels para que nunca se corten
+            +'<div style="font-size:13px;font-weight:700;color:'+(isAct?'var(--green)':'var(--text)')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+a.name+'</div>'
+            // Fila inferior: balance + 'activa' + F
+            +'<div style="display:flex;align-items:center;gap:4px;margin-top:2px;flex-wrap:wrap;">'
+              +'<span style="font-size:11px;color:var(--gray2);">'+bal+'</span>'
+              +(isAct?'<span style="font-size:7px;font-weight:700;letter-spacing:.4px;color:#00e676;animation:active-pulse 2s ease-in-out infinite;font-family:\'Exo 2\',sans-serif;text-transform:uppercase;flex-shrink:0;">activa</span>':'')
+              +fondeoLabel
+            +'</div>'
           +'</div>'
         +'</div>'
         +'<div style="display:flex;gap:5px;flex-shrink:0;">'
