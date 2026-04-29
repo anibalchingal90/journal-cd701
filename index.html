@@ -2062,7 +2062,13 @@ function save(){
     for(var j=n;j<=oldN;j++) localStorage.removeItem(pfx+id+'_'+j);
     localStorage.setItem(pfx+'old_'+id, String(n));
     syncToCloud();
-  }catch(e){console.error('save',e);}
+  }catch(e){
+    console.error('save',e);
+    // Aviso claro si el almacenamiento local está lleno
+    if(e.name==='QuotaExceededError'||e.code===22||e.code===1014){
+      if(typeof toast==='function') toast('⚠ Almacenamiento lleno. Las imágenes en base64 ocupan mucho espacio. Elimina imágenes para continuar guardando.','var(--red)',6000);
+    }
+  }
 }
 function load(){
   try{
@@ -2447,14 +2453,20 @@ function saveTrade(){
   var date=g('f-date').value, pnl=pN(g('f-pnl').value);
   if(!date){toast('Selecciona una fecha','var(--red)');return;}
   if(pnl===null){toast('Ingresa un monto válido','var(--red)');return;}
-  // En edición usar SIEMPRE _formImages (ya prepobalado por editTrade)
-  // En nueva operación usar _formImages si tiene algo, si no _tradeImages
-  var imgs = (editId !== null)
-    ? (window._formImages  || [])
-    : ((window._formImages && window._formImages.length)  ? window._formImages  : (window._tradeImages  || []));
-  var lnks = (editId !== null)
-    ? (window._formLinks   || [])
-    : ((window._formLinks  && window._formLinks.length)   ? window._formLinks   : (window._tradeLinks   || []));
+  // _tradeImages y _formImages son el mismo array en edición (misma referencia)
+  // En nueva operación, _tradeImages es el que actualiza el formulario
+  var imgs, lnks;
+  if(editId !== null) {
+    // Edición: _tradeImages === _formImages (misma referencia desde editTrade)
+    imgs = window._tradeImages || window._formImages || [];
+    lnks = window._tradeLinks  || window._formLinks  || [];
+  } else {
+    // Nueva operación: _tradeImages es el que usa el formulario
+    imgs = (window._tradeImages && window._tradeImages.length) ? window._tradeImages
+         : (window._formImages  && window._formImages.length)  ? window._formImages  : [];
+    lnks = (window._tradeLinks  && window._tradeLinks.length)  ? window._tradeLinks
+         : (window._formLinks   && window._formLinks.length)   ? window._formLinks   : [];
+  }
   if(editId!==null){
     var idx=S.trades.findIndex(function(t){return t.id===editId;});
     if(idx>=0) S.trades[idx]=Object.assign({},S.trades[idx],{date:date,time:g('f-time').value,asset:g('f-asset').value,result:curR,direction:curD,pnl:pnl,strategy:g('f-strategy').value,notes:g('f-notes').value,tf:g('f-tf').value,session:g('f-session').value,rr:parseFloat(g('f-rr').value)||0,tags:g('f-tags').value,entry:g('f-entry')?g('f-entry').value:'',exit:g('f-exit')?g('f-exit').value:'',pips:parseFloat(g('f-pips')?g('f-pips').value:'')||0,volume:g('f-volume')?g('f-volume').value:'',commission:parseFloat(g('f-commission')?g('f-commission').value:'')||0,images:imgs,links:lnks});
@@ -2507,10 +2519,21 @@ function editTrade(id){
   if(g('f-pips'))g('f-pips').value=t.pips||'';
   if(g('f-volume'))g('f-volume').value=t.volume||'';
   if(g('f-commission'))g('f-commission').value=t.commission||'';
-  window._tradeImages=t.images?[].concat(t.images):[];
-  window._tradeLinks=t.links?[].concat(t.links):[];
-  window._formImages=window._tradeImages.slice();
-  window._formLinks=window._tradeLinks.slice();
+  // Normalizar imágenes: las viejas pueden ser strings, las nuevas son objetos {src,name,type}
+  var _rawImgs = t.images ? [].concat(t.images) : [];
+  var _normImgs = _rawImgs.map(function(img){
+    if(typeof img === 'string') return { src: img, name: 'imagen', type: img.startsWith('data:') ? 'file' : 'url' };
+    return img;
+  });
+  var _rawLnks = t.links ? [].concat(t.links) : [];
+  var _normLnks = _rawLnks.map(function(lk){
+    return (typeof lk === 'string') ? lk : (lk.url || String(lk));
+  });
+  // Mismo array compartido — cualquier push/splice actualiza ambas referencias
+  window._tradeImages = _normImgs;
+  window._tradeLinks  = _normLnks;
+  window._formImages  = window._tradeImages;
+  window._formLinks   = window._tradeLinks;
   renderFormImages();renderFormLinks();
   var ft=g('form-title-modal');if(ft)ft.textContent='✏ Editar Operación';
   if(g('btn-cancel'))g('btn-cancel').style.display='block';
@@ -5231,11 +5254,20 @@ window.openNewOpPanel = function(trade) {
     if(fa && !fa.value && fa.options && fa.options.length > 0) fa.selectedIndex = 0;
 
     // 4. Resetear imágenes y links
-    window._formImages  = (trade && trade.images) ? trade.images.slice() : [];
-    window._formLinks   = (trade && trade.links)  ? trade.links.slice()  : [];
-    window._tradeImages = window._formImages.slice();
-    window._tradeLinks  = window._formLinks.slice();
-    if(typeof renderFormImagesPreview === 'function') try{ renderFormImagesPreview(); }catch(e){}
+    // Si viene de editTrade (editId !== null), _tradeImages/_formImages ya son el mismo array normalizado
+    // Solo reemplazamos si NO estamos editando (nueva operación) para no romper la referencia compartida
+    if(typeof window.editId === 'undefined' || window.editId === null) {
+      window._formImages  = (trade && trade.images) ? trade.images.slice() : [];
+      window._formLinks   = (trade && trade.links)  ? trade.links.slice()  : [];
+      window._tradeImages = window._formImages;
+      window._tradeLinks  = window._formLinks;
+    } else {
+      // Edición: reusar los arrays normalizados que creó editTrade (misma referencia)
+      // Solo aseguramos que _formImages === _tradeImages
+      window._formImages  = window._tradeImages;
+      window._formLinks   = window._tradeLinks;
+    }
+    if(typeof renderFormImages === 'function') try{ renderFormImages(); }catch(e){}
     if(typeof renderFormLinksPreview  === 'function') try{ renderFormLinksPreview();  }catch(e){}
 
     // 5. Abrir modal
@@ -6059,8 +6091,14 @@ window.closeLightbox = function() {
     var pnl   = +(t.pnl || 0);
     var pnlS  = (pnl >= 0 ? '+$' : '-$') + Math.abs(pnl).toFixed(2);
     var pnlC  = isWin ? '#00e5b0' : '#ff3860';
-    var imgs  = t.images || [];
-    var links = t.links  || [];
+    // Normalizar formato de imágenes antiguas (strings) al nuevo (objetos)
+    var imgs = (t.images || []).map(function(img){
+      if(typeof img === 'string') return { src: img, name: 'imagen', type: img.startsWith('data:') ? 'file' : 'url' };
+      return img;
+    });
+    var links = (t.links || []).map(function(lk){
+      return (typeof lk === 'string') ? lk : (lk.url || String(lk));
+    });
 
     var dayTrades = window._rpDayTrades || [];
     var dayIdx    = window._rpDayIdx != null ? window._rpDayIdx : 0;
@@ -6145,14 +6183,17 @@ window.closeLightbox = function() {
       h += '<div style="margin-bottom:10px">';
       h += '<div style="font-size:8px;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px;font-family:\'Exo 2\',sans-serif">📸 Capturas '
          + '<span style="background:rgba(124,58,237,.2);color:var(--purp);border-radius:10px;padding:1px 7px;font-size:9px">' + imgs.length + '</span></div>';
+      var _tid = t.id;
       h += '<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;scrollbar-width:thin">';
-      imgs.forEach(function (img) {
+      imgs.forEach(function (img, _ii) {
         var s = (img && img.src) ? img.src : String(img);
         var sEsc = s.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-        h += '<div style="width:80px;height:80px;flex-shrink:0;border-radius:7px;overflow:hidden;border:1px solid var(--bdr);cursor:zoom-in">'
-           + '<img src="' + s + '" loading="lazy" style="width:100%;height:100%;object-fit:cover"'
+        h += '<div style="position:relative;width:80px;height:80px;flex-shrink:0;border-radius:7px;overflow:hidden;border:1px solid var(--bdr)">'
+           + '<img src="' + s + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;cursor:zoom-in"'
            + ' onclick="if(window.openLightbox)openLightbox(\'' + sEsc + '\')"'
            + ' onerror="this.parentElement.style.opacity=\'.3\'">'
+           + '<button onclick="event.stopPropagation();window._rpDeleteImg(' + _tid + ',' + _ii + ')"'
+           + ' style="position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.75);border:none;color:#fff;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">✕</button>'
            + '</div>';
       });
       h += '</div></div>';
@@ -6201,6 +6242,20 @@ window.closeLightbox = function() {
   }
   window._rpShow = showDetail;   // exponer para uso externo
 
+  // ── Eliminar imagen desde el panel derecho ────────────────
+  window._rpDeleteImg = function(tradeId, imgIdx) {
+    var trade = (window.S && window.S.trades ? window.S.trades : []).find(function(t){ return t.id === tradeId; });
+    if(!trade || !trade.images) return;
+    trade.images.splice(imgIdx, 1);
+    try {
+      if(typeof save === 'function') save();
+    } catch(e) {
+      if(typeof toast === 'function') toast('⚠ Sin espacio para guardar. Elimina imágenes antiguas.','var(--red)');
+    }
+    // Refrescar panel
+    if(typeof window._rpShow === 'function') window._rpShow(trade);
+  };
+
   // ── Event delegation: clic en fila de operaciones ───────
   document.addEventListener('click', function (e) {
     if (e.target.closest('button')) return;
@@ -6226,34 +6281,7 @@ window.closeLightbox = function() {
     if (trade) showDetail(trade);
   }, false);
 
-  // ── Actualizar panel cuando se selecciona un día ────────
-  // Escucha clics en el documento; si selDay/calYear/calMonth cambiaron, actualiza.
-  document.addEventListener('click', function (e) {
-    var cell = e.target.closest('.cal-cell');
-    if (!cell) return;
-    setTimeout(function () {
-      try {
-        if (window.selDay == null) return;
-        var mo = String(calMonth + 1).padStart(2, '0');
-        var dy = String(selDay).padStart(2, '0');
-        var ds = calYear + '-' + mo + '-' + dy;
-        var dt = (window.S && window.S.trades || [])
-          .filter(function (t) { return t.date === ds; })
-          .sort(function (a, b) { return (a.time || '').localeCompare(b.time || ''); });
-        window._currentDayTrades = dt;
-        if (dt.length === 1) {
-          showDetail(dt[0]);
-        } else if (dt.length > 1 && typeof populateDayPanel === 'function') {
-          populateDayPanel(dt, ds);
-        } else if (!dt.length) {
-          var ph = document.getElementById('rp-placeholder');
-          var cn = document.getElementById('rp-content');
-          if (ph) ph.style.cssText = '';
-          if (cn) cn.style.display = 'none';
-        }
-      } catch (err) { /* silencioso */ }
-    }, 80);
-  }, false);
+  // ── Listener cal-cell removido: selectDay() ya maneja el panel ──
 
 })();
 
