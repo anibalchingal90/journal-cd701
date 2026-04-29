@@ -219,7 +219,7 @@ tr:hover td{background:rgba(14,18,41,.8)}
 .ast-btn{background:none;border:none;border-bottom:2px solid transparent;color:var(--gray2);font-size:11px;font-weight:600;padding:7px 12px;cursor:pointer;white-space:nowrap;transition:all .2s;font-family:'DM Sans',sans-serif}
 .ast-btn:hover{color:var(--text)}
 .ast-btn.ast-act{color:var(--purp);border-bottom-color:var(--purp)}
-.ast-panel{display:flex;flex-direction:column;gap:0}
+.ast-panel{display:block}
 /* BADGE PREMIUM */
 .premium-badge{background:linear-gradient(90deg,var(--accent),var(--cyan));color:#fff;font-size:7px;font-weight:900;padding:2px 7px;border-radius:4px;letter-spacing:1px;text-transform:uppercase;font-family:'Exo 2',sans-serif}
 /* OPS HEADER BAR */
@@ -1169,7 +1169,7 @@ tr:hover td{background:rgba(14,18,41,.8)}
      Nueva interfaz: sub-tabs + panel filtros derecho + todas las secciones de la imagen.
 ═══════════════════════════════════════════════════════════ -->
   <!-- ═══ ANÁLISIS ═══ -->
-  <div id="tab-analisis" class="tsec" style="overflow:hidden;display:none;gap:0">
+  <div id="tab-analisis" class="tsec">
 
     <!-- Selects ocultos originales — el JS los sigue usando -->
     <div style="display:none">
@@ -1182,10 +1182,10 @@ tr:hover td{background:rgba(14,18,41,.8)}
     </div>
 
     <!-- Layout principal: contenido + panel filtros -->
-    <div style="display:flex;flex:1;min-height:0;gap:0;overflow:hidden">
+    <div style="display:flex;gap:0;min-height:0">
 
       <!-- CONTENIDO IZQUIERDO -->
-      <div style="flex:1;min-width:0;display:flex;flex-direction:column;overflow-y:auto;padding:12px 14px 20px">
+      <div style="flex:1;min-width:0;overflow-y:auto;padding:16px 16px 24px">
 
         <!-- Header -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
@@ -1346,7 +1346,7 @@ tr:hover td{background:rgba(14,18,41,.8)}
       </div><!-- fin contenido izquierdo -->
 
       <!-- PANEL FILTROS DERECHO -->
-      <div style="width:260px;flex-shrink:0;border-left:1px solid var(--bdr);background:var(--card);overflow-y:auto;padding:14px 12px;display:flex;flex-direction:column;gap:14px">
+      <div style="width:258px;flex-shrink:0;border-left:1px solid var(--bdr);background:var(--card);overflow-y:auto;padding:14px 12px;display:flex;flex-direction:column;gap:12px;position:sticky;top:0;max-height:calc(100vh - 50px)">
 
         <div style="display:flex;align-items:center;justify-content:space-between">
           <span style="font-size:12px;font-weight:700;color:var(--text);font-family:'Exo 2',sans-serif">Filtros</span>
@@ -3922,7 +3922,7 @@ window.setAST = function(tab){
   ['resumen','rend','ops','tiempo','dias','meses','instr','estrategia','sesiones'].forEach(function(t){
     var btn=g('ast-'+t), panel=g('ast-panel-'+t);
     if(btn){btn.classList.remove('ast-act');if(t===tab)btn.classList.add('ast-act');}
-    if(panel)panel.style.display=(t===tab?'flex':'none');
+    if(panel)panel.style.display=(t===tab?'block':'none');
   });
 };
 
