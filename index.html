@@ -4085,6 +4085,7 @@ function guardarCuenta(){
     renderConfigAccounts();
     _updatePreviewDraft();
     if(typeof toast==='function') toast('✅ Cuenta creada: '+nombre+' — puedes agregar otra', '#00e676');
+    if(typeof syncToCloud==='function') syncToCloud();
     return;
   }
 
@@ -4115,6 +4116,7 @@ function guardarCuenta(){
   actualizarBtnGuardar();
   _updatePreviewDraft();
   if(typeof toast==='function') toast('💾 Cuenta guardada correctamente', '#00e676');
+  if(typeof syncToCloud==='function') syncToCloud();
 }
 
 function createAccount(){
@@ -4133,6 +4135,7 @@ function createAccount(){
   if(nameEl) nameEl.value='';
   if(balEl) balEl.value='';
   renderAccountsList();
+  if(typeof syncToCloud==='function') syncToCloud();
   if(typeof toast==='function') toast('✅ Cuenta creada: '+name, '#00e676');
 }
 
@@ -4164,6 +4167,7 @@ function createAccountFromModal(){
   document.getElementById('modal-acct-name').value='';
   document.getElementById('modal-acct-balance').value='';
   renderAccountsList();
+  if(typeof syncToCloud==='function') syncToCloud();
   if(typeof toast==='function') toast('✅ Cuenta creada: '+name, '#00e676');
 }
 
