@@ -2528,7 +2528,8 @@ function showConfirm(title,body,fn,prev,confirmLabel){
 
 // ASSETS
 function renderAssets(){
-  g('alist').innerHTML=S.settings.assets.map(function(a){
+  var el=g('alist');if(!el)return;
+  el.innerHTML=S.settings.assets.map(function(a){
     return '<div style="background:var(--bg);border:1px solid var(--bdr);border-radius:16px;padding:3px 10px;display:flex;gap:5px;align-items:center;font-size:11px"><span style="color:var(--blue);font-weight:600">'+a+'</span><button onclick="rmAsset(\''+a+'\')" style="background:none;border:none;color:var(--gray2);cursor:pointer;font-size:12px;line-height:1">✕</button></div>';
   }).join('');
 }
@@ -6041,13 +6042,21 @@ function renderMobAccounts(){
     var pfx = (typeof getLicensePrefix==='function')?getLicensePrefix():'';
     var cfg=null; try{cfg=JSON.parse(localStorage.getItem(pfx+'cfg_'+a.id)||'null');}catch(e){}
     var bal = cfg&&cfg.accountSize ? '$'+Number(cfg.accountSize).toLocaleString('en') : '—';
-    return '<div onclick="seleccionarCuentaSidebar(\''+a.id+'\');mobSidebarClose()" style="background:'+bg+';border:1px solid '+bdr+';border-radius:10px;padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:10px">'
-      +'<div style="position:relative;width:28px;height:28px;min-width:28px;border-radius:50%;background:'+col+';flex-shrink:0;">'+(isAct?'<span style="position:absolute;inset:0;border-radius:50%;animation:active-pulse-col 1.4s ease-in-out infinite;background:'+col+';"></span>':'')+'</div>'
-      +'<div style="flex:1;min-width:0">'
-      +'<div style="font-size:13px;font-weight:700;color:'+(isAct?'var(--green)':'var(--text)')+'">'+a.name+'</div>'
-      +'<div style="font-size:11px;color:var(--gray2)">'+bal+'</div>'
-      +'</div>'
-      +(isAct?'<div style="font-size:10px;color:var(--green);font-weight:700;background:rgba(0,229,176,.1);padding:3px 8px;border-radius:5px;border:1px solid rgba(0,229,176,.3)">Activa</div>':'')
+    // FIX: cerrar el sidebar PRIMERO antes de que refresh() destruya el DOM clickeado
+    var safeId   = JSON.stringify(a.id);
+    var safeName = JSON.stringify(a.name);
+    return '<div style="background:'+bg+';border:1px solid '+bdr+';border-radius:10px;padding:8px 10px;display:flex;align-items:center;gap:8px">\'
+      +'<div onclick="mobSidebarClose();setTimeout(function(){seleccionarCuentaSidebar('+safeId+')},60)" style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer;padding:4px 2px;">\'
+      +'<div style="position:relative;width:28px;height:28px;min-width:28px;border-radius:50%;background:'+col+';flex-shrink:0;">'+( isAct?'<span style="position:absolute;inset:0;border-radius:50%;animation:active-pulse-col 1.4s ease-in-out infinite;background:'+col+';"></span>':'' )+'</div>\'
+      +'<div style="flex:1;min-width:0">\'
+      +'<div style="font-size:13px;font-weight:700;color:'+( isAct?'var(--green)':'var(--text)')+'">'+a.name+'</div>\'
+      +'<div style="font-size:11px;color:var(--gray2)">'+bal+'</div>\'
+      +'</div>\'
+      +( isAct?'<div style="font-size:10px;color:var(--green);font-weight:700;background:rgba(0,229,176,.1);padding:3px 7px;border-radius:5px;border:1px solid rgba(0,229,176,.3);white-space:nowrap">Activa</div>':'')+'</div>\'
+      +'<div style="display:flex;gap:5px;flex-shrink:0;">\'
+      +'<button onclick="event.stopPropagation();mobSidebarClose();setTimeout(function(){editarCuentaSidebar('+safeId+')},60)" title="Editar" style="background:rgba(77,159,255,.1);border:1px solid rgba(77,159,255,.35);color:#4d9fff;border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;">✏</button>\'
+      +'<button onclick="event.stopPropagation();borrarCuentaDirecto('+safeId+','+safeName+')" title="Eliminar" style="background:rgba(255,23,68,.1);border:1px solid rgba(255,23,68,.35);color:#ff1744;border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;">🗑</button>\'
+      +'</div>\'
       +'</div>';
   }).join('');
 }
