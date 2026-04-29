@@ -1065,7 +1065,30 @@ tr:hover td{background:rgba(14,18,41,.8)}
       <!-- KPI BAR: debajo del calendario -->
       <div class="reg-kpi-bar" id="msum"></div>
 
-
+      <!-- DAY DETAIL -->
+      <div id="day-detail" style="display:none;margin-top:16px">
+        <div class="day-detail-hdr">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span id="day-detail-title" style="font-family:'Exo 2',sans-serif;font-size:14px;font-weight:800;color:var(--text)"></span>
+            <span id="day-detail-badge" class="day-count-badge"></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span id="day-detail-pnl" style="font-family:'Exo 2',sans-serif;font-size:13px;font-weight:700"></span>
+            <button class="btn" style="padding:4px 10px;font-size:10px" onclick="g('day-detail').style.display='none';selDay=null;renderCal()">✕ Cerrar</button>
+          </div>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden;margin-top:10px">
+          <table class="day-ops-table" id="day-ops-table">
+            <thead>
+              <tr>
+                <th>Hora</th><th>Par</th><th>Dirección</th><th>TF</th>
+                <th>Resultado</th><th>$</th><th>Pips</th><th>RR</th><th>Notas</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="day-trades"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <!-- ── TABLE VIEW ── -->
@@ -5510,23 +5533,25 @@ window.setDDTab = function(tab) {
 
 // ── Override renderDayDetail ──────────────────────────
 window.renderDayDetail = function() {
-  if(!selDay){
-    var _ph=g('rp-placeholder'),_cn=g('rp-content');
-    if(_ph)_ph.style.display='flex'; if(_cn)_cn.style.display='none';
-    return;
-  }
+  var detail=g('day-detail'); if(!detail) return;
+  if(!selDay){ detail.style.display='none'; return; }
   var mo=String(calMonth+1).padStart(2,'0'), dy=String(selDay).padStart(2,'0');
   var ds=calYear+'-'+mo+'-'+dy;
   var dt=S.trades.filter(function(t){return t.date===ds;}).sort(function(a,b){return(a.time||'').localeCompare(b.time||'');});
+  var dayPnl=dt.reduce(function(x,t){return x+(t.pnl||0);},0);
 
-  // Poblar panel derecho directamente
-  if(dt.length === 1){ populateRightPanel(dt[0]); return; }
-  else if(dt.length > 1){ populateDayPanel(dt, ds); return; }
-  else { var _ph=g('rp-placeholder'),_cn=g('rp-content'); if(_ph)_ph.style.display='flex'; if(_cn)_cn.style.display='none'; return; }
+  var countEl=g('dd-ops-count');
+  if(countEl) countEl.textContent=dt.length;
+  var pnlEl=g('day-detail-pnl');
+  if(pnlEl){ pnlEl.textContent=(dayPnl>=0?'+$':'-$')+Math.abs(dayPnl).toFixed(2); pnlEl.style.color=dayPnl>=0?'var(--green)':'var(--red)'; }
+
+  detail.style.display='none';
+  setDDTab('ops');
 
   var tbody=g('day-trades'); if(!tbody) return;
   if(!dt.length){
     tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--gray2);padding:20px">Sin operaciones este día.</td></tr>';
+    var _ph=g('rp-placeholder'),_cn=g('rp-content'); if(_ph)_ph.style.display='flex'; if(_cn)_cn.style.display='none';
     return;
   }
   // Store day trades globally for click
