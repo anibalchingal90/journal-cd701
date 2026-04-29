@@ -2678,7 +2678,8 @@ function renderConfigAccounts(){
     html += '<div style="width:32px;height:32px;background:'+col+'33;border:1px solid '+col+'55;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">'+icon+'</div>';
     html += '<div style="flex:1;min-width:0;">';
     html += '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">';
-    if(isActive) html += '<span class="active-dot-pulse" style="background:'+col+'"></span>';;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;">'+a.name+'</span>';
+    if(isActive) html += '<span class="active-dot-pulse" style="background:'+col+'"></span>';
+    html += '<span style="font-size:12px;font-weight:700;color:#f0f0f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;">'+a.name+'</span>';
     html += '<span style="font-size:9px;padding:2px 6px;border-radius:4px;font-weight:700;background:'+(a.type==='fondeo'?'rgba(232,160,32,.15)':'rgba(77,159,255,.12)')+';color:'+(a.type==='fondeo'?'#e8a020':'#4d9fff')+';">'+(a.type==='fondeo'?'FONDEO':'PERSONAL')+'</span>';
     var _c1=null;try{_c1=JSON.parse(localStorage.getItem(getLicensePrefix()+'cfg_'+a.id)||'null');}catch(e){}
     if(_c1&&_c1.challengeActive) html += '<span class="fondeo-badge-pulse" style="margin-left:2px;" title="Modo Fondeo">F</span>';
