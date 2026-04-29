@@ -3784,7 +3784,9 @@ function renderSidebarAccounts(){
     var bdr = isActive ? 'rgba(0,230,118,.4)'  : 'rgba(255,255,255,.08)';
     var nameColor = isActive ? '#00e676' : '#bbbbbb';
     var _c2=null;try{_c2=JSON.parse(localStorage.getItem(getLicensePrefix()+'cfg_'+a.id)||'null');}catch(e){}
-    var fondeoLabel = (_c2&&_c2.challengeActive===true&&a.type==='fondeo')
+    // FIX: cuenta activa → leer S.settings (fuente de verdad en memoria), no localStorage
+    var challengeOn = (a.id===activeId) ? !!S.settings.challengeActive : !!(_c2&&_c2.challengeActive);
+    var fondeoLabel = challengeOn
       ? '<span class="fondeo-badge-pulse" title="Modo Fondeo activo">F</span>'
       : '';
 
@@ -3793,12 +3795,13 @@ function renderSidebarAccounts(){
 
     // Click para activar cuenta
     html += '<div onclick="seleccionarCuentaSidebar(\''+a.id+'\')" style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;cursor:pointer;overflow:hidden;">';
-    // Círculo del color de la cuenta (más grande, sin ícono)
     // Un solo punto pequeño a la izquierda — pulsa si está activa
     html += '<span style="display:inline-block;width:9px;height:9px;min-width:9px;border-radius:50%;flex-shrink:0;background:'+col+';'+(isActive?'animation:active-pulse-col 1.4s ease-in-out infinite;box-shadow:0 0 6px '+col+'bb;':'opacity:.3;')+'"></span>';
     html += '<div style="flex:1;overflow:hidden;">';
     html += '<div style="display:flex;align-items:center;gap:4px;">';
     html += '<span style="font-size:11px;font-weight:700;color:'+nameColor+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px;" title="'+a.name+'">'+a.name+'</span>';
+    // Label ACTIVA palpitante — solo para la cuenta activa
+    if(isActive) html += '<span style="font-size:7px;font-weight:800;letter-spacing:.8px;color:var(--green);animation:active-pulse-col 1.4s ease-in-out infinite;font-family:\'Exo 2\',sans-serif;text-transform:uppercase;flex-shrink:0;">ACTIVA</span>';
     html += fondeoLabel;
     html += '</div>';
     html += '<div style="font-size:9px;color:#666;margin-top:1px;">$'+Number(a.initialBalance||0).toLocaleString('en')+'</div>';
