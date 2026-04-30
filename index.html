@@ -105,9 +105,9 @@ body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(r
 /* CHART */
 .cw{position:relative;height:170px;margin-top:8px}
 /* FORM */
-.fg{margin-bottom:12px}
-.fl{display:block;font-size:10px;font-weight:700;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:5px;font-family:'Exo 2',sans-serif}
-.fi{width:100%;background:var(--bg2);color:var(--text);border:1px solid var(--bdr);border-radius:9px;padding:10px 12px;font-size:13px;outline:none;font-family:'DM Sans',inherit;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none}
+.fg{margin-bottom:9px}
+.fl{display:block;font-size:9px;font-weight:700;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px;font-family:'Exo 2',sans-serif}
+.fi{width:100%;background:var(--bg2);color:var(--text);border:1px solid var(--bdr);border-radius:8px;padding:7px 10px;font-size:12px;outline:none;font-family:'DM Sans',inherit;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none}
 .fi:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.12)}
 .fi-lg{font-size:18px;font-weight:700;padding:11px;font-family:'Exo 2',sans-serif}
 .fg2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -191,11 +191,11 @@ tr:hover td{background:rgba(14,18,41,.8)}
 /* TOAST */
 #toast{position:fixed;bottom:20px;right:20px;background:var(--card2);border:1px solid var(--bdr2);border-radius:12px;padding:12px 18px;font-size:12px;font-weight:600;z-index:99999;display:none;box-shadow:0 8px 40px rgba(0,0,0,.6);min-width:220px}
 /* MODAL */
-.mo{position:fixed;inset:0;background:transparent;z-index:10000;display:none;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:10000;display:none;align-items:flex-start;justify-content:flex-end;padding:16px;overflow-y:auto}
 .mo.show{display:flex}
-.mb{background:var(--card);border-radius:14px;padding:16px;max-width:360px;width:100%;border:1px solid var(--bdr2);margin:auto;box-shadow:0 8px 40px rgba(0,0,0,.8),0 0 0 1px rgba(99,102,241,.15)}
-.mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-.mt2{font-weight:800;font-size:15px;color:var(--cyan);font-family:'Exo 2',sans-serif}
+.mb{background:var(--card);border-radius:12px;padding:12px;max-width:340px;width:100%;border:1px solid var(--bdr2);margin:auto;box-shadow:0 8px 40px rgba(0,0,0,.8),0 0 0 1px rgba(99,102,241,.15)}
+.mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.mt2{font-weight:800;font-size:13px;color:var(--cyan);font-family:'Exo 2',sans-serif}
 .mcl{background:none;border:none;color:var(--gray2);cursor:pointer;font-size:22px;line-height:1;transition:color .2s}
 .mcl:hover{color:var(--text)}
 /* TROW */
@@ -2793,7 +2793,7 @@ function cancelEdit(){
   g('f-pnl').value='';g('f-notes').value='';g('pnl-prev').textContent='';
   if(g('f-tf'))g('f-tf').value='';
   if(g('f-session'))g('f-session').value='';
-  if(g('f-rr'))g('f-rr').value='';
+  if(g('f-rr'))g('f-rr').value='';if(typeof rrSetValue==='function')rrSetValue('');
   if(g('f-tags')){g('f-tags').value='';_currentTags=[];if(g('tags-display'))g('tags-display').innerHTML='';}
   setR('TP');setDir('BUY');
   if(g('btn-cancel'))g('btn-cancel').style.display='none';
@@ -2823,14 +2823,14 @@ function saveTrade(){
   }
   if(editId!==null){
     var idx=S.trades.findIndex(function(t){return t.id===editId;});
-    if(idx>=0) S.trades[idx]=Object.assign({},S.trades[idx],{date:date,time:g('f-time').value,asset:g('f-asset').value,result:curR,direction:curD,pnl:pnl,strategy:g('f-strategy').value,notes:g('f-notes').value,tf:g('f-tf').value,session:g('f-session').value,rr:parseFloat(g('f-rr').value)||0,tags:g('f-tags').value,entry:g('f-entry')?g('f-entry').value:'',exit:g('f-exit')?g('f-exit').value:'',pips:parseFloat(g('f-pips')?g('f-pips').value:'')||0,volume:g('f-volume')?g('f-volume').value:'',commission:parseFloat(g('f-commission')?g('f-commission').value:'')||0,images:imgs,links:lnks});
+    if(idx>=0) S.trades[idx]=Object.assign({},S.trades[idx],{date:date,time:g('f-time').value,asset:g('f-asset').value,result:curR,direction:curD,pnl:pnl,strategy:g('f-strategy').value,notes:g('f-notes').value,tf:g('f-tf').value,session:g('f-session').value,rr:(typeof getRRValue==='function'?getRRValue():(parseFloat(g('f-rr').value)||0)),tags:g('f-tags').value,entry:g('f-entry')?g('f-entry').value:'',exit:g('f-exit')?g('f-exit').value:'',pips:parseFloat(g('f-pips')?g('f-pips').value:'')||0,volume:g('f-volume')?g('f-volume').value:'',commission:parseFloat(g('f-commission')?g('f-commission').value:'')||0,images:imgs,links:lnks});
     window._tradeImages=[];window._tradeLinks=[];window._formImages=[];window._formLinks=[];
     toast('✓ Operación actualizada');cancelEdit();
   }else{
     var uid=Date.now()*1000+Math.floor(Math.random()*999);
-    S.trades.push({id:uid,date:date,time:g('f-time').value,asset:g('f-asset').value,result:curR,direction:curD,pnl:pnl,strategy:g('f-strategy').value,notes:g('f-notes').value,tf:g('f-tf').value,session:g('f-session').value,rr:parseFloat(g('f-rr').value)||0,tags:g('f-tags').value,entry:g('f-entry')?g('f-entry').value:'',exit:g('f-exit')?g('f-exit').value:'',pips:parseFloat(g('f-pips')?g('f-pips').value:'')||0,volume:g('f-volume')?g('f-volume').value:'',commission:parseFloat(g('f-commission')?g('f-commission').value:'')||0,images:imgs,links:lnks,createdAt:new Date().toISOString()});
+    S.trades.push({id:uid,date:date,time:g('f-time').value,asset:g('f-asset').value,result:curR,direction:curD,pnl:pnl,strategy:g('f-strategy').value,notes:g('f-notes').value,tf:g('f-tf').value,session:g('f-session').value,rr:(typeof getRRValue==='function'?getRRValue():(parseFloat(g('f-rr').value)||0)),tags:g('f-tags').value,entry:g('f-entry')?g('f-entry').value:'',exit:g('f-exit')?g('f-exit').value:'',pips:parseFloat(g('f-pips')?g('f-pips').value:'')||0,volume:g('f-volume')?g('f-volume').value:'',commission:parseFloat(g('f-commission')?g('f-commission').value:'')||0,images:imgs,links:lnks,createdAt:new Date().toISOString()});
     g('f-pnl').value='';g('f-notes').value='';g('pnl-prev').textContent='';
-    g('f-tf').value='';g('f-session').value='';g('f-rr').value='';
+    g('f-tf').value='';g('f-session').value='';g('f-rr').value='';if(typeof rrSetValue==='function')rrSetValue('');
     g('f-tags').value='';if(g('tags-display'))g('tags-display').innerHTML='';
     if(g('f-entry'))g('f-entry').value='';if(g('f-exit'))g('f-exit').value='';
     if(g('f-pips'))g('f-pips').value='';if(g('f-volume'))g('f-volume').value='';
@@ -2866,7 +2866,7 @@ function editTrade(id){
   g('f-pnl').value=String(t.pnl);g('f-strategy').value=t.strategy||'';g('f-notes').value=t.notes||'';
   if(g('f-tf'))g('f-tf').value=t.tf||'';
   if(g('f-session'))g('f-session').value=t.session||'';
-  if(g('f-rr'))g('f-rr').value=t.rr||'';
+  if(g('f-rr'))g('f-rr').value=t.rr||'';if(typeof rrSetValue==='function')rrSetValue(t.rr||'');
   if(g('f-tags')){g('f-tags').value=t.tags||'';renderTagsDisplay(t.tags||'');}
   if(g('f-entry'))g('f-entry').value=t.entry||'';
   if(g('f-exit'))g('f-exit').value=t.exit||'';
@@ -6211,7 +6211,24 @@ button:active, [onclick]:active, .ni:active, .cal-nav-btn:active, .rb:active, .t
         <select id="f-strategy" class="fi"><option value="">— Ninguna —</option><option>ICT / SMC</option><option>Order Blocks</option><option>FVG</option><option>BOS / ChoCH</option><option>Liquidity Sweep</option><option>Scalping</option><option>Breaker Block</option><option>IFVG</option><option>Mitigation</option><option>Otra</option></select>
       </div>
       <div class="fg" style="margin:0"><label class="fl">RR (Riesgo/Beneficio)</label>
-        <input type="number" id="f-rr" class="fi" step="0.1" min="0" placeholder="Ej: 2.5">
+        <div style="display:flex;gap:6px;align-items:center">
+          <select id="f-rr-sel" class="fi" style="flex:1" onchange="rrSelChange()">
+            <option value="">— Sin RR —</option>
+            <option value="0.5">1:0.5</option>
+            <option value="1">1:1</option>
+            <option value="1.5">1:1.5</option>
+            <option value="2">1:2</option>
+            <option value="2.5">1:2.5</option>
+            <option value="3">1:3</option>
+            <option value="4">1:4</option>
+            <option value="5">1:5</option>
+            <option value="6">1:6</option>
+            <option value="8">1:8</option>
+            <option value="10">1:10</option>
+            <option value="custom">Personalizado</option>
+          </select>
+          <input type="number" id="f-rr" class="fi" step="0.1" min="0" placeholder="Ej: 2.5" style="flex:1;display:none">
+        </div>
       </div>
     </div>
     <div class="fg" style="margin-bottom:12px">
@@ -6939,7 +6956,41 @@ window.addImgFromURL = function() {
   if(typeof renderFormImages === 'function') renderFormImages();
 };
 
-// ── Panel derecho permanente — poblar al seleccionar operación ──
+// ── Selector RR 1:N ──────────────────────────────────────────
+window.rrSelChange = function() {
+  var sel = document.getElementById('f-rr-sel');
+  var inp = document.getElementById('f-rr');
+  if(!sel || !inp) return;
+  if(sel.value === 'custom') {
+    inp.style.display = 'block';
+    inp.value = '';
+    inp.focus();
+  } else {
+    inp.style.display = 'none';
+    inp.value = sel.value; // guardar el valor numérico en el hidden input
+  }
+};
+
+// Sincronizar selector al editar una operación con RR guardado
+function rrSetValue(val) {
+  var sel = document.getElementById('f-rr-sel');
+  var inp = document.getElementById('f-rr');
+  if(!sel || !inp) return;
+  if(!val) { sel.value = ''; inp.style.display='none'; inp.value=''; return; }
+  var strVal = String(parseFloat(val));
+  var opt = sel.querySelector('option[value="'+strVal+'"]');
+  if(opt) { sel.value = strVal; inp.style.display='none'; inp.value=strVal; }
+  else { sel.value='custom'; inp.style.display='block'; inp.value=strVal; }
+}
+
+// Leer valor RR al guardar (sea del select o del input manual)
+window.getRRValue = function() {
+  var sel = document.getElementById('f-rr-sel');
+  var inp = document.getElementById('f-rr');
+  if(sel && sel.value === 'custom') return parseFloat(inp.value) || 0;
+  if(sel && sel.value) return parseFloat(sel.value) || 0;
+  return 0;
+};
 function populateRightPanel(trade) {
   var ph  = g('rp-placeholder');
   var cnt = g('rp-content');
