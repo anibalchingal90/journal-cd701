@@ -950,49 +950,88 @@ tr:hover td{background:rgba(14,18,41,.8)}
 
 <!-- ═══════════════════════════════════════════════════════════
      §3 — TAB: DASHBOARD
-     KPIs principales, curva de equity, gráficos mensuales,
-     TP/SL por día y hora, últimas 5 operaciones.
 ═══════════════════════════════════════════════════════════ -->
   <!-- ═══ DASHBOARD ═══ -->
   <div id="tab-dash" class="tsec act">
-    <div id="dd-wrap" style="display:none;margin-bottom:13px">
-      <div class="card" style="position:relative;overflow:hidden;">
+
+    <!-- Barra fondeo (se muestra solo si está activo) -->
+    <div id="dd-wrap" style="display:none;margin-bottom:12px">
+      <div class="card" style="position:relative;overflow:hidden">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
           <span id="dd-label" style="font-weight:700;font-size:11px;letter-spacing:1px;color:var(--gold)">🏆 MODO FONDEO</span>
           <span id="ddpct" style="font-weight:800;font-size:18px"></span>
         </div>
-        <div style="font-size:10px;color:#555;margin-bottom:8px;" id="dd-sublabel"></div>
-        <!-- Barra inteligente única -->
-        <div style="background:#1a1a1a;border-radius:99px;height:14px;overflow:hidden;position:relative;border:1px solid #2a2a2a;">
-          <div id="ddfill" style="height:100%;border-radius:99px;transition:width .6s,background .4s;width:0%;position:relative;">
-            <div style="position:absolute;top:0;left:0;right:0;height:50%;background:rgba(255,255,255,.12);border-radius:99px;"></div>
+        <div style="font-size:10px;color:#555;margin-bottom:8px" id="dd-sublabel"></div>
+        <div style="background:#1a1a1a;border-radius:99px;height:14px;overflow:hidden;position:relative;border:1px solid #2a2a2a">
+          <div id="ddfill" style="height:100%;border-radius:99px;transition:width .6s,background .4s;width:0%;position:relative">
+            <div style="position:absolute;top:0;left:0;right:0;height:50%;background:rgba(255,255,255,.12);border-radius:99px"></div>
           </div>
         </div>
-        <!-- Etiquetas de la barra -->
-        <div style="display:flex;justify-content:space-between;font-size:9px;margin-top:4px;">
+        <div style="display:flex;justify-content:space-between;font-size:9px;margin-top:4px">
           <span style="color:#444">0%</span>
           <span id="ddal" style="color:var(--org)"></span>
           <span id="ddlim"></span>
         </div>
-        <!-- Estado actual -->
-        <div style="display:flex;justify-content:space-between;font-size:11px;margin-top:8px;padding-top:8px;border-top:1px solid #1e1e1e;">
+        <div style="display:flex;justify-content:space-between;font-size:11px;margin-top:8px;padding-top:8px;border-top:1px solid #1e1e1e">
           <span style="color:#666" id="dd-left-label"></span>
           <span id="ddgoal" style="font-weight:700"></span>
         </div>
       </div>
     </div>
-    <div class="krow" id="dash-kpis"></div>
-    <div class="g2">
-      <div class="card"><div class="card-hdr" style="color:var(--green);border-color:rgba(0,229,160,.2)">📈 Curva de Equity</div><div class="cw"><canvas id="ceq" role="img" aria-label="Curva de equity"></canvas></div></div>
-      <div class="card"><div class="card-hdr" style="color:var(--blue);border-color:rgba(77,159,255,.2)">📅 P&L Mensual</div><div class="cw"><canvas id="cmon" role="img" aria-label="PnL mensual"></canvas></div></div>
+
+    <!-- KPIs principales: fila de 5 -->
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px" id="dash-kpis"></div>
+
+    <!-- Fila 1: Equity grande + Stats rápidas verticales -->
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:12px">
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div class="card-hdr" style="color:var(--green);border:none;padding:0;margin:0">📈 Curva de Equity</div>
+          <div id="dash-eq-mini" style="display:flex;gap:16px"></div>
+        </div>
+        <div style="height:160px;position:relative"><canvas id="ceq"></canvas></div>
+      </div>
+      <div class="card" style="display:flex;flex-direction:column;gap:0">
+        <div class="card-hdr" style="color:var(--purp);border-color:rgba(124,58,237,.2)">📊 Resumen Global</div>
+        <div id="dash-global-stats" style="display:flex;flex-direction:column;gap:0;flex:1"></div>
+      </div>
     </div>
-    <div class="g2">
-      <div class="card"><div class="card-hdr" style="color:var(--purp);border-color:rgba(168,85,247,.2)">📆 TP/SL por Día</div><div class="cw"><canvas id="cday" role="img" aria-label="TP SL por dia"></canvas></div></div>
-      <div class="card"><div class="card-hdr" style="color:var(--gold);border-color:rgba(255,200,77,.2)">⏱ TP/SL por Hora</div><div class="cw"><canvas id="chrd" role="img" aria-label="TP SL por hora"></canvas></div></div>
+
+    <!-- Fila 2: P&L mensual + Días semana + Activos top -->
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:12px">
+      <div class="card">
+        <div class="card-hdr" style="color:var(--blue);border-color:rgba(77,159,255,.2)">📅 P&L Mensual (últimos 12 meses)</div>
+        <div style="height:130px;position:relative"><canvas id="cmon"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-hdr" style="color:var(--gold);border-color:rgba(251,191,36,.2)">📆 Por Día de Semana</div>
+        <div id="dash-daylist" style="padding-top:4px"></div>
+      </div>
+      <div class="card">
+        <div class="card-hdr" style="color:var(--cyan);border-color:rgba(6,182,212,.2)">💹 Top Activos</div>
+        <div id="dash-assetlist" style="padding-top:4px"></div>
+      </div>
     </div>
-    <div class="card"><div class="card-hdr" style="color:var(--cyan);border-color:rgba(0,212,255,.2)">Últimas 5 operaciones</div>
-      <div class="tw"><table id="tl5"><thead><tr><th>Fecha</th><th>Hora</th><th>Activo</th><th>Dir</th><th>Resultado</th><th>P&L ($)</th><th>% Cta</th></tr></thead><tbody></tbody></table></div>
+
+    <!-- Fila 3: TP/SL por hora + Últimas ops + Recomendaciones -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+      <div class="card">
+        <div class="card-hdr" style="color:var(--org);border-color:rgba(255,140,66,.2)">⏱ TP/SL por Hora</div>
+        <div style="height:130px;position:relative"><canvas id="chrd"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-hdr" style="color:var(--cyan);border-color:rgba(6,182,212,.2)">🕐 Últimas Operaciones</div>
+        <div id="dash-last-ops" style="display:flex;flex-direction:column;gap:4px;padding-top:4px"></div>
+      </div>
+      <div class="card" style="display:flex;flex-direction:column">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--bdr)">
+          <div class="card-hdr" style="color:var(--green);border:none;padding:0;margin:0">🎯 Recomendaciones</div>
+          <span id="dash-rec-count" style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;background:rgba(0,229,160,.1);color:var(--green)"></span>
+        </div>
+        <div id="dash-insights" style="display:flex;flex-direction:column;gap:6px;overflow-y:auto;flex:1;max-height:200px"></div>
+      </div>
     </div>
+
   </div>
 
 
@@ -1353,7 +1392,7 @@ tr:hover td{background:rgba(14,18,41,.8)}
             <div id="advanced-stats-panel"></div>
           </div>
           <div class="card" style="margin-top:10px">
-            <div class="card-hdr" style="color:var(--green);border-color:rgba(0,229,160,.2)">💡 Insights Automáticos</div>
+            <div class="card-hdr" style="color:var(--green);border-color:rgba(0,229,160,.2)">🎯 Recomendaciones Automáticas</div>
             <div id="insights-panel" style="display:flex;flex-direction:column;gap:8px;padding:4px 0"></div>
           </div>
         </div>
@@ -3401,83 +3440,231 @@ function mkC(id,type,labels,datasets,ex){
 
 // ════════════════════════════════════════════════════════════
 //  §17 — RENDER: DASHBOARD
-//  renderDash(): KPIs, equity, gráficos, últimas 5 operaciones.
-//  mkC(): helper para crear gráficos Chart.js.
+//  renderDash(): Dashboard completo con KPIs, equity, stats, recomendaciones.
 // ════════════════════════════════════════════════════════════
 function renderDash(){
-  var to=totals(),s=S.settings,a=acct();
-  var hkpis=[
-    {l:'Total Ops',v:String(S.trades.length),c:'',sub:'',cls:'b'},
-    {l:'TP ✅',v:String(to.totalTP),c:'var(--green)',sub:'WR: '+to.winRate.toFixed(1)+'%',cls:'g'},
-    {l:'SL ❌',v:String(to.totalSL),c:'var(--red)',sub:'',cls:'r'},
-    {l:'P&L Total',v:fU(to.totalPnl),c:clr(to.totalPnl),sub:fP(to.ddPct),cls:to.totalPnl>=0?'g':'r'},
-    {l:'Balance',v:'$'+Math.round(to.balance).toLocaleString('en'),c:'var(--gold)',sub:'',cls:'gold'}
-  ];
-  g('dash-kpis').innerHTML=hkpis.map(function(k){return'<div class="kcard '+k.cls+'"><div class="klbl">'+k.l+'</div><div class="kval" style="color:'+k.c+'">'+k.v+'</div>'+(k.sub?'<div class="ksub">'+k.sub+'</div>':'')+'</div>';}).join('');
+  var to=totals(), s=S.settings, a=acct();
+  var trades=S.trades;
+  var sorted=getSorted();
 
-  // Barra inteligente única
+  // ── Métricas avanzadas ───────────────────────────────────
+  var wins=trades.filter(function(t){return t.result==='TP';});
+  var lossT=trades.filter(function(t){return t.result==='SL';});
+  var grossWin=wins.reduce(function(s,t){return s+(t.pnl||0);},0);
+  var grossLoss=Math.abs(lossT.reduce(function(s,t){return s+(t.pnl||0);},0));
+  var pf=grossLoss>0?(grossWin/grossLoss):(grossWin>0?999:0);
+  var avgWin=wins.length?grossWin/wins.length:0;
+  var avgLoss=lossT.length?grossLoss/lossT.length:0;
+  var wr=trades.length?wins.length/trades.length:0;
+  var rr=avgLoss>0?avgWin/avgLoss:0;
+
+  // ── KPIs principales ────────────────────────────────────
+  var dkpis=g('dash-kpis');
+  if(dkpis){
+    var kpis=[
+      {icon:'💰',l:'Balance',v:'$'+Math.round(to.balance).toLocaleString('en'),sub:fP(to.ddPct),c:'var(--gold)',bg:'rgba(251,191,36,.06)'},
+      {icon:'📊',l:'P&L Total',v:fU(to.totalPnl),sub:a>0?((to.totalPnl/a)*100).toFixed(2)+'% del capital':null,c:clr(to.totalPnl),bg:to.totalPnl>=0?'rgba(0,229,160,.06)':'rgba(255,77,106,.06)'},
+      {icon:'🎯',l:'Win Rate',v:trades.length?to.winRate.toFixed(1)+'%':'—',sub:to.totalTP+' TP · '+to.totalSL+' SL',c:wr>=.5?'var(--green)':'var(--red)',bg:wr>=.5?'rgba(0,229,160,.06)':'rgba(255,77,106,.06)'},
+      {icon:'⚖️',l:'Profit Factor',v:pf>=999?'∞':pf.toFixed(2),sub:pf>=2?'Excelente':pf>=1.5?'Bueno':pf>=1?'Aceptable':'Negativo',c:pf>=1.5?'var(--green)':pf>=1?'var(--gold)':'var(--red)',bg:pf>=1?'rgba(0,229,160,.06)':'rgba(255,77,106,.06)'},
+      {icon:'🔢',l:'Total Ops',v:String(trades.length),sub:'Hist. completo',c:'var(--text)',bg:'rgba(77,159,255,.06)'}
+    ];
+    dkpis.innerHTML=kpis.map(function(k){
+      return '<div class="card" style="padding:12px;position:relative;overflow:hidden">'
+        +'<div style="position:absolute;top:8px;right:10px;font-size:20px;opacity:.15">'+k.icon+'</div>'
+        +'<div style="font-size:9px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px">'+k.l+'</div>'
+        +'<div style="font-size:19px;font-weight:900;color:'+k.c+';font-family:\'Exo 2\',sans-serif;line-height:1.1">'+k.v+'</div>'
+        +(k.sub?'<div style="font-size:9px;color:var(--gray2);margin-top:4px">'+k.sub+'</div>':'')
+        +'</div>';
+    }).join('');
+  }
+
+  // ── Barra fondeo ──────────────────────────────────────────
   var _fondeoDD=s.challengeActive===true;
   var ddw=g('dd-wrap');if(ddw)ddw.style.display=_fondeoDD?'block':'none';
   if(_fondeoDD){
-    var profPct = s.accountSize ? (to.totalPnl/s.accountSize)*100 : 0;
-    var isWinning = profPct >= 0;
-    var barPct, barCol, barLabel, limitLabel, sublabel, leftLabel, goalText;
-    if(isWinning){
-      // Ganando — barra verde hacia el objetivo
-      barPct = Math.min((profPct/(s.profitTarget||10))*100, 100);
-      barCol = profPct>=(s.profitTarget||10)?'linear-gradient(90deg,#00c853,#00e676)':'linear-gradient(90deg,#007a32,#00c853)';
-      barLabel = '📈 GANANCIA';
-      limitLabel = '🎯 Meta: '+(s.profitTarget||10)+'%';
-      sublabel = 'Progresando hacia el objetivo de '+( s.profitTarget||10)+'%';
-      leftLabel = 'Ganancia: +'+profPct.toFixed(2)+'%';
-      goalText = profPct.toFixed(2)+'% / '+(s.profitTarget||10)+'%'+(profPct>=(s.profitTarget||10)?' 🎉 ¡META!':'');
-    } else {
-      // Perdiendo — barra roja hacia el límite
-      var absPct = Math.abs(profPct);
-      barPct = Math.min((absPct/(s.maxTotalLoss||10))*100, 100);
-      barCol = barPct>80?'linear-gradient(90deg,#b71c1c,#ff1744)':barPct>60?'linear-gradient(90deg,#e65100,#ff6d00)':'linear-gradient(90deg,#d50000,#ff5252)';
-      barLabel = '📉 DRAWDOWN';
-      limitLabel = '🔴 Límite: '+(s.maxTotalLoss||10)+'%';
-      sublabel = 'Pérdida acumulada — Límite: '+(s.maxTotalLoss||10)+'%';
-      leftLabel = 'Pérdida: -'+absPct.toFixed(2)+'%';
-      goalText = absPct.toFixed(2)+'% / '+(s.maxTotalLoss||10)+'%'+(absPct>=(s.maxTotalLoss||10)?' 🔥 QUEMADA':'');
-    }
-    var lbl=g('dd-label');if(lbl){lbl.textContent=barLabel;lbl.style.color=isWinning?'#00e676':'#ff5252';}
-    var sub=g('dd-sublabel');if(sub)sub.textContent=sublabel;
+    var profPct=s.accountSize?(to.totalPnl/s.accountSize)*100:0;
+    var isWinning=profPct>=0;
+    var barPct=isWinning?Math.min((profPct/(s.profitTarget||10))*100,100):Math.min((Math.abs(profPct)/(s.maxTotalLoss||10))*100,100);
+    var barCol=isWinning?'linear-gradient(90deg,#007a32,#00c853)':barPct>80?'linear-gradient(90deg,#b71c1c,#ff1744)':'linear-gradient(90deg,#d50000,#ff5252)';
+    var lbl=g('dd-label');if(lbl){lbl.textContent=isWinning?'📈 GANANCIA':'📉 DRAWDOWN';lbl.style.color=isWinning?'#00e676':'#ff5252';}
+    var sub=g('dd-sublabel');if(sub)sub.textContent=isWinning?'Progresando hacia el objetivo de '+(s.profitTarget||10)+'%':'Pérdida acumulada — Límite: '+(s.maxTotalLoss||10)+'%';
     var f=g('ddfill');if(f){f.style.width=Math.min(barPct,100)+'%';f.style.background=barCol;}
     var dp=g('ddpct');if(dp){dp.textContent=(isWinning?'+':'-')+Math.abs(profPct).toFixed(2)+'%';dp.style.color=isWinning?'#00e676':'#ff5252';}
     var dal=g('ddal');if(dal)dal.textContent=isWinning?'':('⚠ Alerta: '+(s.maxTotalLoss*s.alertAt/100).toFixed(1)+'%');
-    var dlm=g('ddlim');if(dlm){dlm.textContent=limitLabel;dlm.style.color=isWinning?'#00e676':'#ff1744';}
-    var ll=g('dd-left-label');if(ll)ll.textContent=leftLabel;
-    var dg=g('ddgoal');if(dg){dg.textContent=goalText;dg.style.color=isWinning?'#00e676':'#ff5252';}
+    var dlm=g('ddlim');if(dlm){dlm.textContent=isWinning?'🎯 Meta: '+(s.profitTarget||10)+'%':'🔴 Límite: '+(s.maxTotalLoss||10)+'%';dlm.style.color=isWinning?'#00e676':'#ff1744';}
+    var ll=g('dd-left-label');if(ll)ll.textContent=isWinning?'Ganancia: +'+profPct.toFixed(2)+'%':'Pérdida: -'+Math.abs(profPct).toFixed(2)+'%';
+    var dg=g('ddgoal');if(dg){dg.textContent=profPct.toFixed(2)+'% / '+(isWinning?(s.profitTarget||10):( s.maxTotalLoss||10))+'%'+(isWinning&&profPct>=(s.profitTarget||10)?' 🎉 ¡META!':!isWinning&&Math.abs(profPct)>=(s.maxTotalLoss||10)?' 🔥 QUEMADA':'');dg.style.color=isWinning?'#00e676':'#ff5252';}
   }
 
-  var sorted=getSorted();var bal=a;var eq=[{l:'Inicio',b:a}];
+  // ── Equity curve ──────────────────────────────────────────
+  var bal=a; var eq=[{l:'Inicio',b:a}];
   sorted.forEach(function(t){bal+=(t.pnl||0);eq.push({l:toD(t.date),b:+bal.toFixed(2)});});
   if(eq.length>40)eq=eq.filter(function(_,i){return i%Math.ceil(eq.length/40)===0||i===eq.length-1;});
   mkC('ceq','line',eq.map(function(e){return e.l;}),
-    [{data:eq.map(function(e){return e.b;}),borderColor:'#00e5a0',backgroundColor:'rgba(0,229,160,.06)',fill:true,tension:.4,pointRadius:0,borderWidth:2.5}],
-    {scales:{x:CDO.scales.x,y:{ticks:{color:'#4a5580',font:{size:9},callback:function(v){return'$'+Math.round(v/1000)+'K';}},grid:{color:'rgba(30,38,64,.4)'}}}});
+    [{data:eq.map(function(e){return e.b;}),borderColor:'#00e5a0',backgroundColor:'rgba(0,229,160,.06)',fill:true,tension:.4,pointRadius:0,borderWidth:2}],
+    {plugins:{legend:{display:false}},scales:{x:{ticks:{maxTicksLimit:8,font:{size:8}}},y:{ticks:{font:{size:8},callback:function(v){return'$'+Math.round(v).toLocaleString('en');}}}}});
+  var finalBal=eq.length>1?eq[eq.length-1].b:a;
+  var eqMini=g('dash-eq-mini');
+  if(eqMini)eqMini.innerHTML=[
+    {l:'Inicio',v:'$'+a.toLocaleString('en'),c:'var(--gold)'},
+    {l:'Actual',v:'$'+finalBal.toLocaleString('en',{minimumFractionDigits:2}),c:finalBal>=a?'var(--green)':'var(--red)'},
+    {l:'Retorno',v:a>0?(((finalBal-a)/a)*100).toFixed(2)+'%':'—',c:finalBal>=a?'var(--green)':'var(--red)'}
+  ].map(function(e){return'<div style="text-align:center"><div style="font-size:8px;color:var(--gray2);letter-spacing:.5px">'+e.l+'</div><div style="font-size:11px;font-weight:700;color:'+e.c+'">'+e.v+'</div></div>';}).join('');
 
-  var mMap={};S.trades.forEach(function(t){var parts=t.date.split('-'),k=parts[0]+'-'+parts[1];if(!mMap[k])mMap[k]={l:MSS[+parts[1]-1]+' '+parts[0],pnl:0};mMap[k].pnl+=(t.pnl||0);});
+  // ── Resumen global (columna derecha) ──────────────────────
+  var gs=g('dash-global-stats');
+  if(gs){
+    var rows=[
+      {l:'Avg ganancia',v:avgWin>0?fU(avgWin):'—',c:'var(--green)'},
+      {l:'Avg pérdida',v:avgLoss>0?('-$'+avgLoss.toFixed(2)):'—',c:'var(--red)'},
+      {l:'Ratio RR',v:rr>0?'1:'+rr.toFixed(2):'—',c:rr>=1.5?'var(--green)':rr>=1?'var(--gold)':'var(--red)'},
+      {l:'Expectativa',v:trades.length?fU((wr*avgWin)-((1-wr)*avgLoss))+'/op':'—',c:((wr*avgWin)-((1-wr)*avgLoss))>=0?'var(--green)':'var(--red)'},
+      {l:'Mejor op.',v:sorted.length?fU(Math.max.apply(null,trades.map(function(t){return t.pnl||0;}))):'—',c:'var(--green)'},
+      {l:'Peor op.',v:sorted.length?fU(Math.min.apply(null,trades.map(function(t){return t.pnl||0;}))):'—',c:'var(--red)'}
+    ];
+    gs.innerHTML=rows.map(function(r){
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(30,38,64,.35)">'
+        +'<span style="font-size:10px;color:var(--gray2)">'+r.l+'</span>'
+        +'<span style="font-size:11px;font-weight:700;color:'+r.c+';font-family:\'Exo 2\',sans-serif">'+r.v+'</span>'
+        +'</div>';
+    }).join('');
+  }
+
+  // ── P&L Mensual ───────────────────────────────────────────
+  var mMap={};
+  trades.forEach(function(t){var p=t.date.split('-'),k=p[0]+'-'+p[1];if(!mMap[k])mMap[k]={l:MSS[+p[1]-1]+' '+p[0],pnl:0};mMap[k].pnl+=(t.pnl||0);});
   var mArr=Object.values(mMap).slice(-12);
   mkC('cmon','bar',mArr.map(function(m){return m.l;}),
-    [{data:mArr.map(function(m){return+m.pnl.toFixed(2);}),backgroundColor:mArr.map(function(m){return m.pnl>=0?'rgba(0,229,160,.75)':'rgba(255,77,106,.75)';}),borderRadius:6,borderSkipped:false}]);
+    [{data:mArr.map(function(m){return+m.pnl.toFixed(2);}),backgroundColor:mArr.map(function(m){return m.pnl>=0?'rgba(0,229,160,.8)':'rgba(255,77,106,.8)';}),borderRadius:5,borderSkipped:false}],
+    {plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:7}}},y:{ticks:{font:{size:8}}}}});
 
-  var dayArr=DAYS.map(function(d,i){var f=S.trades.filter(function(t){return getDOW(t.date)===i;});return{d:d.slice(0,3),tp:f.filter(function(t){return t.result==='TP';}).length,sl:f.filter(function(t){return t.result==='SL';}).length};});
-  mkC('cday','bar',dayArr.map(function(d){return d.d;}),
-    [{data:dayArr.map(function(d){return d.tp;}),backgroundColor:'rgba(0,229,160,.75)',label:'TP',borderRadius:4,borderSkipped:false},{data:dayArr.map(function(d){return d.sl;}),backgroundColor:'rgba(255,77,106,.75)',label:'SL',borderRadius:4,borderSkipped:false}],
-    {plugins:{legend:{display:true,labels:{color:'#6b7aaa',font:{size:9},boxWidth:8}}}});
+  // ── Días de la semana ────────────────────────────────────
+  var dayList=g('dash-daylist');
+  if(dayList){
+    var dayData=DAYS.map(function(d,i){var f=trades.filter(function(t){return getDOW(t.date)===i;});return{name:d,pnl:f.reduce(function(a,t){return a+(t.pnl||0);},0),total:f.length,tp:f.filter(function(t){return t.result==='TP';}).length};});
+    var maxD=Math.max.apply(null,dayData.map(function(d){return Math.abs(d.pnl);}).concat([1]));
+    dayList.innerHTML=dayData.map(function(d){
+      var pct=Math.round(Math.abs(d.pnl)/maxD*100);
+      var col=d.pnl>=0?'var(--green)':'var(--red)';
+      var bar=d.pnl>=0?'rgba(0,229,160,.7)':'rgba(255,77,106,.7)';
+      return '<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid rgba(30,38,64,.3)">'
+        +'<span style="width:30px;font-size:9px;color:var(--text2)">'+d.name.slice(0,3)+'</span>'
+        +'<div style="flex:1;height:4px;background:var(--bdr);border-radius:3px"><div style="width:'+pct+'%;height:100%;background:'+bar+';border-radius:3px"></div></div>'
+        +'<span style="width:48px;text-align:right;font-size:9px;font-weight:700;color:'+col+'">'+fU(d.pnl)+'</span>'
+        +'</div>';
+    }).join('');
+  }
 
-  var tg=getTimeGroups(S.trades);
+  // ── Top activos ───────────────────────────────────────────
+  var assetList=g('dash-assetlist');
+  if(assetList){
+    var byA={};
+    trades.forEach(function(t){if(!byA[t.asset])byA[t.asset]={pnl:0,total:0,tp:0};byA[t.asset].pnl+=(t.pnl||0);byA[t.asset].total++;if(t.result==='TP')byA[t.asset].tp++;});
+    var aArr=Object.keys(byA).map(function(k){return{name:k,pnl:byA[k].pnl,total:byA[k].total,wr:byA[k].total?byA[k].tp/byA[k].total*100:0};}).sort(function(a,b){return b.pnl-a.pnl;}).slice(0,5);
+    var maxA=Math.max.apply(null,aArr.map(function(d){return Math.abs(d.pnl);}).concat([1]));
+    assetList.innerHTML=aArr.map(function(d){
+      var pct=Math.round(Math.abs(d.pnl)/maxA*100);
+      var col=d.pnl>=0?'var(--green)':'var(--red)';
+      var bar=d.pnl>=0?'rgba(0,229,160,.7)':'rgba(255,77,106,.7)';
+      return '<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid rgba(30,38,64,.3)">'
+        +'<span style="width:44px;font-size:9px;font-weight:700;color:var(--blue);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+d.name+'</span>'
+        +'<div style="flex:1;height:4px;background:var(--bdr);border-radius:3px"><div style="width:'+pct+'%;height:100%;background:'+bar+';border-radius:3px"></div></div>'
+        +'<span style="width:48px;text-align:right;font-size:9px;font-weight:700;color:'+col+'">'+fU(d.pnl)+'</span>'
+        +'</div>';
+    }).join('');
+  }
+
+  // ── TP/SL por hora ────────────────────────────────────────
+  var tg=getTimeGroups(trades);
   mkC('chrd','bar',tg.map(function(h){return h.time;}),
-    [{data:tg.map(function(h){return h.tp;}),backgroundColor:'rgba(0,229,160,.7)',label:'TP',borderRadius:4,borderSkipped:false},{data:tg.map(function(h){return h.sl;}),backgroundColor:'rgba(255,77,106,.7)',label:'SL',borderRadius:4,borderSkipped:false}],
-    {plugins:{legend:{display:true,labels:{color:'#6b7aaa',font:{size:9},boxWidth:8}}}});
+    [{data:tg.map(function(h){return h.tp;}),backgroundColor:'rgba(0,229,160,.75)',label:'TP',borderRadius:3,borderSkipped:false},
+     {data:tg.map(function(h){return h.sl;}),backgroundColor:'rgba(255,77,106,.75)',label:'SL',borderRadius:3,borderSkipped:false}],
+    {plugins:{legend:{display:true,labels:{color:'#6b7aaa',font:{size:8},boxWidth:6}}},scales:{x:{ticks:{font:{size:7}}},y:{ticks:{font:{size:8}}}}});
 
-  var last5=[].concat(getSorted()).reverse().slice(0,5);
-  document.querySelector('#tl5 tbody').innerHTML=last5.length?last5.map(function(t){return'<tr><td>'+toD(t.date)+'</td><td style="color:var(--cyan);font-weight:600">'+( t.time||'—')+'</td><td style="color:var(--blue);font-weight:700">'+t.asset+'</td><td><span class="'+(t.direction==='BUY'?'bbuy':'bsell')+'">'+( t.direction||'—')+'</span></td><td><span class="'+(t.result==='TP'?'btp':'bsl')+'">'+t.result+'</span></td><td class="'+(t.pnl>=0?'pp':'pn')+'">'+fU(t.pnl)+'</td><td style="color:'+clr(t.pnl)+';font-size:10px">'+fP((t.pnl/a)*100)+'</td></tr>';}).join(''):'<tr><td colspan="7" style="text-align:center;color:var(--gray);padding:24px;font-size:12px">Sin operaciones — agrega tu primera trade desde el Registro</td></tr>';
+  // ── Últimas operaciones ───────────────────────────────────
+  var lastOps=g('dash-last-ops');
+  if(lastOps){
+    var last=[].concat(sorted).reverse().slice(0,6);
+    lastOps.innerHTML=last.length?last.map(function(t){
+      var isWin=t.result==='TP';
+      return '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(30,38,64,.3)">'
+        +'<span style="width:6px;height:6px;border-radius:50%;background:'+(isWin?'var(--green)':'var(--red)')+';flex-shrink:0"></span>'
+        +'<span style="font-size:9px;color:var(--gray2);white-space:nowrap">'+t.date.slice(5)+(t.time?' '+t.time.slice(0,5):'')+'</span>'
+        +'<span style="font-size:10px;font-weight:700;color:var(--blue);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+t.asset+'</span>'
+        +'<span style="font-size:9px;font-weight:700;color:'+(isWin?'var(--green)':'var(--red)')+'">'+fU(t.pnl)+'</span>'
+        +'</div>';
+    }).join(''):'<div style="color:var(--gray2);font-size:11px;text-align:center;padding:20px">Sin operaciones aún</div>';
+  }
+
+  // ── Recomendaciones en Dashboard ─────────────────────────
+  dashRenderInsights(trades);
 }
 
+// Recomendaciones compactas para el Dashboard
+function dashRenderInsights(trades){
+  var el=g('dash-insights'), counter=g('dash-rec-count');
+  if(!el) return;
+  if(trades.length<3){el.innerHTML='<div style="color:var(--gray2);font-size:10px;text-align:center;padding:10px">Registra más operaciones para ver recomendaciones.</div>';return;}
+
+  var recs=[];
+  var sorted2=trades.slice().sort(function(a,b){return a.date.localeCompare(b.date);});
+  var tp=trades.filter(function(t){return t.result==='TP';});
+  var sl=trades.filter(function(t){return t.result==='SL';});
+  var wr=trades.length?tp.length/trades.length:0;
+  var gw=tp.reduce(function(s,t){return s+(t.pnl||0);},0);
+  var gl=Math.abs(sl.reduce(function(s,t){return s+(t.pnl||0);},0));
+  var pf=gl>0?gw/gl:(gw>0?999:0);
+  var aw=tp.length?gw/tp.length:0;
+  var al=sl.length?gl/sl.length:0;
+  var rr=al>0?aw/al:0;
+  var exp=(wr*aw)-((1-wr)*al);
+
+  // Alertas críticas primero
+  var last3=sorted2.slice(-3);
+  if(last3.filter(function(t){return t.result==='SL';}).length===3)
+    recs.push({p:1,icon:'🚨',c:'var(--red)',t:'3 SL consecutivos — considera una pausa'});
+  if(pf<1&&sl.length>=2)
+    recs.push({p:1,icon:'📉',c:'var(--red)',t:'Profit Factor negativo ('+pf.toFixed(2)+') — revisa el RR'});
+  if(exp<0&&trades.length>=10)
+    recs.push({p:1,icon:'🔢',c:'var(--red)',t:'Expectativa negativa — no escales el tamaño'});
+
+  // Mejores patrones
+  var byDay={};trades.forEach(function(t){var i=getDOW(t.date);var d=DAYS[i];if(!byDay[d])byDay[d]={total:0,wins:0,pnl:0};byDay[d].total++;byDay[d].pnl+=(t.pnl||0);if(t.result==='TP')byDay[d].wins++;});
+  var dArr=Object.keys(byDay).filter(function(d){return byDay[d].total>=2;});
+  if(dArr.length>=2){
+    var best=dArr.reduce(function(b,d){return byDay[d].pnl>byDay[b].pnl?d:b;},dArr[0]);
+    var worst=dArr.reduce(function(b,d){return byDay[d].pnl<byDay[b].pnl?d:b;},dArr[0]);
+    if(byDay[best].wins/byDay[best].total>=0.6)recs.push({p:3,icon:'📅',c:'var(--green)',t:best+' es tu mejor día ('+Math.round(byDay[best].wins/byDay[best].total*100)+'% WR)'});
+    if(byDay[worst].pnl<0)recs.push({p:3,icon:'🚫',c:'var(--org)',t:'Evita operar los '+worst+' — acumulas pérdidas'});
+  }
+
+  var byA={};trades.forEach(function(t){if(!byA[t.asset])byA[t.asset]={pnl:0,total:0,tp:0};byA[t.asset].pnl+=(t.pnl||0);byA[t.asset].total++;if(t.result==='TP')byA[t.asset].tp++;});
+  var aArr=Object.keys(byA).filter(function(a){return byA[a].total>=2;});
+  if(aArr.length>=1){
+    var bestA=aArr.reduce(function(b,a){return byA[a].pnl>byA[b].pnl?a:b;},aArr[0]);
+    recs.push({p:4,icon:'💰',c:'var(--cyan)',t:bestA+' es tu activo más rentable — especialízate'});
+    if(aArr.length>=2){var worstA=aArr.reduce(function(b,a){return byA[a].pnl<byA[b].pnl?a:b;},aArr[0]);if(byA[worstA].pnl<0)recs.push({p:2,icon:'🔴',c:'var(--red)',t:worstA+' te genera pérdidas — revisa tus entradas'});}
+  }
+
+  if(rr>=2)recs.push({p:5,icon:'📐',c:'var(--green)',t:'Excelente RR de 1:'+rr.toFixed(2)+' — mantén esta disciplina'});
+  else if(rr<1&&al>0)recs.push({p:2,icon:'📏',c:'var(--red)',t:'RR de 1:'+rr.toFixed(2)+' — amplía TPs o reduce SLs'});
+
+  if(pf>=2)recs.push({p:5,icon:'🏆',c:'var(--green)',t:'Profit Factor '+pf.toFixed(2)+' — sistema muy rentable'});
+  if(wr>=0.65)recs.push({p:5,icon:'✅',c:'var(--green)',t:'Win Rate '+Math.round(wr*100)+'% — excelente consistencia'});
+
+  recs.sort(function(a,b){return a.p-b.p;});
+  var labels={1:'Urgente',2:'Importante',3:'Atención',4:'Tip',5:'Fortaleza'};
+  var colors={1:'var(--red)',2:'var(--org)',3:'var(--gold)',4:'var(--blue)',5:'var(--green)'};
+  if(counter)counter.textContent=recs.length+' alertas';
+  el.innerHTML=recs.slice(0,8).map(function(r){
+    return '<div style="display:flex;align-items:flex-start;gap:7px;padding:7px;background:var(--card2);border:1px solid var(--bdr);border-left:3px solid '+r.c+';border-radius:7px">'
+      +'<span style="font-size:13px;flex-shrink:0">'+r.icon+'</span>'
+      +'<div>'
+      +'<div style="font-size:8px;font-weight:700;color:'+colors[r.p]+';text-transform:uppercase;letter-spacing:.5px;margin-bottom:1px">'+labels[r.p]+'</div>'
+      +'<div style="font-size:10px;color:var(--text2);line-height:1.4">'+r.t+'</div>'
+      +'</div></div>';
+  }).join('')+'<div style="text-align:center;padding-top:4px"><button onclick="showTab(\'analisis\',document.getElementById(\'nav-analisis\'))" style="font-size:9px;color:var(--blue);background:none;border:none;cursor:pointer;text-decoration:underline">Ver todas las recomendaciones →</button></div>';
+}
 // CALENDAR
 function calNav(d){
   calMonth+=d;
@@ -5283,73 +5470,301 @@ function clearTableFilters(){
 function renderInsights(trades){
   var el = g('insights-panel');
   if(!el) return;
-  if(trades.length < 3){ el.innerHTML='<div style="color:var(--gray2,#555);font-size:12px;text-align:center;padding:16px;">Necesitas al menos 3 operaciones para ver insights.</div>'; return; }
-  var insights = [];
-  // Best day of week
+
+  if(trades.length < 3){
+    el.innerHTML = '<div style="color:var(--gray2);font-size:12px;text-align:center;padding:20px;">Necesitas al menos 3 operaciones para generar recomendaciones.</div>';
+    return;
+  }
+
+  var recs = []; // { icon, title, text, color, priority }
+
+  // ── Helpers ──────────────────────────────────────────────
+  function pnlColor(v){ return v>=0?'var(--green)':'var(--red)'; }
+  function bold(s){ return '<b style="color:var(--text)">'+s+'</b>'; }
+  function highlight(s,c){ return '<b style="color:'+(c||'var(--cyan)')+'">'+s+'</b>'; }
+
+  var sorted = trades.slice().sort(function(a,b){ return a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||''); });
+  var tp = trades.filter(function(t){return t.result==='TP';});
+  var sl = trades.filter(function(t){return t.result==='SL';});
+  var totalPnl = trades.reduce(function(s,t){return s+(t.pnl||0);},0);
+  var wr = trades.length ? tp.length/trades.length : 0;
+  var grossWin = tp.reduce(function(s,t){return s+(t.pnl||0);},0);
+  var grossLoss = Math.abs(sl.reduce(function(s,t){return s+(t.pnl||0);},0));
+  var avgWin = tp.length ? grossWin/tp.length : 0;
+  var avgLoss = sl.length ? grossLoss/sl.length : 0;
+  var pf = grossLoss>0 ? grossWin/grossLoss : (grossWin>0?999:0);
+  var expectancy = (wr*avgWin) - ((1-wr)*avgLoss);
+  var rr = avgLoss>0 ? avgWin/avgLoss : 0;
+
+  // ── 1. Alerta racha perdedora reciente ───────────────────
+  var last5 = sorted.slice(-5);
+  var last5Losses = last5.filter(function(t){return t.result==='SL';}).length;
+  var last3 = sorted.slice(-3);
+  var last3Losses = last3.filter(function(t){return t.result==='SL';}).length;
+  if(last3Losses===3){
+    recs.push({priority:1,icon:'🚨',color:'var(--red)',title:'Racha perdedora activa',
+      text:'Tienes '+highlight('3 pérdidas consecutivas','var(--red)')+'. Es momento de pausar, revisar tu setups y no forzar entradas. El mercado no debe seguir tus emociones.'});
+  } else if(last5Losses>=4){
+    recs.push({priority:2,icon:'⚠️',color:'var(--org)',title:'Alto ratio de pérdidas recientes',
+      text:last5Losses+' de tus últimas 5 operaciones fueron '+highlight('SL','var(--red)')+'. Revisa si tu contexto de mercado o tu plan de trading está alineado con las condiciones actuales.'});
+  }
+
+  // ── 2. Profit Factor ─────────────────────────────────────
+  if(sl.length>=2){
+    if(pf<1){
+      recs.push({priority:1,icon:'📉',color:'var(--red)',title:'Profit Factor negativo',
+        text:'Tu PF es '+highlight(pf.toFixed(2),'var(--red)')+'. Estás perdiendo más de lo que ganas. El ratio riesgo/beneficio necesita ajustarse urgentemente o la tasa de aciertos debe subir.'});
+    } else if(pf<1.5){
+      recs.push({priority:3,icon:'⚖️',color:'var(--gold)',title:'Profit Factor mejorable',
+        text:'Tu PF es '+highlight(pf.toFixed(2),'var(--gold)')+'. Un PF mayor a 1.5 es el objetivo. Considera ampliar el TP o reducir el SL en setups de alta probabilidad.'});
+    } else if(pf>=2){
+      recs.push({priority:5,icon:'🏆',color:'var(--green)',title:'Profit Factor excelente',
+        text:'Tu PF de '+highlight(pf.toFixed(2),'var(--green)')+' indica que por cada dólar que pierdes, ganas '+pf.toFixed(2)+'. Mantén la disciplina que te tiene en este nivel.'});
+    }
+  }
+
+  // ── 3. Win Rate vs RR desbalance ─────────────────────────
+  if(trades.length>=5){
+    if(wr<0.4 && rr>=2){
+      recs.push({priority:3,icon:'🎯',color:'var(--cyan)',title:'WR bajo pero buen RR',
+        text:'Con '+highlight((wr*100).toFixed(0)+'%','var(--red)')+' de aciertos pero un RR de '+highlight('1:'+rr.toFixed(2),'var(--green)')+', tu sistema puede ser rentable si eres consistente. Solo necesitas acertar 1 de cada 3 para salir positivo.'});
+    } else if(wr>=0.65 && rr<0.8){
+      recs.push({priority:3,icon:'⚠️',color:'var(--gold)',title:'Alto WR pero RR insuficiente',
+        text:'Ganas el '+highlight((wr*100).toFixed(0)+'%','var(--green)')+' de las veces pero tu RR es '+highlight('1:'+rr.toFixed(2),'var(--red)')+'. Una mala racha puede borrar muchas ganancias. Ajusta los TPs para que sean al menos 1:1.'});
+    }
+  }
+
+  // ── 4. Mejor y peor día de la semana ────────────────────
   var byDay={};
   trades.forEach(function(t){
-    var d=new Date(t.date).getDay();
-    var days=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-    var dn=days[d];
+    var i=getDOW(t.date); var dn=DAYS[i];
     if(!byDay[dn])byDay[dn]={total:0,wins:0,pnl:0};
-    byDay[dn].total++;byDay[dn].pnl+=t.pnl;
+    byDay[dn].total++; byDay[dn].pnl+=(t.pnl||0);
     if(t.result==='TP')byDay[dn].wins++;
   });
-  var bestDay=null,bestWR=0;
-  Object.keys(byDay).forEach(function(d){
-    if(byDay[d].total>=2){var wr=byDay[d].wins/byDay[d].total;if(wr>bestWR){bestWR=wr;bestDay=d;}}
-  });
-  if(bestDay) insights.push({icon:'📅',text:'Operas mejor los <b>'+bestDay+'</b> con '+( bestWR*100).toFixed(0)+'% de win rate.',color:'var(--green)'});
-  // Best hour
+  var dayArr=Object.keys(byDay).filter(function(d){return byDay[d].total>=2;});
+  if(dayArr.length>=2){
+    var bestDay=dayArr.reduce(function(b,d){return byDay[d].pnl>byDay[b].pnl?d:b;},dayArr[0]);
+    var worstDay=dayArr.reduce(function(b,d){return byDay[d].pnl<byDay[b].pnl?d:b;},dayArr[0]);
+    var bdWR=(byDay[bestDay].wins/byDay[bestDay].total*100).toFixed(0);
+    var wdWR=(byDay[worstDay].wins/byDay[worstDay].total*100).toFixed(0);
+    recs.push({priority:4,icon:'📅',color:'var(--green)',title:'Tu día más rentable: '+bestDay,
+      text:highlight(bestDay,'var(--green)')+' es tu mejor día con '+highlight(bdWR+'%','var(--green)')+' de win rate y '+highlight('$'+byDay[bestDay].pnl.toFixed(2),pnlColor(byDay[bestDay].pnl))+' acumulado. Prioriza operar en este día cuando tengas señales de alta calidad.'});
+    if(byDay[worstDay].pnl<0){
+      recs.push({priority:3,icon:'🚫',color:'var(--red)',title:'Evita operar los '+worstDay,
+        text:highlight(worstDay,'var(--red)')+' tiene solo '+highlight(wdWR+'%','var(--red)')+' de acierto y '+highlight('$'+byDay[worstDay].pnl.toFixed(2),'var(--red)')+' de pérdida. Considera no operar este día o reducir el tamaño de posición significativamente.'});
+    }
+  }
+
+  // ── 5. Mejor y peor hora ──────────────────────────────────
   var byHour={};
   trades.forEach(function(t){
     if(!t.time) return;
-    var h=t.time.split(':')[0]||'0';
-    if(!byHour[h])byHour[h]={total:0,wins:0};
-    byHour[h].total++;if(t.result==='TP')byHour[h].wins++;
+    var h=t.time.slice(0,2);
+    if(!byHour[h])byHour[h]={total:0,wins:0,pnl:0};
+    byHour[h].total++; byHour[h].pnl+=(t.pnl||0);
+    if(t.result==='TP')byHour[h].wins++;
   });
-  var bestHour=null,bestHWR=0;
-  Object.keys(byHour).forEach(function(h){
-    if(byHour[h].total>=2){var wr=byHour[h].wins/byHour[h].total;if(wr>bestHWR){bestHWR=wr;bestHour=h;}}
-  });
-  if(bestHour) insights.push({icon:'⏰',text:'Tu mejor hora es <b>'+bestHour+':00</b> con '+(bestHWR*100).toFixed(0)+'% de efectividad.',color:'var(--blue)'});
-  // Best session
-  var bySess={};
-  trades.filter(function(t){return t.session;}).forEach(function(t){
-    if(!bySess[t.session])bySess[t.session]={total:0,wins:0};
-    bySess[t.session].total++;if(t.result==='TP')bySess[t.session].wins++;
-  });
-  var bestSess=null,bestSWR=0;
-  Object.keys(bySess).forEach(function(s){
-    if(bySess[s].total>=2){var wr=bySess[s].wins/bySess[s].total;if(wr>bestSWR){bestSWR=wr;bestSess=s;}}
-  });
-  if(bestSess) insights.push({icon:'🌍',text:'Tu sesión más rentable es <b>'+bestSess+'</b> con '+(bestSWR*100).toFixed(0)+'% win rate.',color:'var(--gold)'});
-  // Losing streak warning
-  var recentTrades = trades.slice(-5);
-  var recentLosses = recentTrades.filter(function(t){return t.result==='SL';}).length;
-  if(recentLosses >= 3) insights.push({icon:'⚠️',text:'Alerta: <b>'+recentLosses+' pérdidas</b> en tus últimas 5 operaciones. Considera una pausa.',color:'var(--red)'});
-  // Best asset
+  var hourArr=Object.keys(byHour).filter(function(h){return byHour[h].total>=2;}).sort();
+  if(hourArr.length>=2){
+    var bestHour=hourArr.reduce(function(b,h){return byHour[h].pnl>byHour[b].pnl?h:b;},hourArr[0]);
+    var worstHour=hourArr.reduce(function(b,h){return byHour[h].pnl<byHour[b].pnl?h:b;},hourArr[0]);
+    recs.push({priority:4,icon:'⏰',color:'var(--blue)',title:'Mejor ventana horaria: '+bestHour+':00',
+      text:'Las '+ highlight(bestHour+':00','var(--blue)')+' es tu hora más efectiva con '+ highlight((byHour[bestHour].wins/byHour[bestHour].total*100).toFixed(0)+'%','var(--green)')+' de acierto. Concentra tu máxima atención y tamaño de posición en este horario.'});
+    if(byHour[worstHour].pnl<0){
+      recs.push({priority:3,icon:'😴',color:'var(--org)',title:'Hora problemática: '+worstHour+':00',
+        text:'A las '+highlight(worstHour+':00','var(--red)')+' acumulas '+highlight('$'+byHour[worstHour].pnl.toFixed(2),'var(--red)')+'. Evalúa si en ese horario el mercado tiene condiciones distintas o si tu concentración baja.'});
+    }
+  }
+
+  // ── 6. Mejor activo vs activo problemático ───────────────
   var byAsset={};
   trades.forEach(function(t){
+    if(!t.asset) return;
     if(!byAsset[t.asset])byAsset[t.asset]={total:0,wins:0,pnl:0};
-    byAsset[t.asset].total++;byAsset[t.asset].pnl+=t.pnl;
+    byAsset[t.asset].total++; byAsset[t.asset].pnl+=(t.pnl||0);
     if(t.result==='TP')byAsset[t.asset].wins++;
   });
-  var bestAsset=null,bestAPnl=-999999;
-  Object.keys(byAsset).forEach(function(a){
-    if(byAsset[a].total>=2&&byAsset[a].pnl>bestAPnl){bestAPnl=byAsset[a].pnl;bestAsset=a;}
+  var assetArr=Object.keys(byAsset).filter(function(a){return byAsset[a].total>=2;});
+  if(assetArr.length>=1){
+    var bestAsset=assetArr.reduce(function(b,a){return byAsset[a].pnl>byAsset[b].pnl?a:b;},assetArr[0]);
+    recs.push({priority:4,icon:'💰',color:'var(--cyan)',title:'Activo estrella: '+bestAsset,
+      text:highlight(bestAsset,'var(--cyan)')+' es tu instrumento más rentable con '+highlight('$'+byAsset[bestAsset].pnl.toFixed(2),'var(--green)')+' y '+highlight((byAsset[bestAsset].wins/byAsset[bestAsset].total*100).toFixed(0)+'%','var(--green)')+' de acierto. Especialízate aún más en este activo.'});
+    var worstAsset=assetArr.reduce(function(b,a){return byAsset[a].pnl<byAsset[b].pnl?a:b;},assetArr[0]);
+    if(assetArr.length>=2 && byAsset[worstAsset].pnl<0){
+      recs.push({priority:3,icon:'🔴',color:'var(--red)',title:'Activo problemático: '+worstAsset,
+        text:highlight(worstAsset,'var(--red)')+' acumula '+highlight('$'+byAsset[worstAsset].pnl.toFixed(2),'var(--red)')+'. Considera pausar operaciones en este par hasta identificar qué está fallando en tu lectura de mercado para él.'});
+    }
+  }
+
+  // ── 7. Mejor sesión ──────────────────────────────────────
+  var bySess={};
+  trades.filter(function(t){return t.session;}).forEach(function(t){
+    if(!bySess[t.session])bySess[t.session]={total:0,wins:0,pnl:0};
+    bySess[t.session].total++; bySess[t.session].pnl+=(t.pnl||0);
+    if(t.result==='TP')bySess[t.session].wins++;
   });
-  if(bestAsset) insights.push({icon:'💰',text:'Tu activo más rentable es <b>'+bestAsset+'</b> con $'+bestAPnl.toFixed(2)+' acumulado.',color:'var(--cyan)'});
-  
-  if(!insights.length){el.innerHTML='<div style="color:var(--gray2,#555);font-size:12px;text-align:center;padding:16px;">Agrega más operaciones con sesión y hora para obtener insights.</div>';return;}
-  el.innerHTML = insights.map(function(ins){
-    return '<div style="display:flex;align-items:flex-start;gap:10px;background:var(--card2,#151f2e);border:1px solid var(--bdr);border-radius:9px;padding:12px 14px;">'
-      +'<span style="font-size:18px;flex-shrink:0;">'+ins.icon+'</span>'
-      +'<div style="font-size:12px;color:var(--text2);line-height:1.6;">'+ins.text+'</div>'
+  var sessArr=Object.keys(bySess).filter(function(s){return bySess[s].total>=2;});
+  if(sessArr.length>=1){
+    var bestSess=sessArr.reduce(function(b,s){return bySess[s].pnl>bySess[b].pnl?s:b;},sessArr[0]);
+    recs.push({priority:4,icon:'🌍',color:'var(--gold)',title:'Sesión más efectiva: '+bestSess,
+      text:'En la sesión '+highlight(bestSess,'var(--gold)')+' tienes '+highlight((bySess[bestSess].wins/bySess[bestSess].total*100).toFixed(0)+'%','var(--green)')+' de acierto y '+highlight('$'+bySess[bestSess].pnl.toFixed(2),pnlColor(bySess[bestSess].pnl))+'. Alinea tu plan diario para maximizar presencia en esta ventana.'});
+    if(sessArr.length>=2){
+      var worstSess=sessArr.reduce(function(b,s){return bySess[s].pnl<bySess[b].pnl?s:b;},sessArr[0]);
+      if(bySess[worstSess].pnl<0){
+        recs.push({priority:3,icon:'🌙',color:'var(--org)',title:'Sesión a revisar: '+worstSess,
+          text:'En '+highlight(worstSess,'var(--red)')+' acumulas '+highlight('$'+bySess[worstSess].pnl.toFixed(2),'var(--red)')+'. Puede que la liquidez o volatilidad de esta sesión no sea compatible con tu estrategia.'});
+      }
+    }
+  }
+
+  // ── 8. Estrategia más rentable ───────────────────────────
+  var byStrat={};
+  trades.filter(function(t){return t.strategy;}).forEach(function(t){
+    if(!byStrat[t.strategy])byStrat[t.strategy]={total:0,wins:0,pnl:0};
+    byStrat[t.strategy].total++; byStrat[t.strategy].pnl+=(t.pnl||0);
+    if(t.result==='TP')byStrat[t.strategy].wins++;
+  });
+  var stratArr=Object.keys(byStrat).filter(function(s){return byStrat[s].total>=2;});
+  if(stratArr.length>=1){
+    var bestStrat=stratArr.reduce(function(b,s){return byStrat[s].pnl>byStrat[b].pnl?s:b;},stratArr[0]);
+    recs.push({priority:4,icon:'🧠',color:'var(--purp)',title:'Estrategia ganadora: '+bestStrat,
+      text:highlight(bestStrat,'var(--purp)')+' genera '+highlight('$'+byStrat[bestStrat].pnl.toFixed(2),'var(--green)')+' con '+highlight((byStrat[bestStrat].wins/byStrat[bestStrat].total*100).toFixed(0)+'%','var(--green)')+' de efectividad. Documenta exactamente las condiciones en que este setup aparece.'});
+    if(stratArr.length>=2){
+      var worstStrat=stratArr.reduce(function(b,s){return byStrat[s].pnl<byStrat[b].pnl?s:b;},stratArr[0]);
+      if(byStrat[worstStrat].pnl<0){
+        recs.push({priority:3,icon:'🗑️',color:'var(--red)',title:'Estrategia a eliminar: '+worstStrat,
+          text:highlight(worstStrat,'var(--red)')+' acumula '+highlight('$'+byStrat[worstStrat].pnl.toFixed(2),'var(--red)')+'. Considera eliminar este setup de tu plan hasta entender por qué falla sistemáticamente.'});
+      }
+    }
+  }
+
+  // ── 9. Dirección BUY vs SELL ─────────────────────────────
+  var buyTr=trades.filter(function(t){return t.direction==='BUY';});
+  var sellTr=trades.filter(function(t){return t.direction==='SELL';});
+  if(buyTr.length>=3 && sellTr.length>=3){
+    var buyWR=buyTr.filter(function(t){return t.result==='TP';}).length/buyTr.length;
+    var sellWR=sellTr.filter(function(t){return t.result==='TP';}).length/sellTr.length;
+    var buyPnl=buyTr.reduce(function(s,t){return s+(t.pnl||0);},0);
+    var sellPnl=sellTr.reduce(function(s,t){return s+(t.pnl||0);},0);
+    if(Math.abs(buyWR-sellWR)>0.2){
+      var better=buyWR>sellWR?'BUY':'SELL';
+      var worse=buyWR>sellWR?'SELL':'BUY';
+      var betterWR=(buyWR>sellWR?buyWR:sellWR)*100;
+      recs.push({priority:3,icon:'↕️',color:'var(--cyan)',title:'Especialízate en operaciones '+better,
+        text:'Tu win rate en '+highlight(better,'var(--green)')+' es '+highlight(betterWR.toFixed(0)+'%','var(--green)')+' vs '+highlight((Math.min(buyWR,sellWR)*100).toFixed(0)+'%','var(--red)')+' en '+highlight(worse,'var(--red)')+'. Considera reducir las entradas '+worse+' o revisarlas con criterios más estrictos.'});
+    }
+  }
+
+  // ── 10. Consistencia mensual ─────────────────────────────
+  var byMonth={};
+  trades.forEach(function(t){
+    var m=t.date.slice(0,7);
+    if(!byMonth[m])byMonth[m]={pnl:0,total:0};
+    byMonth[m].pnl+=(t.pnl||0); byMonth[m].total++;
+  });
+  var months=Object.keys(byMonth);
+  if(months.length>=3){
+    var posMonths=months.filter(function(m){return byMonth[m].pnl>0;}).length;
+    var pct=posMonths/months.length;
+    if(pct>=0.75){
+      recs.push({priority:5,icon:'📆',color:'var(--green)',title:'Alta consistencia mensual',
+        text:'El '+highlight(Math.round(pct*100)+'%','var(--green)')+' de tus meses son positivos ('+posMonths+' de '+months.length+'). Eso refleja disciplina y un sistema robusto. Protege este número.'});
+    } else if(pct<0.5){
+      recs.push({priority:2,icon:'📉',color:'var(--red)',title:'Inconsistencia mensual',
+        text:'Solo el '+highlight(Math.round(pct*100)+'%','var(--red)')+' de tus meses son positivos. La clave está en definir reglas claras de cuándo operar y cuándo detenerte al mes.'});
+    }
+  }
+
+  // ── 11. Tamaño promedio de ganancia vs pérdida ───────────
+  if(avgWin>0 && avgLoss>0 && rr<1){
+    recs.push({priority:2,icon:'📏',color:'var(--red)',title:'Ganancias menores que pérdidas',
+      text:'Ganas en promedio '+highlight('$'+avgWin.toFixed(2),'var(--green)')+' pero pierdes '+highlight('$'+avgLoss.toFixed(2),'var(--red)')+' por operación. Un ratio RR de '+highlight('1:'+rr.toFixed(2),'var(--red)')+' significa que necesitas ganar más del 50% para ser rentable. Amplía tus TPs o reduce los SLs.'});
+  } else if(rr>=2){
+    recs.push({priority:5,icon:'📐',color:'var(--green)',title:'Excelente ratio riesgo/beneficio',
+      text:'Tu RR de '+highlight('1:'+rr.toFixed(2),'var(--green)')+' es sobresaliente. Ganas '+highlight('$'+avgWin.toFixed(2),'var(--green)')+' por cada '+highlight('$'+avgLoss.toFixed(2),'var(--red)')+' que pierdes. Con este ratio puedes ganar acertando menos del 35% del tiempo.'});
+  }
+
+  // ── 12. Expectativa matemática ────────────────────────────
+  if(trades.length>=10){
+    if(expectancy<0){
+      recs.push({priority:1,icon:'🔢',color:'var(--red)',title:'Expectativa matemática negativa',
+        text:'Tu expectativa es '+highlight('$'+expectancy.toFixed(2)+'/op','var(--red)')+'. Esto significa que a largo plazo el sistema pierde dinero. Es la métrica más importante: debes subirla a positiva antes de seguir escalando el tamaño de posición.'});
+    } else if(expectancy>0){
+      recs.push({priority:5,icon:'✅',color:'var(--green)',title:'Sistema matemáticamente viable',
+        text:'Con una expectativa de '+highlight('+$'+expectancy.toFixed(2)+'/op','var(--green)')+', por cada operación que ejecutes en promedio ganarás ese valor. La clave ahora es operar con consistencia y sin romper el plan.'});
+    }
+  }
+
+  // ── 13. Timeframe más usado vs más rentable ──────────────
+  var byTF={};
+  trades.filter(function(t){return t.tf;}).forEach(function(t){
+    if(!byTF[t.tf])byTF[t.tf]={total:0,wins:0,pnl:0};
+    byTF[t.tf].total++; byTF[t.tf].pnl+=(t.pnl||0);
+    if(t.result==='TP')byTF[t.tf].wins++;
+  });
+  var tfArr=Object.keys(byTF).filter(function(t){return byTF[t].total>=2;});
+  if(tfArr.length>=2){
+    var mostUsed=tfArr.reduce(function(b,t){return byTF[t].total>byTF[b].total?t:b;},tfArr[0]);
+    var bestTF=tfArr.reduce(function(b,t){return byTF[t].pnl>byTF[b].pnl?t:b;},tfArr[0]);
+    if(mostUsed!==bestTF){
+      recs.push({priority:3,icon:'🕐',color:'var(--blue)',title:'Tu TF más rentable no es el que más usas',
+        text:'Operas más en '+highlight(mostUsed,'var(--text)')+' pero tu mejor timeframe es '+highlight(bestTF,'var(--blue)')+' con '+highlight('$'+byTF[bestTF].pnl.toFixed(2),'var(--green)')+'. Considera aumentar exposición en '+bestTF+'.'});
+    }
+  }
+
+  // ── 14. Volumen de operaciones ───────────────────────────
+  if(months.length>=2){
+    var avgOpsPerMonth=trades.length/months.length;
+    if(avgOpsPerMonth>20){
+      recs.push({priority:3,icon:'🏃',color:'var(--org)',title:'Posible sobreoperación',
+        text:'Promedias '+highlight(avgOpsPerMonth.toFixed(1)+' ops/mes','var(--org)')+'. Operar demasiado frecuentemente puede indicar falta de criterio selectivo. Menos operaciones de mayor calidad suelen dar mejores resultados.'});
+    } else if(avgOpsPerMonth<3 && trades.length>=6){
+      recs.push({priority:4,icon:'⏳',color:'var(--cyan)',title:'Pocas operaciones por mes',
+        text:'Con '+highlight(avgOpsPerMonth.toFixed(1)+' ops/mes','var(--cyan)')+', la muestra estadística crece lentamente. Asegúrate de tener criterios claros para identificar más setups válidos o registra cada operación sin excepción.'});
+    }
+  }
+
+  // ── 15. Patrón de mejora o deterioro ─────────────────────
+  if(months.length>=3){
+    var sortedM=months.sort();
+    var firstHalf=sortedM.slice(0,Math.floor(sortedM.length/2));
+    var secondHalf=sortedM.slice(Math.floor(sortedM.length/2));
+    var pnl1=firstHalf.reduce(function(s,m){return s+byMonth[m].pnl;},0);
+    var pnl2=secondHalf.reduce(function(s,m){return s+byMonth[m].pnl;},0);
+    if(pnl2>pnl1*1.2 && pnl1>0){
+      recs.push({priority:5,icon:'📈',color:'var(--green)',title:'Tendencia de mejora clara',
+        text:'Tu rendimiento en el período reciente ('+highlight('$'+pnl2.toFixed(2),'var(--green)')+') supera significativamente al período anterior ('+highlight('$'+pnl1.toFixed(2),'var(--green)')+'). Vas en la dirección correcta. Documenta qué cambió.'});
+    } else if(pnl2<pnl1*0.5 && pnl1>0){
+      recs.push({priority:2,icon:'📊',color:'var(--red)',title:'Deterioro en el rendimiento reciente',
+        text:'Tu rendimiento reciente ('+highlight('$'+pnl2.toFixed(2),pnlColor(pnl2))+') es notablemente inferior al período anterior ('+highlight('$'+pnl1.toFixed(2),pnlColor(pnl1))+'). Analiza si cambiaste algo en tu proceso o si las condiciones de mercado cambiaron.'});
+    }
+  }
+
+  // ── Ordenar por prioridad y renderizar ───────────────────
+  recs.sort(function(a,b){return a.priority-b.priority;});
+
+  if(!recs.length){
+    el.innerHTML='<div style="color:var(--gray2);font-size:12px;text-align:center;padding:20px;">Agrega más operaciones con todos los campos completos para generar recomendaciones detalladas.</div>';
+    return;
+  }
+
+  var colors={1:'var(--red)',2:'var(--org)',3:'var(--gold)',4:'var(--blue)',5:'var(--green)'};
+  var labels={1:'Urgente',2:'Importante',3:'Atención',4:'Oportunidad',5:'Fortaleza'};
+
+  el.innerHTML = recs.map(function(r){
+    var badgeCol=colors[r.priority]||'var(--gray2)';
+    var badgeLbl=labels[r.priority]||'';
+    return '<div style="background:var(--card2);border:1px solid var(--bdr);border-left:3px solid '+r.color+';border-radius:9px;padding:12px 14px;">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'
+      +'<span style="font-size:16px">'+r.icon+'</span>'
+      +'<span style="font-size:11px;font-weight:700;color:var(--text)">'+r.title+'</span>'
+      +'<span style="margin-left:auto;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;padding:2px 7px;border-radius:10px;background:'+badgeCol+'22;color:'+badgeCol+'">'+badgeLbl+'</span>'
+      +'</div>'
+      +'<div style="font-size:11px;color:var(--text2);line-height:1.65;">'+r.text+'</div>'
       +'</div>';
   }).join('');
 }
-
 
 // ════════════════════════════════════════════════════════════
 //  §APP — INICIALIZACIÓN DE LA APP
