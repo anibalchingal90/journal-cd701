@@ -3570,90 +3570,112 @@ Chart.defaults.font.weight = '600';
 // ── Plugin global: gradiente real para líneas de equity ──────────────────
 // Se ejecuta DESPUÉS del layout, cuando chartArea ya tiene dimensiones reales
 // ═══════════════════════════════════════════════════════════
-//  PLUGIN PREMIUM: Gradiente HD + Neon Glow en líneas + Donut glow
+//  PLUGIN PREMIUM v2: Neon glow líneas + Donut glow correcto
 // ═══════════════════════════════════════════════════════════
 Chart.register({
   id:'premiumCharts',
 
+  // ── LÍNEAS: gradiente con dimensiones reales ─────────────
   beforeDatasetDraw:function(chart, args){
-    var ds  = chart.data.datasets[args.index];
+    if(chart.config.type!=='line') return;
+    var ds = chart.data.datasets[args.index];
+    if(ds.fill===false || ds.noGradient) return;
+    var ca = chart.chartArea; if(!ca) return;
     var ctx = chart.ctx;
-    var ca  = chart.chartArea; if(!ca) return;
-
-    // ── Equity line: gradiente rico + neon glow ──────────────
-    if(chart.config.type==='line' && ds.fill!==false && !ds.noGradient){
-      // Gradiente profundo con dimensiones reales
-      var grad = ctx.createLinearGradient(0, ca.top, 0, ca.bottom);
-      grad.addColorStop(0,    ds.gradTop || 'rgba(0,255,180,0.52)');
-      grad.addColorStop(0.35, ds.gradMid || 'rgba(0,229,176,0.22)');
-      grad.addColorStop(0.75, ds.gradBot || 'rgba(0,229,176,0.06)');
-      grad.addColorStop(1,    'rgba(0,229,176,0)');
-      chart.data.datasets[args.index].backgroundColor = grad;
-
-      // Neon glow: afecta a fill + línea (efecto calidad TradingView)
-      var glowCol = typeof ds.borderColor==='string' ? ds.borderColor : '#00ffb3';
-      ctx.save();
-      ctx.shadowBlur    = 24;
-      ctx.shadowColor   = glowCol;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
-      chart._premiumLineSaved = true;
-    }
+    var grad = ctx.createLinearGradient(0, ca.top, 0, ca.bottom);
+    grad.addColorStop(0,    ds.gradTop || 'rgba(0,255,180,0.52)');
+    grad.addColorStop(0.35, ds.gradMid || 'rgba(0,229,176,0.22)');
+    grad.addColorStop(0.75, ds.gradBot || 'rgba(0,229,176,0.06)');
+    grad.addColorStop(1,    'rgba(0,229,176,0)');
+    chart.data.datasets[args.index].backgroundColor = grad;
   },
 
-  afterDatasetDraw:function(chart, args){
+  // ── LÍNEAS + DONUT: glow en afterDraw (una sola vez por chart) ─────
+  afterDraw:function(chart){
     var ctx = chart.ctx;
+    var type = chart.config.type;
 
-    // ── Restore del glow de línea ─────────────────────────────
-    if(chart._premiumLineSaved){
-      ctx.restore();
-      chart._premiumLineSaved = false;
+    // ── Equity line: segunda pasada neon ───────────────────────
+    if(type==='line'){
+      chart.data.datasets.forEach(function(ds, di){
+        if(ds.fill===false || ds.noGradient) return;
+        var meta = chart.getDatasetMeta(di);
+        var pts  = meta.data;
+        if(!pts || pts.length < 2) return;
+        var glowCol = typeof ds.borderColor==='string' ? ds.borderColor : '#00ffb3';
+        var lw = ds.borderWidth || 3;
 
-      // Segunda pasada: redibuja la línea encima con glow más intenso
-      var ds   = chart.data.datasets[args.index];
-      var meta = chart.getDatasetMeta(args.index);
-      var pts  = meta.data;
-      if(pts && pts.length > 1 && typeof ds.borderColor==='string'){
-        var glowCol = ds.borderColor;
-        var lw      = ds.borderWidth || 2.8;
+        // Halo exterior difuso
         ctx.save();
         ctx.beginPath();
         pts.forEach(function(pt,i){ i===0?ctx.moveTo(pt.x,pt.y):ctx.lineTo(pt.x,pt.y); });
-        ctx.strokeStyle  = glowCol;
-        ctx.lineWidth    = lw + 5;
-        ctx.shadowBlur   = 30;
-        ctx.shadowColor  = glowCol;
-        ctx.globalAlpha  = 0.18;
-        ctx.lineCap      = 'round';
-        ctx.lineJoin     = 'round';
-        ctx.stroke();
-
-        ctx.beginPath();
-        pts.forEach(function(pt,i){ i===0?ctx.moveTo(pt.x,pt.y):ctx.lineTo(pt.x,pt.y); });
-        ctx.strokeStyle  = glowCol;
-        ctx.lineWidth    = lw;
-        ctx.shadowBlur   = 14;
-        ctx.shadowColor  = glowCol;
-        ctx.globalAlpha  = 0.95;
+        ctx.strokeStyle = glowCol;
+        ctx.lineWidth   = lw + 8;
+        ctx.shadowBlur  = 36;
+        ctx.shadowColor = glowCol;
+        ctx.globalAlpha = 0.14;
+        ctx.lineCap='round'; ctx.lineJoin='round';
         ctx.stroke();
         ctx.restore();
-      }
+
+        // Línea brillante nítida encima
+        ctx.save();
+        ctx.beginPath();
+        pts.forEach(function(pt,i){ i===0?ctx.moveTo(pt.x,pt.y):ctx.lineTo(pt.x,pt.y); });
+        ctx.strokeStyle = glowCol;
+        ctx.lineWidth   = lw;
+        ctx.shadowBlur  = 18;
+        ctx.shadowColor = glowCol;
+        ctx.globalAlpha = 1;
+        ctx.lineCap='round'; ctx.lineJoin='round';
+        ctx.stroke();
+        ctx.restore();
+      });
     }
 
-    // ── Donut: glow neon por segmento ────────────────────────
-    if(chart.config.type==='doughnut'){
-      var dsd  = chart.data.datasets[args.index];
-      var meta2 = chart.getDatasetMeta(args.index);
-      meta2.data.forEach(function(arc, i){
-        var bgArr = dsd.backgroundColor;
-        var col   = Array.isArray(bgArr) ? bgArr[i] : bgArr;
-        ctx.save();
-        ctx.shadowBlur    = 26;
-        ctx.shadowColor   = col;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 0;
-        arc.draw(ctx);
-        ctx.restore();
+    // ── Donut: glow limpio por STROKE (sin redibujar el fill) ──
+    if(type==='doughnut'){
+      chart.data.datasets.forEach(function(ds, di){
+        var meta = chart.getDatasetMeta(di);
+        meta.data.forEach(function(arc, i){
+          var bgArr = ds.backgroundColor;
+          var rawCol = Array.isArray(bgArr) ? bgArr[i] : bgArr;
+          // Extraer color sólido para el glow (quitar alpha)
+          var glowCol = rawCol
+            .replace(/rgba?\((\d+),\s*(\d+),\s*(\d+)[^)]*\)/,
+              function(_,r,g,b){ return 'rgba('+r+','+g+','+b+',1)'; });
+
+          // ── Obtener geometría del arco ────────────────────────
+          var x=arc.x, y=arc.y, r1=arc.outerRadius, r2=arc.innerRadius;
+          var sa=arc.startAngle, ea=arc.endAngle;
+          if(Math.abs(ea-sa)<0.001) return; // arco vacío
+
+          // ── Glow exterior ─────────────────────────────────────
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(x, y, r1, sa, ea);
+          ctx.arc(x, y, r2, ea, sa, true);
+          ctx.closePath();
+          ctx.strokeStyle = glowCol;
+          ctx.lineWidth   = 3;
+          ctx.shadowBlur  = 30;
+          ctx.shadowColor = glowCol;
+          ctx.globalAlpha = 0.7;
+          ctx.stroke();
+          ctx.restore();
+
+          // ── Glow exterior amplio ──────────────────────────────
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(x, y, r1+2, sa, ea);
+          ctx.strokeStyle = glowCol;
+          ctx.lineWidth   = 6;
+          ctx.shadowBlur  = 50;
+          ctx.shadowColor = glowCol;
+          ctx.globalAlpha = 0.28;
+          ctx.stroke();
+          ctx.restore();
+        });
       });
     }
   }
@@ -3763,6 +3785,15 @@ function mkC(id,type,labels,datasets,ex){
         fill:true
       });
     });
+  }
+
+  // ── Doughnut: eliminar scales heredadas del CDO ─────────────────────
+  if(type==='doughnut'){
+    delete opts.scales;
+    opts.layout = {padding:14};
+    opts.plugins = Object.assign({}, opts.plugins, ex&&ex.plugins ? ex.plugins : {});
+    CH[id]=new Chart(ctx,{type:type,data:{labels:labels,datasets:datasets},options:opts});
+    return;
   }
 
   // ── Bar: scriptable gradient + estilo premium ──────────────────────────
