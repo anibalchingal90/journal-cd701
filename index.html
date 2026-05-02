@@ -3569,22 +3569,93 @@ Chart.defaults.font.weight = '600';
 
 // ── Plugin global: gradiente real para líneas de equity ──────────────────
 // Se ejecuta DESPUÉS del layout, cuando chartArea ya tiene dimensiones reales
+// ═══════════════════════════════════════════════════════════
+//  PLUGIN PREMIUM: Gradiente HD + Neon Glow en líneas + Donut glow
+// ═══════════════════════════════════════════════════════════
 Chart.register({
-  id:'premiumLineGradient',
+  id:'premiumCharts',
+
   beforeDatasetDraw:function(chart, args){
-    if(chart.config.type!=='line') return;
-    var ds=chart.data.datasets[args.index];
-    if(ds.fill===false || ds.noGradient) return;
-    var ca=chart.chartArea; if(!ca) return;
-    var ctx2=chart.ctx;
-    var h=ca.bottom-ca.top;
-    var gradient=ctx2.createLinearGradient(0,ca.top,0,ca.bottom);
-    var colorTop=ds.gradTop||'rgba(0,229,176,0.38)';
-    var colorMid=ds.gradMid||'rgba(0,229,176,0.12)';
-    gradient.addColorStop(0, colorTop);
-    gradient.addColorStop(0.45, colorMid);
-    gradient.addColorStop(1, 'rgba(0,229,176,0)');
-    chart.data.datasets[args.index].backgroundColor=gradient;
+    var ds  = chart.data.datasets[args.index];
+    var ctx = chart.ctx;
+    var ca  = chart.chartArea; if(!ca) return;
+
+    // ── Equity line: gradiente rico + neon glow ──────────────
+    if(chart.config.type==='line' && ds.fill!==false && !ds.noGradient){
+      // Gradiente profundo con dimensiones reales
+      var grad = ctx.createLinearGradient(0, ca.top, 0, ca.bottom);
+      grad.addColorStop(0,    ds.gradTop || 'rgba(0,255,180,0.52)');
+      grad.addColorStop(0.35, ds.gradMid || 'rgba(0,229,176,0.22)');
+      grad.addColorStop(0.75, ds.gradBot || 'rgba(0,229,176,0.06)');
+      grad.addColorStop(1,    'rgba(0,229,176,0)');
+      chart.data.datasets[args.index].backgroundColor = grad;
+
+      // Neon glow: afecta a fill + línea (efecto calidad TradingView)
+      var glowCol = typeof ds.borderColor==='string' ? ds.borderColor : '#00ffb3';
+      ctx.save();
+      ctx.shadowBlur    = 24;
+      ctx.shadowColor   = glowCol;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+      chart._premiumLineSaved = true;
+    }
+  },
+
+  afterDatasetDraw:function(chart, args){
+    var ctx = chart.ctx;
+
+    // ── Restore del glow de línea ─────────────────────────────
+    if(chart._premiumLineSaved){
+      ctx.restore();
+      chart._premiumLineSaved = false;
+
+      // Segunda pasada: redibuja la línea encima con glow más intenso
+      var ds   = chart.data.datasets[args.index];
+      var meta = chart.getDatasetMeta(args.index);
+      var pts  = meta.data;
+      if(pts && pts.length > 1 && typeof ds.borderColor==='string'){
+        var glowCol = ds.borderColor;
+        var lw      = ds.borderWidth || 2.8;
+        ctx.save();
+        ctx.beginPath();
+        pts.forEach(function(pt,i){ i===0?ctx.moveTo(pt.x,pt.y):ctx.lineTo(pt.x,pt.y); });
+        ctx.strokeStyle  = glowCol;
+        ctx.lineWidth    = lw + 5;
+        ctx.shadowBlur   = 30;
+        ctx.shadowColor  = glowCol;
+        ctx.globalAlpha  = 0.18;
+        ctx.lineCap      = 'round';
+        ctx.lineJoin     = 'round';
+        ctx.stroke();
+
+        ctx.beginPath();
+        pts.forEach(function(pt,i){ i===0?ctx.moveTo(pt.x,pt.y):ctx.lineTo(pt.x,pt.y); });
+        ctx.strokeStyle  = glowCol;
+        ctx.lineWidth    = lw;
+        ctx.shadowBlur   = 14;
+        ctx.shadowColor  = glowCol;
+        ctx.globalAlpha  = 0.95;
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    // ── Donut: glow neon por segmento ────────────────────────
+    if(chart.config.type==='doughnut'){
+      var dsd  = chart.data.datasets[args.index];
+      var meta2 = chart.getDatasetMeta(args.index);
+      meta2.data.forEach(function(arc, i){
+        var bgArr = dsd.backgroundColor;
+        var col   = Array.isArray(bgArr) ? bgArr[i] : bgArr;
+        ctx.save();
+        ctx.shadowBlur    = 26;
+        ctx.shadowColor   = col;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+        arc.draw(ctx);
+        ctx.restore();
+      });
+    }
   }
 });
 
@@ -3795,11 +3866,12 @@ function renderDash(){
       borderColor:'#00ffb3',
       fill:true,
       tension:0.42,
-      borderWidth:2.8,
-      gradTop:'rgba(0,255,180,0.42)',
-      gradMid:'rgba(0,229,176,0.14)',
+      borderWidth:3,
+      gradTop:'rgba(0,255,185,0.55)',
+      gradMid:'rgba(0,229,176,0.22)',
+      gradBot:'rgba(0,200,160,0.06)',
       pointRadius:0,
-      pointHoverRadius:6
+      pointHoverRadius:7
     }],
     {
       plugins:{legend:{display:false}},
@@ -4368,8 +4440,8 @@ function renderStats(){
   var isCum=(_stEquityMode!=='op');
   mkC('seq',isCum?'line':'bar',eqPts.map(function(e){return e.l;}),
     isCum
-      ?[{data:eqPts.map(function(e){return e.b;}),borderColor:'#00ffb3',fill:true,tension:0.42,borderWidth:2.8,
-          gradTop:'rgba(0,255,180,0.42)',gradMid:'rgba(0,229,176,0.14)',pointRadius:0,pointHoverRadius:6}]
+      ?[{data:eqPts.map(function(e){return e.b;}),borderColor:'#00ffb3',fill:true,tension:0.42,borderWidth:3,
+          gradTop:'rgba(0,255,185,0.55)',gradMid:'rgba(0,229,176,0.22)',gradBot:'rgba(0,200,160,0.06)',pointRadius:0,pointHoverRadius:7}]
       :[{data:eqPts.map(function(e){return e.pnl;}),borderRadius:9,borderSkipped:false}],
     {plugins:{legend:{display:false}},
      scales:{
@@ -4393,17 +4465,17 @@ function renderStats(){
   if(donutLeg)donutLeg.innerHTML=[['var(--green)',tTP,'Ganadoras',tT?Math.round(tTP/tT*100):0],['var(--red)',tSL,'Perdedoras',tT?Math.round(tSL/tT*100):0]].map(function(r){return'<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(30,38,64,.3)"><div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:'+r[0]+';display:inline-block"></span><span style="font-size:10px;color:var(--gray2)">'+r[2]+'</span></div><div><span style="font-size:11px;font-weight:700;color:'+r[0]+'">'+r[1]+'</span><span style="font-size:9px;color:var(--gray2);margin-left:4px">'+r[3]+'%</span></div></div>';}).join('');
   if(donutEl)mkC('st-donut','doughnut',['Ganadoras','Perdedoras'],[{
   data:[tTP,tSL],
-  backgroundColor:['rgba(0,229,176,0.92)','rgba(255,56,96,0.88)'],
-  hoverBackgroundColor:['rgba(0,255,200,1)','rgba(255,80,110,1)'],
-  borderWidth:3,
-  borderColor:['rgba(13,18,40,1)','rgba(13,18,40,1)'],
-  borderRadius:6,
-  hoverOffset:10,
-  spacing:2
+  backgroundColor:['rgba(0,235,185,0.95)','rgba(255,50,90,0.92)'],
+  hoverBackgroundColor:['rgba(0,255,210,1)','rgba(255,75,105,1)'],
+  borderWidth:4,
+  borderColor:['rgba(8,12,32,1)','rgba(8,12,32,1)'],
+  borderRadius:8,
+  hoverOffset:12,
+  spacing:3
 }],{
   plugins:{legend:{display:false}},
-  cutout:'64%',
-  animation:{animateRotate:true,animateScale:false,duration:900,easing:'easeInOutQuart'}
+  cutout:'62%',
+  animation:{animateRotate:true,animateScale:false,duration:1000,easing:'easeInOutQuart'}
 });
 
   // P&L mensual
@@ -4698,12 +4770,13 @@ function aRenderEquity(ft){
   });
   mkC('a-equity',daily?'bar':'line',labels,[{
     data:data,
-    borderColor: daily ? undefined : '#c084fc',
+    borderColor: daily ? undefined : '#d8a4ff',
     fill:!daily,
     tension:0.42,
-    borderWidth:2.8,
-    gradTop:'rgba(192,132,252,0.38)',
-    gradMid:'rgba(124,58,237,0.12)',
+    borderWidth:3,
+    gradTop:'rgba(216,164,255,0.52)',
+    gradMid:'rgba(192,132,252,0.20)',
+    gradBot:'rgba(124,58,237,0.05)',
     pointRadius:0,
     pointHoverRadius:6,
     borderRadius: daily ? 9 : undefined,
@@ -4725,17 +4798,17 @@ function aRenderDonut(tp,sl,total){
   if(legend)legend.innerHTML='<span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:50%;background:#00e5a0;display:inline-block"></span>Ganadoras '+tp+' ('+(total?Math.round(tp/total*100):0)+'%)</span><span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:50%;background:#ff3d5a;display:inline-block"></span>Perdedoras '+sl+' ('+(total?Math.round(sl/total*100):0)+'%)</span>';
   mkC('a-donut','doughnut',['Ganadoras','Perdedoras'],[{
   data:[tp,sl],
-  backgroundColor:['rgba(0,229,176,0.92)','rgba(255,56,96,0.88)'],
-  hoverBackgroundColor:['rgba(0,255,200,1)','rgba(255,80,110,1)'],
-  borderWidth:3,
-  borderColor:['rgba(13,18,40,1)','rgba(13,18,40,1)'],
-  borderRadius:6,
-  hoverOffset:10,
-  spacing:2
+  backgroundColor:['rgba(0,235,185,0.95)','rgba(255,50,90,0.92)'],
+  hoverBackgroundColor:['rgba(0,255,210,1)','rgba(255,75,105,1)'],
+  borderWidth:4,
+  borderColor:['rgba(8,12,32,1)','rgba(8,12,32,1)'],
+  borderRadius:8,
+  hoverOffset:12,
+  spacing:3
 }],{
   plugins:{legend:{display:false}},
-  cutout:'64%',
-  animation:{animateRotate:true,animateScale:false,duration:900,easing:'easeInOutQuart'}
+  cutout:'62%',
+  animation:{animateRotate:true,animateScale:false,duration:1000,easing:'easeInOutQuart'}
 });
 }
 
@@ -7289,9 +7362,9 @@ window.renderRegCharts = function() {
   ft.forEach(function(t){running+=(t.pnl||0);eq.push(running);labels.push((t.date||'').slice(5));});
   if(typeof mkC==='function'){
     mkC('creg-eq','line',labels,[{
-      data:eq,borderColor:'#00ffb3',fill:true,tension:0.42,borderWidth:2.8,
-      gradTop:'rgba(0,255,180,0.38)',gradMid:'rgba(0,229,176,0.12)',
-      pointRadius:0,pointHoverRadius:5
+      data:eq,borderColor:'#00ffb3',fill:true,tension:0.42,borderWidth:3,
+      gradTop:'rgba(0,255,185,0.55)',gradMid:'rgba(0,229,176,0.22)',gradBot:'rgba(0,200,160,0.06)',
+      pointRadius:0,pointHoverRadius:7
     }],{});
     var mPnl=MONTHS.map(function(_,i){return S.trades.filter(function(t){return t.date&&t.date.startsWith(yrS)&&+t.date.split('-')[1]===i+1;}).reduce(function(a,t){return a+(t.pnl||0);},0);});
     mkC('creg-mon','bar',MSS,[{data:mPnl,borderRadius:9,borderSkipped:false}],{});
