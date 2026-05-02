@@ -1164,7 +1164,7 @@ tr:hover td{background:rgba(14,18,41,.8)}
             <span id="cal-label" style="font-family:'Exo 2',sans-serif;font-size:13px;font-weight:800;color:var(--text)"></span>
             <svg id="cal-pill-arrow" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" width="9" height="9" style="opacity:.5;transition:transform .2s"><polyline points="1,1 5,5 9,1"/></svg>
           </div>
-          <div id="reg-date-selects" style="display:none;position:absolute;top:calc(100% + 6px);left:0;background:var(--card);border:1px solid var(--bdr2);border-radius:10px;padding:10px;z-index:200;display:none;gap:8px;box-shadow:0 8px 32px rgba(0,0,0,.5)">
+          <div id="reg-date-selects" style="display:none;position:absolute;top:calc(100% + 6px);left:0;background:var(--card);border:1px solid var(--bdr2);border-radius:10px;padding:10px;z-index:200;gap:8px;box-shadow:0 8px 32px rgba(0,0,0,.5)">
             <select id="cal-yr-sel" class="fi" style="width:auto;padding:6px 10px;font-size:12px;font-weight:700" onchange="calGoTo()"></select>
             <select id="cal-mo-sel" class="fi" style="width:auto;padding:6px 10px;font-size:12px;font-weight:700" onchange="calGoTo()"></select>
           </div>
@@ -1397,11 +1397,9 @@ tr:hover td{background:rgba(14,18,41,.8)}
           <button id="ast-rend"      onclick="setAST('rend')"      class="ast-btn">Rendimiento</button>
           <button id="ast-ops"       onclick="setAST('ops')"       class="ast-btn">Operaciones</button>
           <button id="ast-tiempo"    onclick="setAST('tiempo')"    class="ast-btn">Tiempo</button>
-          <button id="ast-dias"      onclick="setAST('dias')"      class="ast-btn">Días de la semana</button>
-          <button id="ast-meses"     onclick="setAST('meses')"     class="ast-btn">Meses</button>
-          <button id="ast-instr"     onclick="setAST('instr')"     class="ast-btn">Instrumentos</button>
-          <button id="ast-estrategia" onclick="setAST('estrategia')" class="ast-btn">Estrategias</button>
-          <button id="ast-sesiones"  onclick="setAST('sesiones')"  class="ast-btn">Sesiones</button>
+          <button id="ast-meses"     onclick="setAST('meses')"     class="ast-btn">Meses y semanas</button>
+          <button id="ast-instr"     onclick="setAST('instr')"     class="ast-btn">Instrumentos · Estrategias · Sesiones</button>
+          <button id="ast-recomendaciones" onclick="setAST('recomendaciones')" class="ast-btn">Recomendaciones</button>
         </div>
 
         <!-- ── SUB-TAB: RESUMEN ── -->
@@ -1416,7 +1414,7 @@ tr:hover td{background:rgba(14,18,41,.8)}
               <div class="card-hdr" style="color:var(--purp);border-color:rgba(124,58,237,.2);padding-bottom:8px;display:flex;align-items:center;justify-content:space-between">
                 <span>Evolución del capital</span>
                 <select id="a-equity-mode" onchange="renderA()" style="font-size:9px;background:var(--card2);border:1px solid var(--bdr);color:var(--text);border-radius:5px;padding:2px 5px">
-                  <option value="diario">Diario</option><option value="acum">Acumulado</option>
+                  <option value="diario">Diario</option><option value="acum" selected>Acumulado</option>
                 </select>
               </div>
               <div style="height:160px;position:relative"><canvas id="a-equity"></canvas></div>
@@ -1464,10 +1462,6 @@ tr:hover td{background:rgba(14,18,41,.8)}
             <div class="card-hdr" style="color:var(--cyan);border-color:rgba(6,182,212,.2)">🧠 Métricas Avanzadas</div>
             <div id="advanced-stats-panel"></div>
           </div>
-          <div class="card" style="margin-top:10px">
-            <div class="card-hdr" style="color:var(--green);border-color:rgba(0,229,160,.2)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/></svg> Recomendaciones Automáticas</div>
-            <div id="insights-panel" style="display:flex;flex-direction:column;gap:8px;padding:4px 0"></div>
-          </div>
         </div>
 
         <!-- ── SUB-TAB: OPERACIONES ── -->
@@ -1491,8 +1485,12 @@ tr:hover td{background:rgba(14,18,41,.8)}
           </div>
         </div>
 
-        <!-- ── SUB-TAB: DÍAS ── -->
-        <div id="ast-panel-dias" class="ast-panel" style="display:none">
+        <!-- ── SUB-TAB: MESES Y SEMANAS ── -->
+        <div id="ast-panel-meses" class="ast-panel" style="display:none">
+          <div class="card" style="margin-bottom:12px">
+            <div class="card-hdr" style="color:var(--gold);border-color:rgba(251,191,36,.2)">Resultado por Mes</div>
+            <div style="height:200px;position:relative"><canvas id="a-monthly2"></canvas></div>
+          </div>
           <div class="card">
             <div class="card-hdr" style="color:var(--green);border-color:rgba(0,229,160,.2)">TP/SL por Día de Semana</div>
             <div class="cw"><canvas id="cad2"></canvas></div>
@@ -1500,35 +1498,30 @@ tr:hover td{background:rgba(14,18,41,.8)}
           </div>
         </div>
 
-        <!-- ── SUB-TAB: MESES ── -->
-        <div id="ast-panel-meses" class="ast-panel" style="display:none">
-          <div class="card">
-            <div class="card-hdr" style="color:var(--gold);border-color:rgba(251,191,36,.2)">Resultado por Mes</div>
-            <div style="height:200px;position:relative"><canvas id="a-monthly2"></canvas></div>
-          </div>
-        </div>
-
-        <!-- ── SUB-TAB: INSTRUMENTOS ── -->
+        <!-- ── SUB-TAB: INSTRUMENTOS · ESTRATEGIAS · SESIONES ── -->
         <div id="ast-panel-instr" class="ast-panel" style="display:none">
-          <div class="card">
+          <div class="card" style="margin-bottom:12px">
             <div class="card-hdr" style="color:var(--blue);border-color:rgba(77,159,255,.2)">Rendimiento por Instrumento</div>
             <div id="a-instrlist2" style="display:flex;flex-direction:column;gap:6px;padding:4px 0"></div>
           </div>
-        </div>
-
-        <!-- ── SUB-TAB: ESTRATEGIAS ── -->
-        <div id="ast-panel-estrategia" class="ast-panel" style="display:none">
-          <div class="card">
+          <div class="card" style="margin-bottom:12px">
             <div class="card-hdr" style="color:var(--purp);border-color:rgba(168,85,247,.2)">Rendimiento por Estrategia</div>
             <div id="a-stratlist" style="display:flex;flex-direction:column;gap:6px;padding:4px 0"></div>
           </div>
-        </div>
-
-        <!-- ── SUB-TAB: SESIONES ── -->
-        <div id="ast-panel-sesiones" class="ast-panel" style="display:none">
           <div class="card">
             <div class="card-hdr" style="color:var(--cyan);border-color:rgba(6,182,212,.2)">Rendimiento por Sesión</div>
             <div id="a-sesslist" style="display:flex;flex-direction:column;gap:6px;padding:4px 0"></div>
+          </div>
+        </div>
+
+        <!-- ── SUB-TAB: RECOMENDACIONES ── -->
+        <div id="ast-panel-recomendaciones" class="ast-panel" style="display:none">
+          <div class="card">
+            <div class="card-hdr" style="color:var(--green);border-color:rgba(0,229,160,.2)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/></svg>
+              Recomendaciones Automáticas
+            </div>
+            <div id="insights-panel" style="display:flex;flex-direction:column;gap:8px;padding:4px 0"></div>
           </div>
         </div>
 
@@ -3210,16 +3203,18 @@ function toggleCalDatePicker(){
   dp.style.display = isOpen ? 'none' : 'flex';
   if(arrow) arrow.style.transform = isOpen ? '' : 'rotate(180deg)';
 }
-// Cerrar el picker si se hace click fuera
+// Cerrar el picker si se hace click fuera (del pill Y del dropdown)
 document.addEventListener('click', function(e){
   var pill = e.target.closest('.reg-month-pill');
   var dp   = g('reg-date-selects');
   var arrow = g('cal-pill-arrow');
-  if(!pill && dp && dp.style.display==='flex'){
+  // NO cerrar si el click fue dentro del pill o dentro del propio dropdown
+  var insidePicker = pill || (dp && dp.contains(e.target));
+  if(!insidePicker && dp && dp.style.display==='flex'){
     dp.style.display='none';
     if(arrow) arrow.style.transform='';
   }
-}, true);
+}, false);
 
 function calGoTo(){
   var yrSel=g('cal-yr-sel'),moSel=g('cal-mo-sel');
@@ -3655,6 +3650,7 @@ function showTab(id,el){
   var info=TAB_INFO[id]||{};
   var pt=g('pg-title');if(pt)pt.textContent=info.title||id;
   var ps=g('pg-sub');if(ps)ps.textContent=info.sub||'';
+  if(id==='dash')renderDash();
   if(id==='stats')renderStats();
   if(id==='analisis')renderA();
   if(id==='registro'){renderCalSels();renderCal();renderMonthSummary();renderMonthStats();renderDayDetail();}
@@ -4518,7 +4514,10 @@ window.stEquityMode = function(mode){
 function renderStats(){
   var yr=parseInt(g('yr-sel').value||String(calYear));
   var a=acct();
-  var yTrades=getSorted().filter(function(t){return t.date.startsWith(String(yr));});
+  // ✅ Usar S.trades completo — getSorted() aplicaría filtros del Registro
+  // y contaminaría las estadísticas con datos incompletos
+  var yTrades=[].concat(S.trades).filter(function(t){return t.date.startsWith(String(yr));})
+    .sort(function(a,b){var r=a.date.localeCompare(b.date);return r!==0?r:(a.time||'').localeCompare(b.time||'');});
   var mSt=MONTHS.map(function(_,i){
     var f=yTrades.filter(function(t){return+t.date.split('-')[1]===i+1;});
     var tp=f.filter(function(t){return t.result==='TP';}).length;
@@ -4859,10 +4858,23 @@ function renderA(){
       [{data:tg.map(function(h){return h.sl;}),
         backgroundColor:tg.map(function(h){
           var p=maxSl>0?h.sl/maxSl:0;
-          return'rgba('+(Math.round(255*p))+','+(Math.round(56*(1-p)))+',96,'+(0.35+p*0.6)+')';
+          // Escala: 0 SL=azul translúcido, max SL=rojo intenso
+          var alpha=0.18+p*0.78;
+          var r=Math.round(60+195*p);
+          var g2=Math.round(90*(1-p));
+          return'rgba('+r+','+g2+',96,'+alpha.toFixed(2)+')';
         }),
-        label:'SL',borderRadius:8,borderSkipped:false,noGradient:true}],
-      {scales:{x:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{display:false},border:{display:false}},y:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{color:'rgba(30,37,64,0.3)'},border:{display:false}}}});
+        label:'SL',borderRadius:7,borderSkipped:false,noGradient:true}],
+      {plugins:{legend:{display:false},tooltip:{callbacks:{
+        title:function(ctx){return ctx[0].label;},
+        label:function(ctx){
+          var h=tg[ctx.dataIndex];
+          var tot=(h.tp+h.sl);
+          var wr=tot>0?Math.round(h.tp/tot*100):0;
+          return[' SL: '+h.sl+' | TP: '+h.tp,' WR: '+wr+'% | P&L: '+fU(h.pnl)];
+        }
+      }}},
+      scales:{x:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{display:false},border:{display:false}},y:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{color:'rgba(30,37,64,0.3)'},border:{display:false}}}});
     var bTH=tg.reduce(function(b,h){return h.tp>b.tp?h:b;},tg[0]||{time:'—',tp:0});
     var wSH=tg.reduce(function(b,h){return h.sl>b.sl?h:b;},tg[0]||{time:'—',sl:0});
     var ahi=g('ahi');if(ahi)ahi.innerHTML='<div class="ib" style="background:var(--rd);border-color:var(--red)"><div class="il">Hora más SL</div><div class="iv" style="color:var(--red)">'+(wSH&&wSH.sl>0?wSH.time+' ('+wSH.sl+')':'—')+'</div></div><div class="ib" style="background:var(--gd);border-color:var(--green)"><div class="il">Hora más TP</div><div class="iv" style="color:var(--green)">'+(bTH&&bTH.tp>0?bTH.time+' ('+bTH.tp+')':'—')+'</div></div>';
@@ -4886,7 +4898,7 @@ function renderA(){
 
 // ── Sub-tab switcher ──
 window.setAST = function(tab){
-  ['resumen','rend','ops','tiempo','dias','meses','instr','estrategia','sesiones'].forEach(function(t){
+  ['resumen','rend','ops','tiempo','meses','instr','recomendaciones'].forEach(function(t){
     var btn=g('ast-'+t), panel=g('ast-panel-'+t);
     if(btn){btn.classList.remove('ast-act');if(t===tab)btn.classList.add('ast-act');}
     if(panel)panel.style.display=(t===tab?'block':'none');
