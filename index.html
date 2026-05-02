@@ -119,6 +119,14 @@ body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(r
 #btn-sell:hover,#btn-sell.asell{border-color:#ff6b8a;color:#ff6b8a;background:rgba(255,56,96,.28);box-shadow:0 0 16px rgba(255,56,96,.4)}
 .rb.atp{border-color:var(--green);background:rgba(0,229,176,.15);color:var(--green);box-shadow:var(--glow-g)}
 .rb.asl{border-color:var(--red);background:rgba(255,56,96,.15);color:var(--red);box-shadow:var(--glow-r)}
+.rb.abuy{border-color:#4d9fff;background:rgba(77,159,255,.15);color:#4d9fff;box-shadow:0 0 16px rgba(77,159,255,.2)}
+.rb.asell{border-color:#c084fc;background:rgba(192,132,252,.15);color:#c084fc;box-shadow:0 0 16px rgba(192,132,252,.2)}
+/* Label del modal — versión compacta y limpia */
+.nop-label{display:block;font-size:9px;font-weight:700;color:#4a5280;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;font-family:'Exo 2',sans-serif}
+/* Fila del modal */
+.nop-row{margin-bottom:14px}
+/* Separador sutil entre secciones */
+.nop-sep{border:none;border-top:1px solid var(--bdr);margin:14px 0}
 /* CALENDAR LAYOUT */
 .cal-layout{display:grid;grid-template-columns:1fr 280px;gap:16px}
 .cal-main{min-width:0}
@@ -193,7 +201,7 @@ tr:hover td{background:rgba(14,18,41,.8)}
 /* MODAL */
 .mo{position:fixed;inset:0;background:transparent;z-index:10000;display:none;align-items:flex-start;justify-content:flex-end;padding:16px;overflow-y:auto}
 .mo.show{display:flex}
-.mb{background:var(--card);border-radius:12px;padding:12px;max-width:330px;width:100%;border:1px solid var(--bdr2);margin:auto;box-shadow:0 8px 40px rgba(0,0,0,.8),0 0 0 1px rgba(99,102,241,.15)}
+.mb{background:var(--card);border-radius:16px;padding:0;max-width:400px;width:100%;border:1px solid var(--bdr2);margin:auto;box-shadow:0 16px 60px rgba(0,0,0,.85),0 0 0 1px rgba(99,102,241,.18)}
 .mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .mt2{font-weight:800;font-size:13px;color:var(--cyan);font-family:'Exo 2',sans-serif}
 .mcl{background:none;border:none;color:var(--gray2);cursor:pointer;font-size:18px;line-height:1;transition:color .2s}
@@ -2935,12 +2943,19 @@ function cancelEdit(){
   setR('TP');setDir('BUY');
   if(g('btn-cancel'))g('btn-cancel').style.display='none';
   var ft=g('form-title-modal');if(ft)ft.textContent='✦ Nueva Operación';
+  populateStrategySelect('');
   window._tradeImages=[];window._tradeLinks=[];
   if(typeof renderFormImages==='function')renderFormImages();
   if(typeof renderFormLinks==='function')renderFormLinks();
   renderDayDetail();
 }
 function saveTrade(){
+  // Guardar estrategia personalizada si el usuario escribió una
+  var stratSel = g('f-strategy');
+  if(stratSel && stratSel.value === '__custom__'){
+    if(saveCustomStrategyIfNeeded() === false) return; // validación falló
+    save(); // persistir la nueva estrategia en settings
+  }
   var date=g('f-date').value, pnl=pN(g('f-pnl').value);
   if(!date){toast('Selecciona una fecha','var(--red)');return;}
   if(pnl===null){toast('Ingresa un monto válido','var(--red)');return;}
@@ -3000,7 +3015,7 @@ function editTrade(id){
   g('f-date').value=t.date;g('f-time').value=t.time||'08:00';
   syncSelectsFromHidden();
   g('f-asset').value=t.asset;setR(t.result);setDir(t.direction||'BUY');
-  g('f-pnl').value=String(t.pnl);g('f-strategy').value=t.strategy||'';g('f-notes').value=t.notes||'';
+  g('f-pnl').value=String(t.pnl);populateStrategySelect(t.strategy||'');g('f-notes').value=t.notes||'';
   if(g('f-tf'))g('f-tf').value=t.tf||'';
   if(g('f-session'))g('f-session').value=t.session||'';
   if(g('f-rr'))g('f-rr').value=t.rr||'';if(typeof rrSetValue==='function')rrSetValue(t.rr||'');
@@ -3077,6 +3092,75 @@ function renderASels(){
     if(cur&&assets.includes(cur))sel.value=cur;
   });
 }
+// ════════════════════════════════════════════════════════════
+//  ESTRATEGIAS PERSONALIZADAS
+// ════════════════════════════════════════════════════════════
+
+// Estrategias predefinidas base
+var DEF_STRATEGIES = ['ICT / SMC','Order Blocks','FVG','BOS / ChoCH','Liquidity Sweep','Scalping','Breaker Block','IFVG','Mitigation','Otra'];
+
+// Devuelve lista completa: fijas + personalizadas guardadas
+function getStrategies(){
+  var customs = (S.settings.customStrategies || []);
+  return DEF_STRATEGIES.concat(customs.filter(function(s){ return DEF_STRATEGIES.indexOf(s)<0; }));
+}
+
+// Reconstruye el <select id="f-strategy"> con fijas + personalizadas
+function populateStrategySelect(currentValue){
+  var sel = g('f-strategy'); if(!sel) return;
+  var strats = getStrategies();
+  sel.innerHTML = '<option value="">— Ninguna —</option>'
+    + strats.map(function(s){ return '<option value="'+s+'"'+( s===currentValue?' selected':'')+'>'+s+'</option>'; }).join('')
+    + '<option disabled style="color:var(--bdr2)">──────────</option>'
+    + '<option value="__custom__">＋ Nueva estrategia...</option>';
+  if(currentValue && strats.indexOf(currentValue)<0 && currentValue!=='__custom__'){
+    // Valor heredado que no está en la lista (ej. editar trade viejo)
+    sel.innerHTML += '<option value="'+currentValue+'" selected>'+currentValue+'</option>';
+    sel.value = currentValue;
+  }
+}
+
+// Muestra/oculta input personalizado al cambiar el select
+window.onStrategyChange = function(){
+  var sel = g('f-strategy');
+  var wrap = g('f-strategy-custom-wrap');
+  var inp  = g('f-strategy-custom');
+  if(!sel||!wrap) return;
+  if(sel.value === '__custom__'){
+    wrap.style.display = 'block';
+    if(inp){ inp.value=''; inp.focus(); }
+  } else {
+    wrap.style.display = 'none';
+  }
+};
+
+// Sincroniza el input con el select mientras el usuario escribe
+window.syncCustomStrategy = function(){
+  var inp = g('f-strategy-custom');
+  if(inp) inp.dataset.pending = inp.value.trim();
+};
+
+// Guarda la estrategia personalizada en S.settings y recarga el select
+function saveCustomStrategyIfNeeded(){
+  var sel = g('f-strategy');
+  var inp = g('f-strategy-custom');
+  if(!sel || sel.value !== '__custom__') return;
+  var name = (inp ? inp.value.trim() : '');
+  if(!name){ toast('Escribe un nombre de estrategia','var(--org)'); return false; }
+  // Guardar en settings si no existe
+  if(!S.settings.customStrategies) S.settings.customStrategies = [];
+  if(S.settings.customStrategies.indexOf(name)<0){
+    S.settings.customStrategies.push(name);
+  }
+  // Cambiar el valor del select al nombre real para que saveTrade() lo lea
+  var opt = document.createElement('option');
+  opt.value = name; opt.textContent = name; opt.selected = true;
+  sel.appendChild(opt);
+  sel.value = name;
+  g('f-strategy-custom-wrap').style.display = 'none';
+  return true;
+}
+
 function addAsset(){
   var v=g('nai').value.trim().toUpperCase();if(!v)return;
   if(S.settings.assets.indexOf(v)>=0){toast('Ya existe','var(--org)');return;}
@@ -4308,7 +4392,7 @@ function renderDayDetail(){
     return'<tr onclick="openTDP(S.trades.find(function(x){return x.id==='+t.id+';})||{},S.trades.filter(function(x){return x.date===\''+ds+'\';}),'+tIdx+')" class="'+(editId===t.id?'sel-row':'')+'">'+
       '<td style="color:var(--cyan);font-family:\'JetBrains Mono\',monospace;font-size:10px">'+( t.time||'—')+'</td>'+
       '<td style="font-weight:700;color:var(--blue)"><span style="font-size:10px;color:var(--gray2);margin-right:2px">›</span>'+t.asset+'</td>'+
-      '<td><span style="font-size:10px;color:var(--gray2);margin-right:2px">›</span><span style="color:'+(t.direction==='BUY'?'var(--green)':'var(--red)')+'">'+( t.direction==='BUY'?'Long':'Short')+'</span></td>'+
+      '<td><span style="font-size:10px;color:var(--gray2);margin-right:2px">›</span><span style="color:'+(t.direction==='BUY'?'var(--green)':'var(--red)')+'">'+( t.direction==='BUY'?'Compra':'Venta')+'</span></td>'+
       '<td style="color:var(--gray2);font-size:10px">'+(t.tf||'—')+'</td>'+
       '<td><span class="'+(t.result==='TP'?'btp':'bsl')+'">'+t.result+'</span></td>'+
       '<td class="'+(t.pnl>=0?'pp':'pn')+'" style="font-weight:700">'+fU(t.pnl)+'</td>'+
@@ -6665,174 +6749,187 @@ button:active, [onclick]:active, .ni:active, .cal-nav-btn:active, .rb:active, .t
 ════════════════════════════════════════════════════════════ -->
 <!-- NEW OPERATION PANEL (modal) -->
 <div id="new-op-modal" class="mo">
-  <div class="mb" style="max-height:88vh;overflow-y:auto;padding:0 18px 18px">
+  <div class="mb" style="max-height:90vh;overflow-y:auto;display:flex;flex-direction:column">
 
-    <!-- Header sticky -->
-    <div class="mh" style="position:sticky;top:0;background:var(--card);padding:16px 0 14px;z-index:2;margin:0 -18px;padding-left:18px;padding-right:18px;border-bottom:1px solid var(--bdr);margin-bottom:16px">
-      <span class="mt2" id="form-title-modal" style="font-size:13px;font-weight:800;letter-spacing:0.5px;font-family:'Exo 2',sans-serif">✦ Nueva Operación</span>
-      <button class="mcl" onclick="closeNewOpPanel()" style="font-size:14px;opacity:0.6">✕</button>
-    </div>
-
-    <!-- ── FECHA ── -->
-    <div style="margin-bottom:14px">
-      <div class="fl" style="margin-bottom:6px">Fecha</div>
-      <div style="display:flex;gap:6px">
-        <select id="f-day" class="fi" style="flex:1" onchange="buildDateFromParts()"><option value="">Día</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
-        <select id="f-month" class="fi" style="flex:2" onchange="buildDateFromParts()">
-          <option value="">Mes</option><option value="01">Enero</option><option value="02">Febrero</option><option value="03">Marzo</option><option value="04">Abril</option><option value="05">Mayo</option><option value="06">Junio</option><option value="07">Julio</option><option value="08">Agosto</option><option value="09">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
-        </select>
-        <select id="f-year" class="fi" style="flex:1.2" onchange="buildDateFromParts()"><option value="">Año</option><option value="2022">2022</option><option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option></select>
-        <input type="number" id="f-year-custom" class="fi" placeholder="Año" min="2000" max="2099" style="flex:1.2;display:none" onchange="setCustomYear(this.value)">
-      </div>
-      <input type="hidden" id="f-date">
-      <div style="text-align:right;margin-top:4px">
-        <a id="f-year-custom-lnk" href="#" onclick="toggleCustomYear();return false;" style="font-size:9px;color:#a78bfa;text-decoration:none;letter-spacing:0.5px;font-family:'Exo 2',sans-serif">✎ Año personalizado</a>
-      </div>
-    </div>
-
-    <!-- ── HORA + ACTIVO (2 columnas iguales) ── -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-      <div>
-        <div class="fl" style="margin-bottom:6px">Hora</div>
-        <div style="display:flex;gap:5px">
-          <select id="f-hour" class="fi" style="flex:1" onchange="buildTimeFromParts()"><option value="00">00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08" selected>08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option></select>
-          <select id="f-min" class="fi" style="flex:1" onchange="buildTimeFromParts()"><option value="00" selected>00</option><option value="05">05</option><option value="10">10</option><option value="15">15</option><option value="20">20</option><option value="25">25</option><option value="30">30</option><option value="35">35</option><option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="55">55</option></select>
+    <!-- ── HEADER ── -->
+    <div style="position:sticky;top:0;z-index:10;background:var(--card);border-radius:16px 16px 0 0;padding:18px 20px 14px;border-bottom:1px solid var(--bdr);display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:9px">
+        <div style="width:28px;height:28px;border-radius:8px;background:rgba(99,102,241,.18);border:1px solid rgba(99,102,241,.3);display:flex;align-items:center;justify-content:center">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         </div>
-        <input type="hidden" id="f-time" value="08:00">
+        <span id="form-title-modal" style="font-size:13px;font-weight:800;letter-spacing:0.3px;font-family:'Exo 2',sans-serif;color:var(--text)">Nueva Operación</span>
       </div>
-      <div>
-        <div class="fl" style="margin-bottom:6px">Activo</div>
-        <select id="f-asset" class="fi" style="width:100%"></select>
-      </div>
-    </div>
-
-    <!-- ── RESULTADO ── -->
-    <div style="margin-bottom:14px">
-      <div class="fl" style="margin-bottom:6px">Resultado</div>
-      <div class="rbw">
-        <button class="rb atp" id="btn-tp" onclick="setR('TP')" style="flex:1">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-          TP
-        </button>
-        <button class="rb" id="btn-sl" onclick="setR('SL')" style="flex:1">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          SL
-        </button>
-      </div>
-    </div>
-
-    <!-- ── DIRECCIÓN ── -->
-    <div style="margin-bottom:14px">
-      <div class="fl" style="margin-bottom:6px">Dirección</div>
-      <div class="rbw">
-        <button class="rb abuy" id="btn-buy" onclick="setDir('BUY')" style="flex:1">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
-          BUY (Long)
-        </button>
-        <button class="rb" id="btn-sell" onclick="setDir('SELL')" style="flex:1">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-          SELL (Short)
-        </button>
-      </div>
-    </div>
-
-    <!-- ── P&L ── -->
-    <div style="margin-bottom:14px">
-      <div class="fl" style="margin-bottom:6px">P&amp;L en USD <span style="color:#4a5280;font-weight:600;letter-spacing:0">(negativo = pérdida)</span></div>
-      <input type="text" inputmode="decimal" id="f-pnl" class="fi fi-lg" placeholder="ej: 120.50 ó -45.20" oninput="onPI()" style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600">
-      <div id="pnl-prev" style="font-size:10px;font-weight:600;min-height:14px;margin-top:4px;font-family:'JetBrains Mono',monospace"></div>
-    </div>
-
-    <!-- ── PRECIO ENTRADA + SALIDA ── -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-      <div>
-        <div class="fl" style="margin-bottom:6px">Precio entrada</div>
-        <input type="text" id="f-entry" class="fi" placeholder="Ej: 1.08745" inputmode="decimal" style="font-family:'JetBrains Mono',monospace">
-      </div>
-      <div>
-        <div class="fl" style="margin-bottom:6px">Precio salida</div>
-        <input type="text" id="f-exit" class="fi" placeholder="Ej: 1.08950" inputmode="decimal" style="font-family:'JetBrains Mono',monospace">
-      </div>
-    </div>
-
-    <!-- ── ESTRATEGIA + RR ── -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-      <div>
-        <div class="fl" style="margin-bottom:6px">Estrategia</div>
-        <select id="f-strategy" class="fi" style="width:100%"><option value="">— Ninguna —</option><option>ICT / SMC</option><option>Order Blocks</option><option>FVG</option><option>BOS / ChoCH</option><option>Liquidity Sweep</option><option>Scalping</option><option>Breaker Block</option><option>IFVG</option><option>Mitigation</option><option>Otra</option></select>
-      </div>
-      <div>
-        <div class="fl" style="margin-bottom:6px">RR (Riesgo/Beneficio)</div>
-        <div style="display:flex;gap:5px">
-          <select id="f-rr-sel" class="fi" style="flex:1" onchange="rrSelChange()">
-            <option value="">— Sin RR —</option>
-            <option value="0.5">1:0.5</option><option value="1">1:1</option><option value="1.5">1:1.5</option>
-            <option value="2">1:2</option><option value="2.5">1:2.5</option><option value="3">1:3</option>
-            <option value="4">1:4</option><option value="5">1:5</option><option value="6">1:6</option>
-            <option value="8">1:8</option><option value="10">1:10</option>
-            <option value="custom">Personalizado</option>
-          </select>
-          <input type="number" id="f-rr" class="fi" step="0.1" min="0" placeholder="RR" style="flex:1;display:none">
-        </div>
-      </div>
-    </div>
-
-    <!-- ── SESIÓN ── -->
-    <div style="margin-bottom:14px">
-      <div class="fl" style="margin-bottom:6px">Sesión</div>
-      <select id="f-session" class="fi" style="width:100%"><option value="">—</option><option>Asia</option><option>Londres</option><option>Nueva York</option><option>Londres+NY</option><option>Pre-Mercado</option></select>
-    </div>
-
-    <!-- ── NOTAS ── -->
-    <div style="margin-bottom:14px">
-      <div class="fl" style="margin-bottom:6px">Notas</div>
-      <textarea id="f-notes" class="fi" rows="2" placeholder="Observaciones, setup, contexto..." style="resize:vertical;font-size:12px"></textarea>
-      <input type="hidden" id="f-tags" value="">
-      <input type="hidden" id="f-tf" value="">
-      <input type="hidden" id="f-pips" value="">
-      <input type="hidden" id="f-volume" value="">
-      <input type="hidden" id="f-commission" value="">
-    </div>
-
-    <!-- ── CAPTURAS ── -->
-    <div style="margin-bottom:14px">
-      <div class="fl" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-        <span>Capturas</span>
-        <span id="form-img-count" style="color:var(--gray2);font-size:9px;font-weight:600;letter-spacing:1px">0 archivos</span>
-      </div>
-      <div id="form-img-preview" class="img-gallery" style="min-height:0"></div>
-      <div style="display:flex;gap:6px;margin-top:8px">
-        <label style="cursor:pointer;flex-shrink:0">
-          <div class="img-add-btn" style="aspect-ratio:auto;padding:9px 12px;flex-direction:row;gap:7px;border-radius:8px;white-space:nowrap">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            <span style="font-size:11px;font-family:'DM Sans',sans-serif">Dispositivo</span>
-          </div>
-          <input type="file" id="f-img-file" accept="image/*" multiple style="display:none" onchange="handleImgUpload(this)">
-        </label>
-        <input type="url" id="f-img-url" class="fi" placeholder="URL imagen (TradingView, Dropbox...)" style="flex:1;font-size:11px" onkeydown="if(event.key==='Enter'){event.preventDefault();addImgFromURL();}">
-        <button class="btn" style="padding:9px 10px;white-space:nowrap;font-size:11px;flex-shrink:0" onclick="addImgFromURL()">+ URL</button>
-      </div>
-    </div>
-
-    <!-- ── ENLACES ── -->
-    <div style="margin-bottom:16px">
-      <div class="fl" style="margin-bottom:6px">Enlaces</div>
-      <div style="display:flex;gap:6px">
-        <input type="text" id="f-link-input" class="fi" placeholder="https://tradingview.com/..." style="flex:1">
-        <button class="btn" style="white-space:nowrap;padding:9px 12px" onclick="addFormLink()">+ Agregar</button>
-      </div>
-      <div id="form-links-list" style="margin-top:6px"></div>
-    </div>
-
-    <!-- ── BOTONES ── -->
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-r" id="btn-cancel" style="display:none;flex:1;justify-content:center;padding:11px" onclick="cancelEdit();closeNewOpPanel()">✕ Cancelar</button>
-      <button class="btn btn-g" id="btn-save" style="flex:1;justify-content:center;padding:12px" onclick="if(window._spawnRipple)window._spawnRipple(event.clientX,event.clientY);if(window._playClick)window._playClick();saveTrade()">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M13 2H5L2 5v9a1 1 0 001 1h10a1 1 0 001-1V3a1 1 0 00-1-1z"/><polyline points="5,2 5,7 11,7"/><polyline points="11,11 8,14 5,11"/></svg>
-        Registrar operación
+      <button class="mcl" onclick="closeNewOpPanel()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
 
+    <!-- ── BODY ── -->
+    <div style="padding:18px 20px 20px;display:flex;flex-direction:column;gap:14px">
+
+      <!-- FECHA -->
+      <div>
+        <label class="nop-label">Fecha</label>
+        <div style="display:flex;gap:6px">
+          <select id="f-day" class="fi" style="flex:1" onchange="buildDateFromParts()"><option value="">Día</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
+          <select id="f-month" class="fi" style="flex:2" onchange="buildDateFromParts()"><option value="">Mes</option><option value="01">Enero</option><option value="02">Febrero</option><option value="03">Marzo</option><option value="04">Abril</option><option value="05">Mayo</option><option value="06">Junio</option><option value="07">Julio</option><option value="08">Agosto</option><option value="09">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select>
+          <select id="f-year" class="fi" style="flex:1.2" onchange="buildDateFromParts()"><option value="">Año</option><option value="2022">2022</option><option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option></select>
+          <input type="number" id="f-year-custom" class="fi" placeholder="Año" min="2000" max="2099" style="flex:1.2;display:none" onchange="setCustomYear(this.value)">
+        </div>
+        <input type="hidden" id="f-date">
+        <div style="text-align:right;margin-top:5px">
+          <a id="f-year-custom-lnk" href="#" onclick="toggleCustomYear();return false;" style="font-size:9px;color:#a78bfa;text-decoration:none;letter-spacing:1px;font-family:'Exo 2',sans-serif;font-weight:600">✎ AÑO PERSONALIZADO</a>
+        </div>
+      </div>
+
+      <!-- HORA + ACTIVO -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label class="nop-label">Hora</label>
+          <div style="display:flex;gap:5px">
+            <select id="f-hour" class="fi" style="flex:1" onchange="buildTimeFromParts()"><option value="00">00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08" selected>08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option></select>
+            <select id="f-min" class="fi" style="flex:1" onchange="buildTimeFromParts()"><option value="00" selected>00</option><option value="05">05</option><option value="10">10</option><option value="15">15</option><option value="20">20</option><option value="25">25</option><option value="30">30</option><option value="35">35</option><option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="55">55</option></select>
+          </div>
+          <input type="hidden" id="f-time" value="08:00">
+        </div>
+        <div>
+          <label class="nop-label">Activo</label>
+          <select id="f-asset" class="fi" style="width:100%"></select>
+        </div>
+      </div>
+
+      <!-- RESULTADO + DIRECCIÓN -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label class="nop-label">Resultado</label>
+          <div style="display:flex;gap:6px">
+            <button class="rb atp" id="btn-tp" onclick="setR('TP')" style="flex:1;min-height:38px">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              TP
+            </button>
+            <button class="rb" id="btn-sl" onclick="setR('SL')" style="flex:1;min-height:38px">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              SL
+            </button>
+          </div>
+        </div>
+        <div>
+          <label class="nop-label">Dirección</label>
+          <div style="display:flex;gap:6px">
+            <button class="rb abuy" id="btn-buy" onclick="setDir('BUY')" style="flex:1;min-height:38px">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+              BUY
+            </button>
+            <button class="rb" id="btn-sell" onclick="setDir('SELL')" style="flex:1;min-height:38px">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              SELL
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- P&L -->
+      <div>
+        <label class="nop-label">P&amp;L en USD <span style="color:#4a5280;font-weight:600;letter-spacing:0;text-transform:none">(negativo = pérdida)</span></label>
+        <input type="text" inputmode="decimal" id="f-pnl" class="fi" placeholder="ej: 120.50 ó -45.20" oninput="onPI()" style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;padding:10px 12px">
+        <div id="pnl-prev" style="font-size:10px;font-weight:600;min-height:16px;margin-top:5px;font-family:'JetBrains Mono',monospace"></div>
+      </div>
+
+      <!-- PRECIO ENTRADA + SALIDA -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label class="nop-label">Precio entrada</label>
+          <input type="text" id="f-entry" class="fi" placeholder="1.08745" inputmode="decimal" style="font-family:'JetBrains Mono',monospace">
+        </div>
+        <div>
+          <label class="nop-label">Precio salida</label>
+          <input type="text" id="f-exit" class="fi" placeholder="1.08950" inputmode="decimal" style="font-family:'JetBrains Mono',monospace">
+        </div>
+      </div>
+
+      <!-- ESTRATEGIA + RR -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label class="nop-label">Estrategia</label>
+          <select id="f-strategy" class="fi" onchange="onStrategyChange()"><option value="">— Ninguna —</option><option>ICT / SMC</option><option>Order Blocks</option><option>FVG</option><option>BOS / ChoCH</option><option>Liquidity Sweep</option><option>Scalping</option><option>Breaker Block</option><option>IFVG</option><option>Mitigation</option><option>Otra</option><option disabled style="color:var(--bdr2)">──────────</option><option value="__custom__">＋ Nueva estrategia...</option></select>
+          <div id="f-strategy-custom-wrap" style="display:none;margin-top:6px;display:none">
+            <input type="text" id="f-strategy-custom" class="fi" placeholder="Nombre de la estrategia..." maxlength="40" style="font-size:12px" oninput="syncCustomStrategy()">
+            <div style="font-size:9px;color:#4a5280;margin-top:4px;font-family:'Exo 2',sans-serif;letter-spacing:1px">SE GUARDARÁ AUTOMÁTICAMENTE AL REGISTRAR</div>
+          </div>
+        </div>
+        <div>
+          <label class="nop-label">RR</label>
+          <div style="display:flex;gap:5px">
+            <select id="f-rr-sel" class="fi" style="flex:1" onchange="rrSelChange()">
+              <option value="">— Sin RR —</option>
+              <option value="0.5">1:0.5</option><option value="1">1:1</option><option value="1.5">1:1.5</option>
+              <option value="2">1:2</option><option value="2.5">1:2.5</option><option value="3">1:3</option>
+              <option value="4">1:4</option><option value="5">1:5</option><option value="6">1:6</option>
+              <option value="8">1:8</option><option value="10">1:10</option>
+              <option value="custom">Personalizado</option>
+            </select>
+            <input type="number" id="f-rr" class="fi" step="0.1" min="0" placeholder="RR" style="flex:1;display:none">
+          </div>
+        </div>
+      </div>
+
+      <!-- SESIÓN -->
+      <div>
+        <label class="nop-label">Sesión</label>
+        <select id="f-session" class="fi"><option value="">—</option><option>Asia</option><option>Londres</option><option>Nueva York</option><option>Londres+NY</option><option>Pre-Mercado</option></select>
+      </div>
+
+      <!-- NOTAS -->
+      <div>
+        <label class="nop-label">Notas</label>
+        <textarea id="f-notes" class="fi" rows="2" placeholder="Observaciones, setup, contexto..." style="resize:vertical;line-height:1.5"></textarea>
+        <input type="hidden" id="f-tags" value="">
+        <input type="hidden" id="f-tf" value="">
+        <input type="hidden" id="f-pips" value="">
+        <input type="hidden" id="f-volume" value="">
+        <input type="hidden" id="f-commission" value="">
+      </div>
+
+      <!-- CAPTURAS -->
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <label class="nop-label" style="margin:0">Capturas</label>
+          <span id="form-img-count" style="color:var(--gray2);font-size:9px;font-weight:700;letter-spacing:1px;font-family:'Exo 2',sans-serif">0 ARCHIVOS</span>
+        </div>
+        <div id="form-img-preview" class="img-gallery" style="min-height:0"></div>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <label style="cursor:pointer;flex-shrink:0">
+            <div class="img-add-btn" style="aspect-ratio:auto;padding:8px 12px;flex-direction:row;gap:7px;border-radius:8px;white-space:nowrap">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <span style="font-size:11px;font-family:'DM Sans',sans-serif">Dispositivo</span>
+            </div>
+            <input type="file" id="f-img-file" accept="image/*" multiple style="display:none" onchange="handleImgUpload(this)">
+          </label>
+          <input type="url" id="f-img-url" class="fi" placeholder="URL imagen (TradingView...)" style="flex:1;font-size:11px" onkeydown="if(event.key==='Enter'){event.preventDefault();addImgFromURL();}">
+          <button class="btn" style="padding:8px 10px;white-space:nowrap;font-size:11px;flex-shrink:0" onclick="addImgFromURL()">+ URL</button>
+        </div>
+      </div>
+
+      <!-- ENLACES -->
+      <div>
+        <label class="nop-label">Enlaces</label>
+        <div style="display:flex;gap:6px">
+          <input type="text" id="f-link-input" class="fi" placeholder="https://tradingview.com/..." style="flex:1">
+          <button class="btn" style="white-space:nowrap;padding:8px 12px" onclick="addFormLink()">+ Agregar</button>
+        </div>
+        <div id="form-links-list" style="margin-top:6px"></div>
+      </div>
+
+      <!-- BOTÓN GUARDAR -->
+      <div style="display:flex;gap:8px;padding-top:4px">
+        <button class="btn btn-r" id="btn-cancel" style="display:none;flex:1;justify-content:center;padding:12px" onclick="cancelEdit();closeNewOpPanel()">✕ Cancelar</button>
+        <button class="btn btn-g" id="btn-save" style="flex:1;justify-content:center;padding:13px;font-size:12px;font-weight:700;letter-spacing:0.3px" onclick="if(window._spawnRipple)window._spawnRipple(event.clientX,event.clientY);if(window._playClick)window._playClick();saveTrade()">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M13 2H5L2 5v9a1 1 0 001 1h10a1 1 0 001-1V3a1 1 0 00-1-1z"/><polyline points="5,2 5,7 11,7"/><polyline points="11,11 8,14 5,11"/></svg>
+          Registrar operación
+        </button>
+      </div>
+
+    </div><!-- /body -->
   </div>
 </div>
 
@@ -7218,7 +7315,7 @@ window.openTDP = function(trade, dayList, idx) {
         '<div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff;font-family:\'Exo 2\',sans-serif">'+( (trade.asset||'?').substring(0,2))+'</div>' +
         '<div>' +
           '<div style="font-size:15px;font-weight:900;font-family:\'Exo 2\',sans-serif;color:var(--text)">'+(trade.asset||'—')+'</div>' +
-          '<div style="font-size:10px;color:'+(trade.direction==='BUY'?'var(--green)':'var(--red)')+'">'+( trade.direction==='BUY'?'▲ Long':'▼ Short')+'</div>' +
+          '<div style="font-size:10px;color:'+(trade.direction==='BUY'?'var(--green)':'var(--red)')+'">'+( trade.direction==='BUY'?'▲ Compra':'▼ Venta')+'</div>' +
         '</div>' +
         '<div style="margin-left:auto;text-align:right">' +
           (trade.entry?'<div style="font-size:12px;font-weight:700;font-family:\'JetBrains Mono\',monospace;color:var(--text)">'+trade.entry+'</div><div style="font-size:9px;color:var(--gray2)">Precio de entrada</div>':'') +
@@ -7349,7 +7446,7 @@ window.renderDayDetail = function() {
     return '<tr onclick="if(!event.target.closest(\'button\')){openTDP(window._currentDayTrades['+i+'],window._currentDayTrades,'+i+');window._playClick&&window._playClick();}" style="cursor:pointer">'+
       '<td style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--gray2)">'+(t.time||'—')+'</td>'+
       '<td style="font-weight:800;font-size:12px;font-family:\'Exo 2\',sans-serif;color:var(--text)">'+( t.asset||'—')+'</td>'+
-      '<td><span class="'+(t.direction==='BUY'?'bbuy':'bsell')+'">'+( t.direction==='BUY'?'▲ Long':'▼ Short')+'</span></td>'+
+      '<td><span class="'+(t.direction==='BUY'?'bbuy':'bsell')+'">'+( t.direction==='BUY'?'▲ Compra':'▼ Venta')+'</span></td>'+
       '<td><span style="font-size:10px;background:rgba(124,58,237,.12);color:var(--purp);padding:2px 6px;border-radius:4px">'+(t.tf||'—')+'</span></td>'+
       '<td><span class="'+(isWin?'btp':'bsl')+'">'+t.result+'</span></td>'+
       '<td style="font-size:11px;color:var(--gray2)">'+(t.pips?t.pips:'—')+'</td>'+
@@ -7603,7 +7700,7 @@ function populateRightPanel(trade) {
   html += '<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--card2);border-radius:10px;border:1px solid var(--bdr);margin-bottom:10px">';
   html += '<div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff;font-family:\'Exo 2\',sans-serif;flex-shrink:0">'+(liveTrade.asset||'?').substring(0,2)+'</div>';
   html += '<div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:900;font-family:\'Exo 2\',sans-serif;color:var(--text)">'+(liveTrade.asset||'—')+'</div>';
-  html += '<div style="font-size:10px;font-weight:600;color:'+(liveTrade.direction==='BUY'?'var(--green)':'var(--red)')+'">'+( liveTrade.direction==='BUY'?'▲ Long':'▼ Short')+'</div></div>';
+  html += '<div style="font-size:10px;font-weight:600;color:'+(liveTrade.direction==='BUY'?'var(--green)':'var(--red)')+'">'+( liveTrade.direction==='BUY'?'▲ Compra':'▼ Venta')+'</div></div>';
   if(liveTrade.time) html += '<div style="font-size:11px;color:var(--gray2);font-family:\'JetBrains Mono\',monospace;text-align:right">'+(liveTrade.date||'').slice(5)+'<br>'+liveTrade.time+'</div>';
   html += '</div>';
 
@@ -7944,7 +8041,7 @@ window.closeLightbox = function() {
        + (t.asset || '?').substring(0, 2) + '</div>';
     h += '<div style="flex:1"><div style="font-size:15px;font-weight:900;color:var(--text);font-family:\'Exo 2\',sans-serif">' + (t.asset || '—') + '</div>'
        + '<div style="font-size:10px;color:' + (t.direction === 'BUY' ? 'var(--green)' : 'var(--red)') + ';font-weight:700">'
-       + (t.direction === 'BUY' ? '▲ Long' : '▼ Short') + '</div></div>';
+       + (t.direction === 'BUY' ? '▲ Compra' : '▼ Venta') + '</div></div>';
     if (t.date || t.time) {
       h += '<div style="text-align:right;font-size:11px;color:var(--gray2);font-family:\'JetBrains Mono\',monospace">'
          + (t.date ? t.date.slice(5).replace('-', '/') : '') + (t.time ? '<br>' + t.time : '') + '</div>';
