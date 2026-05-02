@@ -1130,11 +1130,6 @@ tr:hover td{background:rgba(14,18,41,.8)}
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" width="13" height="13"><line x1="8" y1="1" x2="8" y2="15"/><line x1="1" y1="8" x2="15" y2="8"/></svg>
           Nueva operación
         </button>
-        <button class="btn reg-filter-btn" id="reg-filter-toggle" onclick="toggleRegFilters()">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="13" height="13"><path d="M1 3h14M4 8h8M7 13h2"/></svg>
-          Filtros
-          <svg viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" width="9" height="9"><polyline points="1,1 5,5 9,1"/></svg>
-        </button>
       </div>
     </div>
 
@@ -1156,18 +1151,24 @@ tr:hover td{background:rgba(14,18,41,.8)}
         <button class="reg-nav-arrow" onclick="calNav(1)">
           <svg viewBox="0 0 8 12" fill="none" stroke="currentColor" stroke-width="1.8" width="8" height="12"><polyline points="1,1 7,6 1,11"/></svg>
         </button>
-        <div class="reg-month-pill" onclick="document.getElementById('reg-date-selects').classList.toggle('open')">
-          <span id="cal-label" style="font-family:'Exo 2',sans-serif;font-size:13px;font-weight:800;color:var(--text)"></span>
-          <svg viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" width="9" height="9" style="opacity:.5"><polyline points="1,1 5,5 9,1"/></svg>
-          <!-- Hidden selects for programmatic use -->
-          <div id="reg-date-selects" style="display:none;position:absolute;top:100%;left:0;margin-top:4px;background:var(--card);border:1px solid var(--bdr2);border-radius:10px;padding:8px;z-index:100;display:none;gap:6px">
-            <select id="cal-yr-sel" class="fi" style="width:auto;padding:5px 8px;font-size:11px;font-weight:700" onchange="calGoTo()"></select>
-            <select id="cal-mo-sel" class="fi" style="width:auto;padding:5px 8px;font-size:11px;font-weight:700" onchange="calGoTo()"></select>
+        <div style="position:relative">
+          <div class="reg-month-pill" onclick="toggleCalDatePicker()">
+            <span id="cal-label" style="font-family:'Exo 2',sans-serif;font-size:13px;font-weight:800;color:var(--text)"></span>
+            <svg id="cal-pill-arrow" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" width="9" height="9" style="opacity:.5;transition:transform .2s"><polyline points="1,1 5,5 9,1"/></svg>
+          </div>
+          <div id="reg-date-selects" style="display:none;position:absolute;top:calc(100% + 6px);left:0;background:var(--card);border:1px solid var(--bdr2);border-radius:10px;padding:10px;z-index:200;display:none;gap:8px;box-shadow:0 8px 32px rgba(0,0,0,.5)">
+            <select id="cal-yr-sel" class="fi" style="width:auto;padding:6px 10px;font-size:12px;font-weight:700" onchange="calGoTo()"></select>
+            <select id="cal-mo-sel" class="fi" style="width:auto;padding:6px 10px;font-size:12px;font-weight:700" onchange="calGoTo()"></select>
           </div>
         </div>
         <button class="reg-today-btn" onclick="calToday()">Hoy</button>
+        <button class="btn reg-filter-btn" id="reg-filter-toggle" onclick="toggleRegFilters()" style="display:none">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="13" height="13"><path d="M1 3h14M4 8h8M7 13h2"/></svg>
+          Filtros
+          <svg viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" width="9" height="9"><polyline points="1,1 5,5 9,1"/></svg>
+        </button>
       </div>
-      <div style="margin-left:auto">
+      <div style="margin-left:auto;display:none">
         <select id="f-filter-asset-cal" class="fi reg-pair-sel" onchange="renderCal();renderMonthSummary()">
           <option value="">Todos los pares</option>
         </select>
@@ -3117,10 +3118,32 @@ function renderCalSels(){
   moSel.innerHTML=MONTHS.map(function(m,i){return'<option value="'+i+'">'+m+'</option>';}).join('');
   moSel.value=String(calMonth);
 }
+function toggleCalDatePicker(){
+  var dp = g('reg-date-selects');
+  var arrow = g('cal-pill-arrow');
+  if(!dp) return;
+  var isOpen = dp.style.display === 'flex';
+  dp.style.display = isOpen ? 'none' : 'flex';
+  if(arrow) arrow.style.transform = isOpen ? '' : 'rotate(180deg)';
+}
+// Cerrar el picker si se hace click fuera
+document.addEventListener('click', function(e){
+  var pill = e.target.closest('.reg-month-pill');
+  var dp   = g('reg-date-selects');
+  var arrow = g('cal-pill-arrow');
+  if(!pill && dp && dp.style.display==='flex'){
+    dp.style.display='none';
+    if(arrow) arrow.style.transform='';
+  }
+}, true);
+
 function calGoTo(){
   var yrSel=g('cal-yr-sel'),moSel=g('cal-mo-sel');
   calYear=parseInt(yrSel.value);calMonth=parseInt(moSel.value);
   selDay=null;renderCal();renderMonthSummary();renderMonthStats();
+  // Cerrar picker tras selección
+  var dp=g('reg-date-selects');var arrow=g('cal-pill-arrow');
+  if(dp)dp.style.display='none';if(arrow)arrow.style.transform='';
   var dd=g('day-detail');if(dd)dd.style.display='none';
 }
 
@@ -6642,112 +6665,147 @@ button:active, [onclick]:active, .ni:active, .cal-nav-btn:active, .rb:active, .t
 ════════════════════════════════════════════════════════════ -->
 <!-- NEW OPERATION PANEL (modal) -->
 <div id="new-op-modal" class="mo">
-  <div class="mb" style="max-height:88vh;overflow-y:auto">
-    <div class="mh" style="position:sticky;top:0;background:var(--card);padding-bottom:12px;z-index:2">
-      <span class="mt2" id="form-title-modal">✦ Nueva Operación</span>
-      <button class="mcl" onclick="closeNewOpPanel()">✕</button>
+  <div class="mb" style="max-height:88vh;overflow-y:auto;padding:0 18px 18px">
+
+    <!-- Header sticky -->
+    <div class="mh" style="position:sticky;top:0;background:var(--card);padding:16px 0 14px;z-index:2;margin:0 -18px;padding-left:18px;padding-right:18px;border-bottom:1px solid var(--bdr);margin-bottom:16px">
+      <span class="mt2" id="form-title-modal" style="font-size:13px;font-weight:800;letter-spacing:0.5px;font-family:'Exo 2',sans-serif">✦ Nueva Operación</span>
+      <button class="mcl" onclick="closeNewOpPanel()" style="font-size:14px;opacity:0.6">✕</button>
     </div>
-    <div class="fg"><label class="fl">Fecha</label>
+
+    <!-- ── FECHA ── -->
+    <div style="margin-bottom:14px">
+      <div class="fl" style="margin-bottom:6px">Fecha</div>
       <div style="display:flex;gap:6px">
         <select id="f-day" class="fi" style="flex:1" onchange="buildDateFromParts()"><option value="">Día</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
-        <select id="f-month" class="fi" style="flex:1.5" onchange="buildDateFromParts()">
+        <select id="f-month" class="fi" style="flex:2" onchange="buildDateFromParts()">
           <option value="">Mes</option><option value="01">Enero</option><option value="02">Febrero</option><option value="03">Marzo</option><option value="04">Abril</option><option value="05">Mayo</option><option value="06">Junio</option><option value="07">Julio</option><option value="08">Agosto</option><option value="09">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
         </select>
-        <select id="f-year" class="fi" style="flex:1" onchange="buildDateFromParts()"><option value="">Año</option><option value="2022">2022</option><option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option></select>
-        <input type="number" id="f-year-custom" class="fi" placeholder="Año" min="2000" max="2099" style="flex:1;display:none" onchange="setCustomYear(this.value)">
+        <select id="f-year" class="fi" style="flex:1.2" onchange="buildDateFromParts()"><option value="">Año</option><option value="2022">2022</option><option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option></select>
+        <input type="number" id="f-year-custom" class="fi" placeholder="Año" min="2000" max="2099" style="flex:1.2;display:none" onchange="setCustomYear(this.value)">
       </div>
       <input type="hidden" id="f-date">
-      <div style="text-align:right;margin-top:3px"><a id="f-year-custom-lnk" href="#" onclick="toggleCustomYear();return false;" style="font-size:9px;color:#a78bfa;text-decoration:none">✎ Año personalizado</a></div>
+      <div style="text-align:right;margin-top:4px">
+        <a id="f-year-custom-lnk" href="#" onclick="toggleCustomYear();return false;" style="font-size:9px;color:#a78bfa;text-decoration:none;letter-spacing:0.5px;font-family:'Exo 2',sans-serif">✎ Año personalizado</a>
+      </div>
     </div>
-    <div class="fg2" style="margin-bottom:12px">
-      <div><label class="fl">Hora</label>
-        <div style="display:flex;gap:4px">
+
+    <!-- ── HORA + ACTIVO (2 columnas iguales) ── -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div>
+        <div class="fl" style="margin-bottom:6px">Hora</div>
+        <div style="display:flex;gap:5px">
           <select id="f-hour" class="fi" style="flex:1" onchange="buildTimeFromParts()"><option value="00">00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08" selected>08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option></select>
           <select id="f-min" class="fi" style="flex:1" onchange="buildTimeFromParts()"><option value="00" selected>00</option><option value="05">05</option><option value="10">10</option><option value="15">15</option><option value="20">20</option><option value="25">25</option><option value="30">30</option><option value="35">35</option><option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="55">55</option></select>
         </div>
         <input type="hidden" id="f-time" value="08:00">
       </div>
-      <div><label class="fl">Activo</label><select id="f-asset" class="fi"></select></div>
+      <div>
+        <div class="fl" style="margin-bottom:6px">Activo</div>
+        <select id="f-asset" class="fi" style="width:100%"></select>
+      </div>
     </div>
-    <div class="fg">
-      <label class="fl">Resultado</label>
+
+    <!-- ── RESULTADO ── -->
+    <div style="margin-bottom:14px">
+      <div class="fl" style="margin-bottom:6px">Resultado</div>
       <div class="rbw">
-        <button class="rb atp" id="btn-tp" onclick="setR('TP')">✓ TP</button>
-        <button class="rb" id="btn-sl" onclick="setR('SL')">✕ SL</button>
+        <button class="rb atp" id="btn-tp" onclick="setR('TP')" style="flex:1">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          TP
+        </button>
+        <button class="rb" id="btn-sl" onclick="setR('SL')" style="flex:1">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          SL
+        </button>
       </div>
     </div>
-    <div class="fg">
-      <label class="fl">Dirección</label>
+
+    <!-- ── DIRECCIÓN ── -->
+    <div style="margin-bottom:14px">
+      <div class="fl" style="margin-bottom:6px">Dirección</div>
       <div class="rbw">
-        <button class="rb abuy" id="btn-buy" onclick="setDir('BUY')">▲ BUY (Long)</button>
-        <button class="rb" id="btn-sell" onclick="setDir('SELL')">▼ SELL (Short)</button>
+        <button class="rb abuy" id="btn-buy" onclick="setDir('BUY')" style="flex:1">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+          BUY (Long)
+        </button>
+        <button class="rb" id="btn-sell" onclick="setDir('SELL')" style="flex:1">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          SELL (Short)
+        </button>
       </div>
     </div>
-    <div class="fg">
-      <label class="fl">P&L en USD (negativo = pérdida)</label>
-      <input type="text" inputmode="decimal" id="f-pnl" class="fi fi-lg" placeholder="ej: 120.50 ó -45.20" oninput="onPI()">
-      <div id="pnl-prev" style="font-size:10px;font-weight:600;min-height:14px;margin-top:3px"></div>
+
+    <!-- ── P&L ── -->
+    <div style="margin-bottom:14px">
+      <div class="fl" style="margin-bottom:6px">P&amp;L en USD <span style="color:#4a5280;font-weight:600;letter-spacing:0">(negativo = pérdida)</span></div>
+      <input type="text" inputmode="decimal" id="f-pnl" class="fi fi-lg" placeholder="ej: 120.50 ó -45.20" oninput="onPI()" style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600">
+      <div id="pnl-prev" style="font-size:10px;font-weight:600;min-height:14px;margin-top:4px;font-family:'JetBrains Mono',monospace"></div>
     </div>
-    <!-- Precios, Pips, Volumen, Comisión -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-      <div class="fg" style="margin:0"><label class="fl">Precio de Entrada</label>
-        <input type="text" id="f-entry" class="fi" placeholder="Ej: 1.08745" inputmode="decimal">
+
+    <!-- ── PRECIO ENTRADA + SALIDA ── -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div>
+        <div class="fl" style="margin-bottom:6px">Precio entrada</div>
+        <input type="text" id="f-entry" class="fi" placeholder="Ej: 1.08745" inputmode="decimal" style="font-family:'JetBrains Mono',monospace">
       </div>
-      <div class="fg" style="margin:0"><label class="fl">Precio de Salida</label>
-        <input type="text" id="f-exit" class="fi" placeholder="Ej: 1.08950" inputmode="decimal">
+      <div>
+        <div class="fl" style="margin-bottom:6px">Precio salida</div>
+        <input type="text" id="f-exit" class="fi" placeholder="Ej: 1.08950" inputmode="decimal" style="font-family:'JetBrains Mono',monospace">
       </div>
     </div>
-    <div class="fg2" style="margin-bottom:12px">
-      <div class="fg" style="margin:0"><label class="fl">Estrategia</label>
-        <select id="f-strategy" class="fi"><option value="">— Ninguna —</option><option>ICT / SMC</option><option>Order Blocks</option><option>FVG</option><option>BOS / ChoCH</option><option>Liquidity Sweep</option><option>Scalping</option><option>Breaker Block</option><option>IFVG</option><option>Mitigation</option><option>Otra</option></select>
+
+    <!-- ── ESTRATEGIA + RR ── -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div>
+        <div class="fl" style="margin-bottom:6px">Estrategia</div>
+        <select id="f-strategy" class="fi" style="width:100%"><option value="">— Ninguna —</option><option>ICT / SMC</option><option>Order Blocks</option><option>FVG</option><option>BOS / ChoCH</option><option>Liquidity Sweep</option><option>Scalping</option><option>Breaker Block</option><option>IFVG</option><option>Mitigation</option><option>Otra</option></select>
       </div>
-      <div class="fg" style="margin:0"><label class="fl">RR (Riesgo/Beneficio)</label>
-        <div style="display:flex;gap:6px;align-items:center">
+      <div>
+        <div class="fl" style="margin-bottom:6px">RR (Riesgo/Beneficio)</div>
+        <div style="display:flex;gap:5px">
           <select id="f-rr-sel" class="fi" style="flex:1" onchange="rrSelChange()">
             <option value="">— Sin RR —</option>
-            <option value="0.5">1:0.5</option>
-            <option value="1">1:1</option>
-            <option value="1.5">1:1.5</option>
-            <option value="2">1:2</option>
-            <option value="2.5">1:2.5</option>
-            <option value="3">1:3</option>
-            <option value="4">1:4</option>
-            <option value="5">1:5</option>
-            <option value="6">1:6</option>
-            <option value="8">1:8</option>
-            <option value="10">1:10</option>
+            <option value="0.5">1:0.5</option><option value="1">1:1</option><option value="1.5">1:1.5</option>
+            <option value="2">1:2</option><option value="2.5">1:2.5</option><option value="3">1:3</option>
+            <option value="4">1:4</option><option value="5">1:5</option><option value="6">1:6</option>
+            <option value="8">1:8</option><option value="10">1:10</option>
             <option value="custom">Personalizado</option>
           </select>
-          <input type="number" id="f-rr" class="fi" step="0.1" min="0" placeholder="Ej: 2.5" style="flex:1;display:none">
+          <input type="number" id="f-rr" class="fi" step="0.1" min="0" placeholder="RR" style="flex:1;display:none">
         </div>
       </div>
     </div>
-    <div class="fg" style="margin-bottom:12px">
-      <div class="fg" style="margin:0"><label class="fl">Sesión</label>
-        <select id="f-session" class="fi"><option value="">—</option><option>Asia</option><option>Londres</option><option>Nueva York</option><option>Londres+NY</option><option>Pre-Mercado</option></select>
-      </div>
+
+    <!-- ── SESIÓN ── -->
+    <div style="margin-bottom:14px">
+      <div class="fl" style="margin-bottom:6px">Sesión</div>
+      <select id="f-session" class="fi" style="width:100%"><option value="">—</option><option>Asia</option><option>Londres</option><option>Nueva York</option><option>Londres+NY</option><option>Pre-Mercado</option></select>
     </div>
-    <div class="fg">
-      <label class="fl">Notas</label>
-      <textarea id="f-notes" class="fi" rows="2" placeholder="Observaciones, setup, contexto..."></textarea>
+
+    <!-- ── NOTAS ── -->
+    <div style="margin-bottom:14px">
+      <div class="fl" style="margin-bottom:6px">Notas</div>
+      <textarea id="f-notes" class="fi" rows="2" placeholder="Observaciones, setup, contexto..." style="resize:vertical;font-size:12px"></textarea>
       <input type="hidden" id="f-tags" value="">
       <input type="hidden" id="f-tf" value="">
       <input type="hidden" id="f-pips" value="">
       <input type="hidden" id="f-volume" value="">
       <input type="hidden" id="f-commission" value="">
     </div>
-    <!-- CAPTURAS / ARCHIVOS -->
-    <div class="fg">
-      <label class="fl" style="display:flex;align-items:center;justify-content:space-between">
-        <span>📸 Capturas / Archivos</span>
-        <span id="form-img-count" style="color:var(--gray2);font-size:9px">0 archivos</span>
-      </label>
+
+    <!-- ── CAPTURAS ── -->
+    <div style="margin-bottom:14px">
+      <div class="fl" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <span>Capturas</span>
+        <span id="form-img-count" style="color:var(--gray2);font-size:9px;font-weight:600;letter-spacing:1px">0 archivos</span>
+      </div>
       <div id="form-img-preview" class="img-gallery" style="min-height:0"></div>
       <div style="display:flex;gap:6px;margin-top:8px">
         <label style="cursor:pointer;flex-shrink:0">
-          <div class="img-add-btn" style="aspect-ratio:auto;padding:10px;flex-direction:row;gap:8px;border-radius:8px;white-space:nowrap">
-            <span style="font-size:15px">📁</span>
-            <span style="font-size:11px">Dispositivo</span>
+          <div class="img-add-btn" style="aspect-ratio:auto;padding:9px 12px;flex-direction:row;gap:7px;border-radius:8px;white-space:nowrap">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <span style="font-size:11px;font-family:'DM Sans',sans-serif">Dispositivo</span>
           </div>
           <input type="file" id="f-img-file" accept="image/*" multiple style="display:none" onchange="handleImgUpload(this)">
         </label>
@@ -6755,22 +6813,26 @@ button:active, [onclick]:active, .ni:active, .cal-nav-btn:active, .rb:active, .t
         <button class="btn" style="padding:9px 10px;white-space:nowrap;font-size:11px;flex-shrink:0" onclick="addImgFromURL()">+ URL</button>
       </div>
     </div>
-    <!-- ENLACES -->
-    <div class="fg">
-      <label class="fl">🔗 Enlaces (TradingView, Dropbox, etc.)</label>
+
+    <!-- ── ENLACES ── -->
+    <div style="margin-bottom:16px">
+      <div class="fl" style="margin-bottom:6px">Enlaces</div>
       <div style="display:flex;gap:6px">
-        <input type="text" id="f-link-input" class="fi" placeholder="https://es.tradingview.com/..." style="flex:1">
+        <input type="text" id="f-link-input" class="fi" placeholder="https://tradingview.com/..." style="flex:1">
         <button class="btn" style="white-space:nowrap;padding:9px 12px" onclick="addFormLink()">+ Agregar</button>
       </div>
       <div id="form-links-list" style="margin-top:6px"></div>
     </div>
-    <div style="display:flex;gap:8px;margin-top:6px">
-      <button class="btn btn-r" id="btn-cancel" style="display:none;flex:1;justify-content:center" onclick="cancelEdit();closeNewOpPanel()">✕ Cancelar</button>
-      <button class="btn btn-g" id="btn-save" style="flex:1;justify-content:center;padding:11px" onclick="if(window._spawnRipple)window._spawnRipple(event.clientX,event.clientY);if(window._playClick)window._playClick();saveTrade()">
+
+    <!-- ── BOTONES ── -->
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-r" id="btn-cancel" style="display:none;flex:1;justify-content:center;padding:11px" onclick="cancelEdit();closeNewOpPanel()">✕ Cancelar</button>
+      <button class="btn btn-g" id="btn-save" style="flex:1;justify-content:center;padding:12px" onclick="if(window._spawnRipple)window._spawnRipple(event.clientX,event.clientY);if(window._playClick)window._playClick();saveTrade()">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M13 2H5L2 5v9a1 1 0 001 1h10a1 1 0 001-1V3a1 1 0 00-1-1z"/><polyline points="5,2 5,7 11,7"/><polyline points="11,11 8,14 5,11"/></svg>
         Registrar operación
       </button>
     </div>
+
   </div>
 </div>
 
@@ -7374,6 +7436,15 @@ window.setLogView = function(v) {
   });
   if(v==='tbl') renderTable();
   if(v==='chart') renderRegCharts();
+  // Mostrar botón Filtros solo en modo tabla
+  var filterBtn = g('reg-filter-toggle');
+  if(filterBtn) filterBtn.style.display = v==='tbl' ? 'flex' : 'none';
+  // Si salimos de tabla, cerrar el panel de filtros
+  if(v!=='tbl'){
+    var bar=g('reg-filters-bar');
+    if(bar) bar.style.display='none';
+    if(filterBtn) filterBtn.style.borderColor='';
+  }
 };
 
 // ── Registro tab helpers ──────────────────────────────
