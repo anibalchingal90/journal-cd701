@@ -3602,18 +3602,18 @@ Chart.register({
           grad.addColorStop(1,    'rgba(0,229,176,0)');
 
           ctx.save();
+          // ── Clip al chartArea PRIMERO (path separado) ────────
           ctx.beginPath();
-          // Línea superior siguiendo los puntos
+          ctx.rect(ca.left, ca.top, ca.right-ca.left, ca.bottom-ca.top);
+          ctx.clip();
+          // ── Fill gradiente DEBAJO de la línea ────────────────
+          ctx.beginPath();
           pts.forEach(function(pt,i){ i===0?ctx.moveTo(pt.x,pt.y):ctx.lineTo(pt.x,pt.y); });
-          // Cerrar hacia abajo y volver
           ctx.lineTo(pts[pts.length-1].x, ca.bottom);
           ctx.lineTo(pts[0].x, ca.bottom);
           ctx.closePath();
           ctx.fillStyle = grad;
           ctx.globalAlpha = 1;
-          // Clip al chartArea para que no desborde
-          ctx.rect(ca.left, ca.top, ca.right-ca.left, ca.bottom-ca.top);
-          ctx.clip();
           ctx.fill();
           ctx.restore();
         }
