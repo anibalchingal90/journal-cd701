@@ -4828,14 +4828,17 @@ function renderA(){
     // ── Días de la semana (Resumen + sub-tab) ──
     aRenderDayList(ft,'a-daylist');
     aRenderDayList(ft,'a-daylist2');
-    mkC('cad','bar',DAYS.map(function(d){return d.slice(0,3);}),
-      (function(){var d=DAYS.map(function(d,i){var f=ft.filter(function(t){return getDOW(t.date)===i;});return{tp:f.filter(function(t){return t.result==='TP';}).length,sl:f.filter(function(t){return t.result==='SL';}).length};});
+    // cad y cad2 comparten la misma lógica (tab Tiempo y tab Meses y semanas)
+    var _cadDatasets=(function(){var d=DAYS.map(function(d,i){var f=ft.filter(function(t){return getDOW(t.date)===i;});return{tp:f.filter(function(t){return t.result==='TP';}).length,sl:f.filter(function(t){return t.result==='SL';}).length};});
       return [
         {data:d.map(function(x){return x.tp;}),backgroundColor:tpBgFn,label:'TP',borderRadius:8,borderSkipped:false,noGradient:true},
         {data:d.map(function(x){return x.sl;}),backgroundColor:slBgFn,label:'SL',borderRadius:8,borderSkipped:false,noGradient:true}
-      ];})(),
-      {plugins:{legend:{display:true,labels:{color:'#8892b0',font:{family:"'JetBrains Mono',monospace",size:9},boxWidth:8,boxHeight:8,borderRadius:3}}},
-       scales:{x:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{display:false},border:{display:false}},y:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{color:'rgba(30,37,64,0.3)'},border:{display:false}}}});
+      ];})();
+    var _cadOpts={plugins:{legend:{display:true,labels:{color:'#8892b0',font:{family:"'JetBrains Mono',monospace",size:9},boxWidth:8,boxHeight:8,borderRadius:3}}},
+       scales:{x:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{display:false},border:{display:false}},
+               y:{ticks:{color:'#6b7ba0',font:{size:9},stepSize:1,callback:function(v){return Number.isInteger(v)?v:'';}},grid:{color:'rgba(30,37,64,0.3)'},border:{display:false},beginAtZero:true}}};
+    mkC('cad','bar',DAYS.map(function(d){return d.slice(0,3);}),_cadDatasets,_cadOpts);
+    mkC('cad2','bar',DAYS.map(function(d){return d.slice(0,3);}),_cadDatasets,_cadOpts);
 
     // ── Heatmap horas ──
     aRenderHeatmap(ft);
