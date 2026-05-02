@@ -559,6 +559,58 @@ tr:hover td{background:rgba(14,18,41,.8)}
   }
   .mni-big:active{background:var(--card2)}
   .mni-big svg{width:16px;height:16px;color:#00d4ff}
+
+  /* ── TRADE DETAIL PANEL — full width en móvil ── */
+  #trade-detail-panel{
+    right:auto;left:0;bottom:-100%;top:auto;
+    width:100%;height:82vh;
+    border-left:none;border-top:1px solid var(--bdr);
+    border-radius:20px 20px 0 0;
+    transition:bottom .3s cubic-bezier(.4,0,.2,1);
+  }
+  #trade-detail-panel.open{bottom:0;right:auto;box-shadow:0 -8px 60px rgba(0,0,0,.6)}
+  #trade-detail-panel::before{display:none}
+  /* Línea decorativa top del panel */
+  #trade-detail-panel::after{
+    content:'';display:block;
+    width:36px;height:3px;background:var(--bdr2);border-radius:99px;
+    margin:10px auto 0;flex-shrink:0;
+  }
+  .tdp-hdr{padding:10px 16px 10px}
+  .tdp-body{padding:10px 16px 80px}
+  /* Grid de 3 → 2 columnas en móvil */
+  .tdp-info-grid{grid-template-columns:1fr 1fr;gap:7px;padding:10px}
+  .tdp-info-val{font-size:12px}
+
+  /* ── ANÁLISIS — tabs con scroll horizontal ── */
+  #ast-tabs-bar{
+    display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none;gap:0;
+    border-bottom:1px solid var(--bdr);margin-bottom:12px;
+  }
+  #ast-tabs-bar::-webkit-scrollbar{display:none}
+  .ast-btn{font-size:10px;padding:8px 10px;white-space:nowrap;flex-shrink:0}
+
+  /* ── REGISTRO — ops view buttons ── */
+  .ops-toolbar{gap:6px}
+  .ops-view-btns{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .ops-view-btns::-webkit-scrollbar{display:none}
+  .ops-view-btn{font-size:10px;padding:6px 9px;flex-shrink:0}
+
+  /* ── CONFIG — columnas apiladas en móvil ── */
+  #acct-panel-general{flex-direction:column}
+  #acct-panel-general > div{min-width:unset!important;width:100%}
+
+  /* ── ESTADÍSTICAS — ajustes menores ── */
+  .sr{flex-wrap:wrap;gap:4px}
+  .sv{font-size:11px}
+  .sl2{font-size:10px}
+  .ir{gap:5px}
+  .ib{min-width:calc(50% - 5px)}
+
+  /* ── INSIGHT / BURN BARS ── */
+  .bc{flex-direction:column;align-items:flex-start;gap:6px}
+  .ddbar{height:8px}
 }
 
 /* ── TABLET 641–900px ── */
@@ -2000,32 +2052,13 @@ function getDeviceFingerprint() {
 
 function getDeviceId() {
   // ═══════════════════════════════════════════════════════
-  //  DEVICE ID v2 — SIN SUFIJO ALEATORIO
-  //  ✅ El fingerprint ES el device_id. Determinista y hardware-bound.
-  //  ✅ No depende de localStorage para su unicidad.
-  //  ✅ El mismo equipo siempre produce el mismo ID, sin importar si
-  //     el localStorage fue borrado o si el browser fue cerrado.
-  //  ✅ Compatibilidad hacia atrás: si el stored empieza con el mismo FP,
-  //     se reutiliza para no expulsar a usuarios ya registrados con ID viejo.
+  //  DEVICE ID v3 — FINGERPRINT PURO, SIN DEPENDENCIA DE localStorage
+  //  ✅ El fingerprint DE HARDWARE es el device_id. Siempre.
+  //  ✅ Chrome y Firefox en el mismo equipo → mismo ID.
+  //  ✅ Borrar caché/cookies → mismo ID (hardware no cambia).
+  //  ✅ No hay estado local que pueda corromperse o perderse.
   // ═══════════════════════════════════════════════════════
-  var fp = getDeviceFingerprint();
-  var stored = localStorage.getItem('tt_did');
-
-  // Retrocompatibilidad: si el stored era el formato viejo (FP_XXXX), migrar silenciosamente
-  if (stored && stored.startsWith(fp)) {
-    // Si el stored ya ES el fingerprint limpio, perfecto
-    // Si era FP_XXXX (sufijo viejo), igualmente lo reconocemos por la misma razón
-    // No actualizar Firebase — el chequeo de autorización ya maneja esto
-    if (stored !== fp) {
-      // Migrar: actualizar localStorage al ID limpio
-      localStorage.setItem('tt_did', fp);
-    }
-    return fp; // Siempre devolver el fingerprint puro
-  }
-
-  // Nuevo dispositivo o localStorage limpio → usar fingerprint puro
-  localStorage.setItem('tt_did', fp);
-  return fp;
+  return getDeviceFingerprint();
 }
 
 // Devuelve el fingerprint base (sin sufijos), para matching amplio en Firebase
@@ -2034,11 +2067,11 @@ function getDeviceFingerprintBase() {
 }
 
 // Verifica si un device_id de Firebase corresponde a ESTE dispositivo
-// Maneja tanto el formato nuevo (fingerprint puro) como el viejo (fingerprint_XXXX)
+// Maneja tanto el formato nuevo (fingerprint puro) como el viejo (FP_XXXX)
 function isThisDevice(storedDeviceId) {
   if (!storedDeviceId) return false;
   var fp = getDeviceFingerprint();
-  return storedDeviceId === fp || storedDeviceId.startsWith(fp + '_') || storedDeviceId.startsWith(fp);
+  return storedDeviceId === fp || storedDeviceId.startsWith(fp + '_');
 }
 
 function showLicOverlay(msg) {
@@ -2115,6 +2148,11 @@ async function checkLicenseOnLoad() {
     var data = await res.json();
     var f = data.fields || {};
 
+    // ✅ MULTI-SUPABASE: leer servidor asignado y aplicarlo antes de cualquier sync
+    var servidorFB = (f.servidor && f.servidor.stringValue) || stored.servidor || 'sb_basic_1';
+    setSupabaseServer(servidorFB);
+    stored.servidor = servidorFB; // guardar en caché local para modo offline
+
     // Verificar si fue revocada
     if (f.active && f.active.booleanValue === false) {
       localStorage.setItem('ttlic_revoked_key', stored.key);
@@ -2172,11 +2210,13 @@ async function checkLicenseOnLoad() {
     }
 
     stored.lastCheck = Date.now();
-    localStorage.setItem('ttlic', JSON.stringify(stored));
+    localStorage.setItem('ttlic', JSON.stringify(stored)); // stored ya incluye .servidor
 
   } catch(e) {
     console.log('[TradeTrack] Sin conexión — usando licencia local');
     if (!stored || !stored.key) { showLicOverlay('⚠ Sin internet. Conéctate para verificar tu licencia.'); return; }
+    // ✅ MODO OFFLINE: usar servidor guardado en caché local
+    setSupabaseServer(stored.servidor || 'sb_basic_1');
     hideLicOverlay();
     initApp();
     return;
@@ -2217,6 +2257,10 @@ async function activateLicense() {
       errEl.textContent = '❌ Este código está desactivado. Contacta a tu revendedor.';
       loadEl.style.display = 'none'; btn.disabled = false; btn.style.opacity = '1'; return;
     }
+
+    // ✅ MULTI-SUPABASE: leer servidor asignado y aplicarlo antes de hacer sync
+    var servidorAsignado = (f.servidor && f.servidor.stringValue) || 'sb_basic_1';
+    setSupabaseServer(servidorAsignado);
 
     var deviceId = getDeviceId(); // fingerprint puro y estable
     var maxActivations = parseInt((f.maxActivations && f.maxActivations.integerValue) || '2');
@@ -2272,6 +2316,7 @@ async function activateLicense() {
     localStorage.setItem('ttlic', JSON.stringify({
       key: code,
       reseller: (f.reseller && f.reseller.stringValue) || '',
+      servidor: servidorAsignado, // ✅ guardado para uso offline
       activatedAt: Date.now(),
       lastCheck: Date.now()
     }));
@@ -2405,6 +2450,7 @@ function checkAlerts(){
 function save(){
   try{
     var pfx = getLicensePrefix();
+    if(!pfx) return;
     var id = getActiveId();
     localStorage.setItem(pfx+'cfg_'+id, JSON.stringify(S.settings));
     var n=Math.ceil(S.trades.length/500)||1;
@@ -2427,6 +2473,7 @@ function save(){
 function load(){
   try{
     var pfx = getLicensePrefix();
+    if(!pfx) return;
     var id = (typeof getActiveId==='function') ? getActiveId() : 'default';
     var c = localStorage.getItem(pfx+'cfg_'+id);
     if(c) S.settings=Object.assign({},S.settings,JSON.parse(c));
@@ -2451,31 +2498,78 @@ var APP_VERSION = '2.2'; // ⬅ v2.2: Device binding robusto, sin duplicados, fr
 
 function migrateData(){
   var pfxV = getLicensePrefix();
+  if(!pfxV) return; // ✅ guard: sin licencia válida no migrar nada
+
   var savedVersion = localStorage.getItem(pfxV+'version') || '1.0';
   if(savedVersion === APP_VERSION) return; // ya está al día, no hacer nada
 
+  console.log('[TradeTrack] Migrando datos: ' + savedVersion + ' → ' + APP_VERSION);
+
   // ── Zona de migraciones ───────────────────────────────────────────────────
-  // Agrega bloques aquí cuando hagas cambios de estructura.
-  // Ejemplo: cuando subas a v2.2 y agregues campo "session":
-  //
-  // if(savedVersion < '2.2'){
-  //   S.trades.forEach(function(t){ if(!t.session) t.session = 'London'; });
-  // }
-  //
+  // Cada bloque corre SOLO si el usuario viene de una versión anterior.
+  // Agregar nuevos bloques aquí cuando cambies la estructura de datos.
+  // NUNCA eliminar bloques viejos — un usuario podría saltar varias versiones.
+
+  if(savedVersion < '2.1'){
+    // v2.1: normalizar campos que podían venir undefined en trades antiguos
+    S.trades.forEach(function(t){
+      if(t.resultado === undefined) t.resultado = '';
+      if(t.notas    === undefined) t.notas    = '';
+      if(t.rr       === undefined) t.rr       = '';
+      if(t.lotes    === undefined) t.lotes    = '';
+    });
+  }
+
+  if(savedVersion < '2.2'){
+    // v2.2: device binding robusto — limpiar tt_did viejo del localStorage
+    // (ya no se usa; getDeviceId() ahora devuelve fingerprint puro siempre)
+    localStorage.removeItem('tt_did');
+  }
+
+  // ── Aquí van los próximos bloques cuando subas de versión ─────────────────
+  // Ejemplo para v2.3:
   // if(savedVersion < '2.3'){
-  //   S.trades.forEach(function(t){ if(t.pnl === undefined) t.pnl = 0; });
+  //   S.trades.forEach(function(t){
+  //     if(!t.cuenta_mt) t.cuenta_mt = 'manual';
+  //   });
   // }
   // ─────────────────────────────────────────────────────────────────────────
 
   localStorage.setItem(pfxV+'version', APP_VERSION);
   if(typeof save === 'function') save(); // guarda con estructura nueva y sube a nube
-  console.log('[TradeTrack] Migración completa: ' + savedVersion + ' → ' + APP_VERSION);
+  console.log('[TradeTrack] Migración completa → v' + APP_VERSION);
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
-var SB_URL = 'https://adeaizywhidbgmvltlob.supabase.co';
-var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkZWFpenl3aGlkYmdtdmx0bG9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMzYxNTUsImV4cCI6MjA5MjcxMjE1NX0.RYvO1KLF-ltQQBuAxG043GLfhOMyiZogafX1nmQ4Vcc';
+// ═══════════════════════════════════════════════════════════
+//  MULTI-SUPABASE — Mapa de proyectos por servidor
+//  Cada licencia en Firebase tiene un campo "servidor" que indica
+//  a qué proyecto Supabase pertenece ese cliente.
+//  Para agregar un nuevo proyecto: añadir entrada al mapa y listo.
+// ═══════════════════════════════════════════════════════════
+var SB_SERVERS = {
+  'sb_basic_1': {
+    url: 'https://adeaizywhidbgmvltlob.supabase.co',
+    key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkZWFpenl3aGlkYmdtdmx0bG9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMzYxNTUsImV4cCI6MjA5MjcxMjE1NX0.RYvO1KLF-ltQQBuAxG043GLfhOMyiZogafX1nmQ4Vcc'
+  }
+  // Agregar nuevos proyectos aquí cuando los necesites:
+  // 'sb_basic_2': { url: 'https://XXXX.supabase.co', key: 'TU_KEY_AQUI' },
+  // 'sb_pro_1':   { url: 'https://XXXX.supabase.co', key: 'TU_KEY_AQUI' },
+  // 'sb_pro_2':   { url: 'https://XXXX.supabase.co', key: 'TU_KEY_AQUI' },
+};
+
+// Servidor activo por defecto — apunta a sb_basic_1 (proyecto actual)
+var SB_URL = SB_SERVERS['sb_basic_1'].url;
+var SB_KEY = SB_SERVERS['sb_basic_1'].key;
 var SB_TABLE = 'journal_data';
+
+// Aplica el servidor correcto según el campo "servidor" de la licencia en Firebase
+function setSupabaseServer(servidor) {
+  var srv = SB_SERVERS[servidor] || SB_SERVERS['sb_basic_1'];
+  SB_URL = srv.url;
+  SB_KEY = srv.key;
+  console.log('[TradeTrack] Servidor Supabase activo: ' + (servidor || 'sb_basic_1'));
+}
 var _syncTimeout = null;
 var _syncPending = false;
 
@@ -2505,11 +2599,14 @@ function syncToCloud(){
   _syncPending = true;
   _syncTimeout = setTimeout(async function(){ // FIX: reducido de 1500ms a 400ms
     try{
+      // ✅ Re-verificar licencia dentro del async — puede haber expirado en los 400ms de delay
+      var key2 = getSyncKey(); if(!key2){ _syncPending=false; return; }
+      var pfx = getLicensePrefix(); if(!pfx){ _syncPending=false; return; }
+
       var acctId = getAcctId();
       var accounts = (typeof getAccounts==='function') ? getAccounts() : [];
 
       // Construir snapshot completo de todas las cuentas
-      var pfx = getLicensePrefix();
       var allAccountsData = {};
       accounts.forEach(function(acct){
         var n = parseInt(localStorage.getItem(pfx+'n_'+acct.id)||'1');
@@ -2600,6 +2697,7 @@ async function syncFromCloud(){
 
     // 2. Restaurar datos de TODAS las cuentas al localStorage (con prefijo de licencia)
     var pfx2 = getLicensePrefix();
+    if(!pfx2) return false; // ✅ guard: sin licencia válida no escribir en localStorage
     if(Object.keys(allData).length){
       Object.keys(allData).forEach(function(acctId){
         var acctData = allData[acctId];
@@ -2688,6 +2786,9 @@ function startLicensePolling(){
       var data = await res.json();
       var f = data.fields || {};
 
+      // ✅ MULTI-SUPABASE: mantener servidor correcto en cada polling
+      setSupabaseServer((f.servidor && f.servidor.stringValue) || stored.servidor || 'sb_basic_1');
+
       // ❶ Licencia REVOCADA
       if(f.active && f.active.booleanValue === false){
         _stopPolling();
@@ -2711,6 +2812,8 @@ function startLicensePolling(){
       if(!stillAuthorized){
         // Dispositivo ya no está en la lista → fue reseteado
         _stopPolling();
+        // ✅ Guardar clave para recuperación de datos al re-activar
+        if(stored.key) localStorage.setItem('ttlic_revoked_key', stored.key);
         localStorage.removeItem('ttlic');
         freezeApp('⚠ Esta licencia fue reseteada por el administrador.\nVuelve a ingresar tu código para registrar este dispositivo.');
         return;
@@ -4620,8 +4723,9 @@ function setNewAcctType(t){
 function getLicensePrefix(){
   try{
     var l = JSON.parse(localStorage.getItem('ttlic')||'null');
-    return l && l.key ? 'tt_'+l.key+'_' : 'tt_nokey_';
-  }catch(e){ return 'tt_nokey_'; }
+    if(l && l.key) return 'tt_'+l.key+'_';
+  }catch(e){}
+  return null;
 }
 function getAccounts(){
   var pfx = getLicensePrefix();
