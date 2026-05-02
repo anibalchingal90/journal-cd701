@@ -3567,11 +3567,32 @@ Chart.defaults.font.family = "'JetBrains Mono', monospace";
 Chart.defaults.font.size = 11;
 Chart.defaults.font.weight = '600';
 
+// ── Plugin global: gradiente real para líneas de equity ──────────────────
+// Se ejecuta DESPUÉS del layout, cuando chartArea ya tiene dimensiones reales
+Chart.register({
+  id:'premiumLineGradient',
+  beforeDatasetDraw:function(chart, args){
+    if(chart.config.type!=='line') return;
+    var ds=chart.data.datasets[args.index];
+    if(ds.fill===false || ds.noGradient) return;
+    var ca=chart.chartArea; if(!ca) return;
+    var ctx2=chart.ctx;
+    var h=ca.bottom-ca.top;
+    var gradient=ctx2.createLinearGradient(0,ca.top,0,ca.bottom);
+    var colorTop=ds.gradTop||'rgba(0,229,176,0.38)';
+    var colorMid=ds.gradMid||'rgba(0,229,176,0.12)';
+    gradient.addColorStop(0, colorTop);
+    gradient.addColorStop(0.45, colorMid);
+    gradient.addColorStop(1, 'rgba(0,229,176,0)');
+    chart.data.datasets[args.index].backgroundColor=gradient;
+  }
+});
+
 // ── CDO: opciones base para todos los gráficos ───────────────────────────
 var CDO={
   responsive:true,
   maintainAspectRatio:false,
-  animation:{duration:900,easing:'easeInOutQuart'},
+  animation:{duration:1000,easing:'easeInOutQuart'},
   plugins:{
     legend:{display:false},
     tooltip:{
@@ -3595,35 +3616,56 @@ var CDO={
   },
   scales:{
     x:{
-      grid:{color:'rgba(30,37,64,0.4)',drawBorder:false},
+      grid:{color:'rgba(30,37,64,0.35)',drawBorder:false},
       border:{display:false},
-      ticks:{color:'#8892b0',font:{family:"'JetBrains Mono',monospace",size:10,weight:'600'},maxRotation:0,autoSkip:true,maxTicksLimit:8}
+      ticks:{color:'#6b7ba0',font:{family:"'JetBrains Mono',monospace",size:10,weight:'600'},maxRotation:0,autoSkip:true,maxTicksLimit:8}
     },
     y:{
-      grid:{color:'rgba(30,37,64,0.4)',drawBorder:false},
+      grid:{color:'rgba(30,37,64,0.35)',drawBorder:false},
       border:{display:false},
-      ticks:{color:'#8892b0',font:{family:"'JetBrains Mono',monospace",size:10,weight:'600'},callback:function(v){return'$'+v.toLocaleString('en',{maximumFractionDigits:0});}}
+      ticks:{color:'#6b7ba0',font:{family:"'JetBrains Mono',monospace",size:10,weight:'600'},callback:function(v){return'$'+v.toLocaleString('en',{maximumFractionDigits:0});}}
     }
   }
 };
 
-// ── Helper: gradiente canvas para líneas de equity ───────────────────────
-function mkEqGradient(ctx, colorTop, colorBottom){
-  var gr = ctx.createLinearGradient(0,0,0,ctx.canvas.offsetHeight||240);
-  gr.addColorStop(0, colorTop);
-  gr.addColorStop(1, colorBottom);
+// ── Scriptable backgroundColor para barras — gradiente real por barra ────
+function barBgFn(context){
+  var chart=context.chart;
+  var ctx2=chart.ctx;
+  var ca=chart.chartArea;
+  var v=context.raw;
+  if(!ca){return v>=0?'rgba(0,229,176,0.85)':'rgba(255,56,96,0.85)';}
+  var gr=ctx2.createLinearGradient(0,ca.top,0,ca.bottom);
+  if(v>=0){
+    gr.addColorStop(0,'rgba(0,229,176,0.95)');
+    gr.addColorStop(0.5,'rgba(0,200,155,0.75)');
+    gr.addColorStop(1,'rgba(0,150,115,0.4)');
+  } else {
+    gr.addColorStop(0,'rgba(255,56,96,0.95)');
+    gr.addColorStop(0.5,'rgba(220,30,70,0.75)');
+    gr.addColorStop(1,'rgba(160,15,45,0.4)');
+  }
   return gr;
 }
 
-// ── Helper: gradiente para barras positivas/negativas ────────────────────
-function mkBarGradients(ctx, values){
-  var h = ctx.canvas.offsetHeight||240;
-  return values.map(function(v){
-    var gr = ctx.createLinearGradient(0,0,0,h);
-    if(v>=0){gr.addColorStop(0,'rgba(0,229,176,0.92)');gr.addColorStop(1,'rgba(0,168,122,0.55)');}
-    else{gr.addColorStop(0,'rgba(255,56,96,0.92)');gr.addColorStop(1,'rgba(180,20,60,0.55)');}
-    return gr;
-  });
+// ── Scriptable para barras agrupadas TP (verde) / SL (rojo) ─────────────
+function tpBgFn(context){
+  var chart=context.chart,ctx2=chart.ctx,ca=chart.chartArea;
+  if(!ca) return 'rgba(0,229,176,0.88)';
+  var gr=ctx2.createLinearGradient(0,ca.top,0,ca.bottom);
+  gr.addColorStop(0,'rgba(0,229,176,0.95)');
+  gr.addColorStop(0.5,'rgba(0,200,155,0.72)');
+  gr.addColorStop(1,'rgba(0,140,105,0.38)');
+  return gr;
+}
+function slBgFn(context){
+  var chart=context.chart,ctx2=chart.ctx,ca=chart.chartArea;
+  if(!ca) return 'rgba(255,56,96,0.88)';
+  var gr=ctx2.createLinearGradient(0,ca.top,0,ca.bottom);
+  gr.addColorStop(0,'rgba(255,56,96,0.95)');
+  gr.addColorStop(0.5,'rgba(220,30,70,0.72)');
+  gr.addColorStop(1,'rgba(155,10,40,0.38)');
+  return gr;
 }
 
 // ── mkC: constructor universal de gráficos ────────────────────────────────
@@ -3634,55 +3676,41 @@ function mkC(id,type,labels,datasets,ex){
   if(ex&&ex.scales) opts.scales=Object.assign({},CDO.scales,ex.scales);
   if(ex&&ex.plugins) opts.plugins=Object.assign({},CDO.plugins,ex.plugins);
 
-  // ── Equity line: gradiente + glow ────────────────────────────────────
+  // ── Line: premium styling (gradiente lo maneja el plugin global) ────────
   if(type==='line'){
-    var c2d=ctx.getContext('2d');
     datasets=datasets.map(function(ds){
-      if(ds.fill!==false){
-        var grad=mkEqGradient(c2d,
-          ds.gradTop||'rgba(0,229,176,0.28)',
-          ds.gradBot||'rgba(0,229,176,0)');
-        return Object.assign({},ds,{
-          backgroundColor:grad,
-          borderColor:ds.borderColor||'#00e5b0',
-          borderWidth:ds.borderWidth||2.5,
-          tension:ds.tension!=null?ds.tension:0.42,
-          pointRadius:0,
-          pointHoverRadius:5,
-          pointHoverBackgroundColor:ds.borderColor||'#00e5b0',
-          pointHoverBorderColor:'#fff',
-          pointHoverBorderWidth:2,
-          shadowOffsetX:0,shadowOffsetY:0,
-          shadowBlur:8,
-          shadowColor:ds.borderColor||'rgba(0,229,176,0.5)'
-        });
-      }
-      return ds;
-    });
-    // Crosshair plugin inline
-    opts.plugins=Object.assign({},opts.plugins,{
-      crosshair:{line:{color:'rgba(99,102,241,0.4)',width:1,dashPattern:[4,4]}}
+      if(ds.fill===false) return ds;
+      return Object.assign({},ds,{
+        borderColor:ds.borderColor||'#00ffb3',
+        borderWidth:ds.borderWidth||2.8,
+        tension:ds.tension!=null?ds.tension:0.42,
+        pointRadius:0,
+        pointHoverRadius:6,
+        pointHoverBackgroundColor:ds.borderColor||'#00ffb3',
+        pointHoverBorderColor:'rgba(255,255,255,0.9)',
+        pointHoverBorderWidth:2.5,
+        fill:true
+      });
     });
   }
 
-  // ── Bar: gradientes 3D ───────────────────────────────────────────────
+  // ── Bar: scriptable gradient + estilo premium ──────────────────────────
   if(type==='bar'){
-    var c2db=ctx.getContext('2d');
-    datasets=datasets.map(function(ds,di){
-      if(ds.gradientBars!==false && Array.isArray(ds.data) && ds.data.length){
-        var grads=mkBarGradients(c2db,ds.data);
-        return Object.assign({},ds,{
-          backgroundColor:grads,
-          borderRadius:ds.borderRadius!=null?ds.borderRadius:7,
-          borderSkipped:false,
-          borderWidth:0
-        });
-      }
-      return ds;
+    datasets=datasets.map(function(ds){
+      if(ds.noGradient) return ds;
+      var bg=ds.backgroundColor;
+      // Solo aplicar scriptable si backgroundColor es string/array (no función ya)
+      if(typeof bg==='function') return ds;
+      return Object.assign({},ds,{
+        backgroundColor:barBgFn,
+        borderRadius:ds.borderRadius!=null?ds.borderRadius:9,
+        borderSkipped:false,
+        borderWidth:0,
+        hoverBorderWidth:0
+      });
     });
-    // Animación escalonada
     opts.animation=Object.assign({},opts.animation,{
-      delay:function(ctx2){return ctx2.dataIndex*40;}
+      delay:function(c){return c.dataIndex*50;}
     });
   }
 
@@ -3762,8 +3790,24 @@ function renderDash(){
   sorted.forEach(function(t){bal+=(t.pnl||0);eq.push({l:toD(t.date),b:+bal.toFixed(2)});});
   if(eq.length>40)eq=eq.filter(function(_,i){return i%Math.ceil(eq.length/40)===0||i===eq.length-1;});
   mkC('ceq','line',eq.map(function(e){return e.l;}),
-    [{data:eq.map(function(e){return e.b;}),borderColor:'#00e5a0',backgroundColor:'rgba(0,229,160,.06)',fill:true,tension:.4,pointRadius:0,borderWidth:2}],
-    {plugins:{legend:{display:false}},scales:{x:{ticks:{maxTicksLimit:8,font:{size:8}}},y:{ticks:{font:{size:8},callback:function(v){return'$'+Math.round(v).toLocaleString('en');}}}}});
+    [{
+      data:eq.map(function(e){return e.b;}),
+      borderColor:'#00ffb3',
+      fill:true,
+      tension:0.42,
+      borderWidth:2.8,
+      gradTop:'rgba(0,255,180,0.42)',
+      gradMid:'rgba(0,229,176,0.14)',
+      pointRadius:0,
+      pointHoverRadius:6
+    }],
+    {
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{maxTicksLimit:8,color:'#6b7ba0',font:{size:10}},grid:{color:'rgba(30,37,64,0.3)'},border:{display:false}},
+        y:{ticks:{color:'#6b7ba0',font:{size:10},callback:function(v){return'$'+Math.round(v).toLocaleString('en');}},grid:{color:'rgba(30,37,64,0.3)'},border:{display:false}}
+      }
+    });
   var finalBal=eq.length>1?eq[eq.length-1].b:a;
   var eqMini=g('dash-eq-mini');
   if(eqMini)eqMini.innerHTML=[
@@ -3796,8 +3840,18 @@ function renderDash(){
   trades.forEach(function(t){var p=t.date.split('-'),k=p[0]+'-'+p[1];if(!mMap[k])mMap[k]={l:MSS[+p[1]-1]+' '+p[0],pnl:0};mMap[k].pnl+=(t.pnl||0);});
   var mArr=Object.values(mMap).slice(-12);
   mkC('cmon','bar',mArr.map(function(m){return m.l;}),
-    [{data:mArr.map(function(m){return+m.pnl.toFixed(2);}),backgroundColor:mArr.map(function(m){return m.pnl>=0?'rgba(0,229,160,.8)':'rgba(255,77,106,.8)';}),borderRadius:5,borderSkipped:false}],
-    {plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:7}}},y:{ticks:{font:{size:8}}}}});
+    [{
+      data:mArr.map(function(m){return+m.pnl.toFixed(2);}),
+      borderRadius:10,
+      borderSkipped:false
+    }],
+    {
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{display:false},border:{display:false}},
+        y:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{color:'rgba(30,37,64,0.3)'},border:{display:false}}
+      }
+    });
 
   // ── Días de la semana ────────────────────────────────────
   var dayList=g('dash-daylist');
@@ -3838,9 +3892,12 @@ function renderDash(){
   // ── TP/SL por hora ────────────────────────────────────────
   var tg=getTimeGroups(trades);
   mkC('chrd','bar',tg.map(function(h){return h.time;}),
-    [{data:tg.map(function(h){return h.tp;}),backgroundColor:'rgba(0,229,160,.75)',label:'TP',borderRadius:3,borderSkipped:false},
-     {data:tg.map(function(h){return h.sl;}),backgroundColor:'rgba(255,77,106,.75)',label:'SL',borderRadius:3,borderSkipped:false}],
-    {plugins:{legend:{display:true,labels:{color:'#6b7aaa',font:{size:8},boxWidth:6}}},scales:{x:{ticks:{font:{size:7}}},y:{ticks:{font:{size:8}}}}});
+    [
+      {data:tg.map(function(h){return h.tp;}),backgroundColor:tpBgFn,label:'TP',borderRadius:7,borderSkipped:false,noGradient:true},
+      {data:tg.map(function(h){return h.sl;}),backgroundColor:slBgFn,label:'SL',borderRadius:7,borderSkipped:false,noGradient:true}
+    ],
+    {plugins:{legend:{display:true,labels:{color:'#8892b0',font:{family:"'JetBrains Mono',monospace",size:9},boxWidth:8,boxHeight:8,borderRadius:3}}},
+     scales:{x:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{display:false},border:{display:false}},y:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{color:'rgba(30,37,64,0.3)'},border:{display:false}}}});
 
   // ── Últimas operaciones ───────────────────────────────────
   var lastOps=g('dash-last-ops');
@@ -4310,9 +4367,15 @@ function renderStats(){
   if(eqPts.length>40)eqPts=eqPts.filter(function(_,i){return i%Math.ceil(eqPts.length/40)===0||i===eqPts.length-1;});
   var isCum=(_stEquityMode!=='op');
   mkC('seq',isCum?'line':'bar',eqPts.map(function(e){return e.l;}),
-    isCum?[{data:eqPts.map(function(e){return e.b;}),borderColor:'#00e5a0',backgroundColor:'rgba(0,229,160,.07)',fill:true,tension:.4,pointRadius:0,borderWidth:2}]
-         :[{data:eqPts.map(function(e){return e.pnl;}),backgroundColor:eqPts.map(function(e){return(e.pnl||0)>=0?'rgba(0,229,160,.8)':'rgba(255,77,106,.8)';}),borderRadius:4,borderSkipped:false}],
-    {plugins:{legend:{display:false}},scales:{x:{ticks:{maxTicksLimit:8,font:{size:8}}},y:{ticks:{font:{size:8},callback:function(v){return isCum?('$'+Math.round(v).toLocaleString('en')):fU(v);}}}}}); 
+    isCum
+      ?[{data:eqPts.map(function(e){return e.b;}),borderColor:'#00ffb3',fill:true,tension:0.42,borderWidth:2.8,
+          gradTop:'rgba(0,255,180,0.42)',gradMid:'rgba(0,229,176,0.14)',pointRadius:0,pointHoverRadius:6}]
+      :[{data:eqPts.map(function(e){return e.pnl;}),borderRadius:9,borderSkipped:false}],
+    {plugins:{legend:{display:false}},
+     scales:{
+       x:{ticks:{maxTicksLimit:8,color:'#6b7ba0',font:{size:9}},grid:{color:'rgba(30,37,64,0.3)'},border:{display:false}},
+       y:{ticks:{color:'#6b7ba0',font:{size:9},callback:function(v){return isCum?('$'+Math.round(v).toLocaleString('en')):fU(v);}},grid:{color:'rgba(30,37,64,0.3)'},border:{display:false}}
+     }}); 
   var eqStats=g('st-equity-stats');
   if(eqStats){
     var finalBal=eqPts.length>1?eqPts[eqPts.length-1].b:a;
@@ -4328,12 +4391,25 @@ function renderStats(){
   var donutEl=g('st-donut'),donutMid=g('st-donut-mid'),donutLeg=g('st-donut-legend');
   if(donutMid)donutMid.innerHTML='<div style="font-size:22px;font-weight:900;color:var(--text);font-family:\'Exo 2\',sans-serif">'+tT+'</div><div style="font-size:9px;color:var(--gray2)">total</div>';
   if(donutLeg)donutLeg.innerHTML=[['var(--green)',tTP,'Ganadoras',tT?Math.round(tTP/tT*100):0],['var(--red)',tSL,'Perdedoras',tT?Math.round(tSL/tT*100):0]].map(function(r){return'<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(30,38,64,.3)"><div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:'+r[0]+';display:inline-block"></span><span style="font-size:10px;color:var(--gray2)">'+r[2]+'</span></div><div><span style="font-size:11px;font-weight:700;color:'+r[0]+'">'+r[1]+'</span><span style="font-size:9px;color:var(--gray2);margin-left:4px">'+r[3]+'%</span></div></div>';}).join('');
-  if(donutEl)mkC('st-donut','doughnut',['Ganadoras','Perdedoras'],[{data:[tTP,tSL],backgroundColor:['rgba(0,229,160,.85)','rgba(255,61,90,.85)'],borderWidth:0,borderRadius:4}],{plugins:{legend:{display:false}},cutout:'70%'});
+  if(donutEl)mkC('st-donut','doughnut',['Ganadoras','Perdedoras'],[{
+  data:[tTP,tSL],
+  backgroundColor:['rgba(0,229,176,0.92)','rgba(255,56,96,0.88)'],
+  hoverBackgroundColor:['rgba(0,255,200,1)','rgba(255,80,110,1)'],
+  borderWidth:3,
+  borderColor:['rgba(13,18,40,1)','rgba(13,18,40,1)'],
+  borderRadius:6,
+  hoverOffset:10,
+  spacing:2
+}],{
+  plugins:{legend:{display:false}},
+  cutout:'64%',
+  animation:{animateRotate:true,animateScale:false,duration:900,easing:'easeInOutQuart'}
+});
 
   // P&L mensual
   mkC('smon','bar',mSt.map(function(m){return m.m.slice(0,3);}),
-    [{data:mSt.map(function(m){return+m.pnl.toFixed(2);}),backgroundColor:mSt.map(function(m){return m.pnl>=0?'rgba(0,229,160,.8)':'rgba(255,77,106,.8)';}),borderRadius:5,borderSkipped:false}],
-    {plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:8}}},y:{ticks:{font:{size:8}}}}});
+    [{data:mSt.map(function(m){return+m.pnl.toFixed(2);}),borderRadius:10,borderSkipped:false}],
+    {plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{display:false},border:{display:false}},y:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{color:'rgba(30,37,64,0.3)'},border:{display:false}}}});
 
   // D\xedas semana
   var dayList=g('st-daylist');
@@ -4532,8 +4608,12 @@ function renderA(){
     aRenderDayList(ft,'a-daylist2');
     mkC('cad','bar',DAYS.map(function(d){return d.slice(0,3);}),
       (function(){var d=DAYS.map(function(d,i){var f=ft.filter(function(t){return getDOW(t.date)===i;});return{tp:f.filter(function(t){return t.result==='TP';}).length,sl:f.filter(function(t){return t.result==='SL';}).length};});
-      return [{data:d.map(function(x){return x.tp;}),backgroundColor:'rgba(0,229,160,.8)',label:'TP',borderRadius:4,borderSkipped:false},{data:d.map(function(x){return x.sl;}),backgroundColor:'rgba(255,77,106,.8)',label:'SL',borderRadius:4,borderSkipped:false}];})(),
-      {plugins:{legend:{display:true,labels:{color:'#6b7aaa',font:{size:9},boxWidth:8}}}});
+      return [
+        {data:d.map(function(x){return x.tp;}),backgroundColor:tpBgFn,label:'TP',borderRadius:8,borderSkipped:false,noGradient:true},
+        {data:d.map(function(x){return x.sl;}),backgroundColor:slBgFn,label:'SL',borderRadius:8,borderSkipped:false,noGradient:true}
+      ];})(),
+      {plugins:{legend:{display:true,labels:{color:'#8892b0',font:{family:"'JetBrains Mono',monospace",size:9},boxWidth:8,boxHeight:8,borderRadius:3}}},
+       scales:{x:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{display:false},border:{display:false}},y:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{color:'rgba(30,37,64,0.3)'},border:{display:false}}}});
 
     // ── Heatmap horas ──
     aRenderHeatmap(ft);
@@ -4553,7 +4633,13 @@ function renderA(){
     var maxSl=Math.max.apply(null,tg.map(function(h){return h.sl;}).concat([0]));
     var maxTp=Math.max.apply(null,tg.map(function(h){return h.tp;}).concat([0]));
     mkC('cah','bar',tg.map(function(h){return h.time;}),
-      [{data:tg.map(function(h){return h.sl;}),backgroundColor:tg.map(function(h){var p=maxSl>0?h.sl/maxSl:0;return'rgba('+(Math.round(255*p))+','+(Math.round(100*(1-p)))+',106,.85)';}),label:'SL',borderRadius:4,borderSkipped:false}]);
+      [{data:tg.map(function(h){return h.sl;}),
+        backgroundColor:tg.map(function(h){
+          var p=maxSl>0?h.sl/maxSl:0;
+          return'rgba('+(Math.round(255*p))+','+(Math.round(56*(1-p)))+',96,'+(0.35+p*0.6)+')';
+        }),
+        label:'SL',borderRadius:8,borderSkipped:false,noGradient:true}],
+      {scales:{x:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{display:false},border:{display:false}},y:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{color:'rgba(30,37,64,0.3)'},border:{display:false}}}});
     var bTH=tg.reduce(function(b,h){return h.tp>b.tp?h:b;},tg[0]||{time:'—',tp:0});
     var wSH=tg.reduce(function(b,h){return h.sl>b.sl?h:b;},tg[0]||{time:'—',sl:0});
     var ahi=g('ahi');if(ahi)ahi.innerHTML='<div class="ib" style="background:var(--rd);border-color:var(--red)"><div class="il">Hora más SL</div><div class="iv" style="color:var(--red)">'+(wSH&&wSH.sl>0?wSH.time+' ('+wSH.sl+')':'—')+'</div></div><div class="ib" style="background:var(--gd);border-color:var(--green)"><div class="il">Hora más TP</div><div class="iv" style="color:var(--green)">'+(bTH&&bTH.tp>0?bTH.time+' ('+bTH.tp+')':'—')+'</div></div>';
@@ -4612,10 +4698,23 @@ function aRenderEquity(ft){
   });
   mkC('a-equity',daily?'bar':'line',labels,[{
     data:data,
-    borderColor:'rgba(124,58,237,.9)',
-    backgroundColor:daily?data.map(function(v){return v>=0?'rgba(0,229,160,.7)':'rgba(255,77,106,.7)'}):'rgba(124,58,237,.1)',
-    fill:!daily,tension:.35,borderWidth:2,pointRadius:0
-  }],{plugins:{legend:{display:false}},scales:{x:{ticks:{maxTicksLimit:8,font:{size:8}}},y:{ticks:{font:{size:8}}}}});
+    borderColor: daily ? undefined : '#c084fc',
+    fill:!daily,
+    tension:0.42,
+    borderWidth:2.8,
+    gradTop:'rgba(192,132,252,0.38)',
+    gradMid:'rgba(124,58,237,0.12)',
+    pointRadius:0,
+    pointHoverRadius:6,
+    borderRadius: daily ? 9 : undefined,
+    borderSkipped: daily ? false : undefined
+  }],{
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{ticks:{maxTicksLimit:8,color:'#6b7ba0',font:{size:9}},grid:{color:'rgba(30,37,64,0.3)'},border:{display:false}},
+      y:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{color:'rgba(30,37,64,0.3)'},border:{display:false}}
+    }
+  });
 }
 
 // ── Donut ──
@@ -4624,7 +4723,20 @@ function aRenderDonut(tp,sl,total){
   var center=g('a-donut-center'),legend=g('a-donut-legend');
   if(center)center.innerHTML='<div style="font-size:22px;font-weight:900;color:var(--text);font-family:\'Exo 2\',sans-serif">'+total+'</div><div style="font-size:9px;color:var(--gray2)">Total</div>';
   if(legend)legend.innerHTML='<span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:50%;background:#00e5a0;display:inline-block"></span>Ganadoras '+tp+' ('+(total?Math.round(tp/total*100):0)+'%)</span><span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:50%;background:#ff3d5a;display:inline-block"></span>Perdedoras '+sl+' ('+(total?Math.round(sl/total*100):0)+'%)</span>';
-  mkC('a-donut','doughnut',['Ganadoras','Perdedoras'],[{data:[tp,sl],backgroundColor:['rgba(0,229,160,.85)','rgba(255,61,90,.85)'],borderWidth:0,borderRadius:4}],{plugins:{legend:{display:false}},cutout:'72%'});
+  mkC('a-donut','doughnut',['Ganadoras','Perdedoras'],[{
+  data:[tp,sl],
+  backgroundColor:['rgba(0,229,176,0.92)','rgba(255,56,96,0.88)'],
+  hoverBackgroundColor:['rgba(0,255,200,1)','rgba(255,80,110,1)'],
+  borderWidth:3,
+  borderColor:['rgba(13,18,40,1)','rgba(13,18,40,1)'],
+  borderRadius:6,
+  hoverOffset:10,
+  spacing:2
+}],{
+  plugins:{legend:{display:false}},
+  cutout:'64%',
+  animation:{animateRotate:true,animateScale:false,duration:900,easing:'easeInOutQuart'}
+});
 }
 
 // ── Meses ──
@@ -4636,7 +4748,7 @@ function aRenderMonthly(ft,canvasId){
   var MNAMES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   var labels=months.map(function(m){var p=m.split('-');return MNAMES[+p[1]-1]+' \''+p[0].slice(2);});
   var vals=months.map(function(m){return byMonth[m];});
-  mkC(canvasId,'bar',labels,[{data:vals,backgroundColor:vals.map(function(v){return v>=0?'rgba(0,229,160,.8)':'rgba(255,77,106,.8)';}),borderRadius:4,borderSkipped:false}],{plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:8}}},y:{ticks:{font:{size:8}}}}});
+  mkC(canvasId,'bar',labels,[{data:vals,borderRadius:9,borderSkipped:false}],{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{display:false},border:{display:false}},y:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{color:'rgba(30,37,64,0.3)'},border:{display:false}}}});
 }
 
 // ── Días de la semana lista ──
@@ -7176,14 +7288,21 @@ window.renderRegCharts = function() {
   var eq=[],running=0,labels=[];
   ft.forEach(function(t){running+=(t.pnl||0);eq.push(running);labels.push((t.date||'').slice(5));});
   if(typeof mkC==='function'){
-    mkC('creg-eq','line',labels,[{data:eq,borderColor:'var(--green)',backgroundColor:'rgba(0,229,176,.08)',tension:.4,fill:true,pointRadius:2,borderWidth:2}],{});
+    mkC('creg-eq','line',labels,[{
+      data:eq,borderColor:'#00ffb3',fill:true,tension:0.42,borderWidth:2.8,
+      gradTop:'rgba(0,255,180,0.38)',gradMid:'rgba(0,229,176,0.12)',
+      pointRadius:0,pointHoverRadius:5
+    }],{});
     var mPnl=MONTHS.map(function(_,i){return S.trades.filter(function(t){return t.date&&t.date.startsWith(yrS)&&+t.date.split('-')[1]===i+1;}).reduce(function(a,t){return a+(t.pnl||0);},0);});
-    mkC('creg-mon','bar',MSS,[{data:mPnl,backgroundColor:mPnl.map(function(v){return v>=0?'rgba(0,229,176,.7)':'rgba(255,56,96,.7)';}),borderRadius:4,borderSkipped:false}],{});
+    mkC('creg-mon','bar',MSS,[{data:mPnl,borderRadius:9,borderSkipped:false}],{});
     var tg=getTimeGroups(S.trades);
     mkC('creg-hr','bar',tg.map(function(h){return h.time;}),
-      [{data:tg.map(function(h){return h.tp;}),backgroundColor:'rgba(0,229,160,.7)',label:'TP',borderRadius:4,borderSkipped:false},
-       {data:tg.map(function(h){return h.sl;}),backgroundColor:'rgba(255,77,106,.7)',label:'SL',borderRadius:4,borderSkipped:false}],
-      {plugins:{legend:{display:true,labels:{color:'#6b7aaa',font:{size:9},boxWidth:8}}}});
+      [
+        {data:tg.map(function(h){return h.tp;}),backgroundColor:tpBgFn,label:'TP',borderRadius:7,borderSkipped:false,noGradient:true},
+        {data:tg.map(function(h){return h.sl;}),backgroundColor:slBgFn,label:'SL',borderRadius:7,borderSkipped:false,noGradient:true}
+      ],
+      {plugins:{legend:{display:true,labels:{color:'#8892b0',font:{family:"'JetBrains Mono',monospace",size:9},boxWidth:8,boxHeight:8,borderRadius:3}}},
+       scales:{x:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{display:false},border:{display:false}},y:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{color:'rgba(30,37,64,0.3)'},border:{display:false}}}});
   }
 };
 
