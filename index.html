@@ -3732,9 +3732,9 @@ function renderDash(){
     dkpis.innerHTML=kpis.map(function(k){
       return '<div class="card" style="padding:14px 16px;position:relative;overflow:hidden;background:linear-gradient(135deg,'+k.accent+',var(--card));border:1px solid rgba(255,255,255,.04)">'
         +'<div style="position:absolute;top:12px;right:12px;opacity:.25">'+k.svg+'</div>'
-        +'<div style="font-size:8px;font-weight:700;color:#4a5280;text-transform:uppercase;letter-spacing:2.5px;margin-bottom:8px;font-family:'Exo 2',sans-serif">'+k.l+'</div>'
-        +'<div style="font-size:22px;font-weight:900;color:'+k.c+';font-family:'Exo 2',sans-serif;letter-spacing:-0.5px;line-height:1">'+k.v+'</div>'
-        +(k.sub?'<div style="font-size:10px;color:var(--gray2);margin-top:6px;font-family:'JetBrains Mono',monospace;letter-spacing:-0.3px">'+k.sub+'</div>':'')
+        +'<div style=\"font-size:8px;font-weight:700;color:#4a5280;text-transform:uppercase;letter-spacing:2.5px;margin-bottom:8px;font-family:\'Exo 2\',sans-serif\">'+k.l+'</div>'
+        +'<div style=\"font-size:22px;font-weight:900;color:'+k.c+';font-family:\'Exo 2\',sans-serif;letter-spacing:-0.5px;line-height:1\">'+k.v+'</div>'
+        +(k.sub?'<div style=\"font-size:10px;color:var(--gray2);margin-top:6px;font-family:\'JetBrains Mono\',monospace;letter-spacing:-0.3px\">'+k.sub+'</div>':'')
         +'</div>';
     }).join('');
   }
