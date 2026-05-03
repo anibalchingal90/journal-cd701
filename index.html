@@ -3242,6 +3242,9 @@ function migrateData(){
 
   localStorage.setItem(pfxV+'version', APP_VERSION);
   if(typeof save === 'function') save(); // guarda con estructura nueva y sube a nube
+  // ✅ FIX SYNC v3: resetear save_ts a 0 tras migración para que syncFromCloud
+  // pueda descargar datos de la nube sin que migration bloquee la comparación de timestamps
+  var pfxMig = getLicensePrefix(); if(pfxMig) localStorage.setItem(pfxMig+'save_ts', '0');
   console.log('[TradeTrack] Migración completa → v' + APP_VERSION);
 }
 // ─────────────────────────────────────────────────────────────────────────────
@@ -3405,28 +3408,30 @@ async function syncFromCloud(){
     var cloudAccounts = row.accounts || [];
     var allData = row.all_accounts_data || {};
 
-    // 1. Restaurar lista de cuentas
-    if(cloudAccounts.length && typeof saveAccounts==='function'){
-      saveAccounts(cloudAccounts);
-    }
-
-    // 2. Restaurar datos de TODAS las cuentas al localStorage (con prefijo de licencia)
+    // ─── Resolución de conflictos: evaluar timestamps ANTES de restaurar nada ─────
     var pfx2 = getLicensePrefix();
     if(!pfx2) return false; // ✅ guard: sin licencia válida no escribir en localStorage
 
-    // ✅ FIX SYNC — Resolución de conflictos local vs nube:
-    // Capturar estado local ANTES de sobreescribir, por si local es más reciente
     var localSaveTs = parseInt(localStorage.getItem(pfx2+'save_ts')||'0');
     var cloudTs = row.updated_at ? new Date(row.updated_at).getTime() : 0;
-    var activeAcctIdConflict = (typeof getActiveId==='function') ? getActiveId() : '';
-    // S.trades ya fue cargado por load() en initApp() antes de llamar syncFromCloud
-    var localTradesBackup = S.trades.slice();
-    // Local es más reciente si: tiene timestamp guardado, más nuevo que la nube, y tiene datos
-    var localIsNewer = localSaveTs > 0 && cloudTs > 0 && localSaveTs > cloudTs && localTradesBackup.length > 0;
+
+    // ✅ FIX v2: local es fuente de verdad si su save_ts supera el updated_at de la nube.
+    // Ahora saveAccounts() también actualiza save_ts, por lo que este check protege
+    // tanto trades como cambios de cuentas (crear, borrar, editar).
+    var localIsNewer = localSaveTs > 0 && cloudTs > 0 && localSaveTs > cloudTs;
     if(localIsNewer){
-      console.log('[TradeTrack] Conflicto detectado: local ('+new Date(localSaveTs).toISOString()+') > nube ('+row.updated_at+'). Restaurando datos locales y sincronizando hacia la nube.');
+      console.log('[TradeTrack] Local más reciente ('+new Date(localSaveTs).toISOString()+') que nube ('+row.updated_at+') — manteniendo estado local y subiendo a nube');
+      setTimeout(function(){ syncToCloud(); }, 200); // subir estado local correcto a la nube
+      return true; // estado local ya está correcto en memoria y localStorage
     }
-    // ════════════════════════════════════════════════════════
+    // ─────────────────────────────────────────────────────────────────────────────
+
+    // 1. Restaurar lista de cuentas (nube es más reciente)
+    if(cloudAccounts.length && typeof saveAccounts==='function'){
+      saveAccounts(cloudAccounts, true); // true = no actualizar save_ts (viene de la nube)
+    }
+
+    // 2. Restaurar datos de TODAS las cuentas al localStorage (con prefijo de licencia)
     if(Object.keys(allData).length){
       Object.keys(allData).forEach(function(acctId){
         var acctData = allData[acctId];
@@ -3471,23 +3476,14 @@ async function syncFromCloud(){
       var x = localStorage.getItem(pfx2+id+'_'+i);
       if(x) try{ t = t.concat(JSON.parse(x)); }catch(ex2){}
     }
-    S.trades = t; // siempre reemplazar con datos de la nube
+    S.trades = t; // reemplazar con datos de la nube (nube es más reciente)
 
-    // ✅ FIX SYNC — Resolución de conflictos: si local era más reciente para esta cuenta, restaurar
-    if(localIsNewer && id === activeAcctIdConflict){
-      console.log('[TradeTrack] Restaurando '+localTradesBackup.length+' trades locales y subiendo a nube...');
-      S.trades = localTradesBackup;
-      // Re-escribir trades locales en localStorage (revertir lo que vino de la nube para esta cuenta)
-      var n3 = Math.ceil(localTradesBackup.length/500)||1;
-      localStorage.setItem(pfx2+'n_'+id, String(n3));
-      for(var i3=0;i3<n3;i3++){
-        localStorage.setItem(pfx2+id+'_'+i3, JSON.stringify(localTradesBackup.slice(i3*500,(i3+1)*500)));
-      }
-      localStorage.setItem(pfx2+'save_ts', String(Date.now())); // resetear timestamp
-      // Subir datos locales correctos a la nube
-      setTimeout(function(){ syncToCloud(); }, 200);
-    }
-    // ═════════════════════════════════════════════════════════
+    // ✅ FIX SYNC v3: marcar save_ts con el timestamp de la nube para que
+    // la próxima comparación en syncFromCloud sea correcta.
+    // Sin esto, un save_ts antiguo (de migración u operación previa) puede
+    // aparecer como "más reciente" que la nube en el siguiente sync, causando
+    // que el usuario deba refrescar 4-5 veces para ver datos del otro dispositivo.
+    localStorage.setItem(pfx2+'save_ts', String(cloudTs));
 
     return true;
   }catch(e){
@@ -6663,9 +6659,13 @@ function getAccounts(){
   var pfx = getLicensePrefix();
   try{ return JSON.parse(localStorage.getItem(pfx+'accounts')||'[]'); }catch(e){return [];}
 }
-function saveAccounts(arr){
+function saveAccounts(arr, noTs){
   var pfx = getLicensePrefix();
+  if(!pfx) return;
   localStorage.setItem(pfx+'accounts', JSON.stringify(arr));
+  // ✅ FIX v2: marcar timestamp cuando el usuario cambia cuentas (crear/borrar/editar)
+  // noTs=true solo cuando viene de syncFromCloud para no marcar restauraciones como cambios locales
+  if(!noTs) localStorage.setItem(pfx+'save_ts', String(Date.now()));
 }
 function getActiveId(){
   var pfx = getLicensePrefix();
