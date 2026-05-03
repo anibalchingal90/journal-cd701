@@ -35,6 +35,15 @@
   --accent:#7c3aed;--accent2:#6d28d9;--accentb:#4f46e5;
   --ni-act-bg:rgba(124,58,237,.18);--ni-act-border:rgba(124,58,237,.4);--ni-act-color:#a78bfa;
 }
+/* ── SELECTOR DE TEMAS ─────────────────────────────────────────────── */
+.theme-selector{padding:10px 14px 12px;border-bottom:1px solid var(--bdr)}
+.theme-label{font-size:8px;font-weight:700;color:var(--gray2);text-transform:uppercase;letter-spacing:2px;font-family:'Exo 2',sans-serif;margin-bottom:8px;display:block}
+.theme-pills{display:flex;gap:6px;flex-wrap:wrap}
+.theme-btn{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:all .2s;position:relative;flex-shrink:0}
+.theme-btn:hover{transform:scale(1.2);box-shadow:0 0 8px rgba(255,255,255,.3)}
+.theme-btn-act{border-color:#fff!important;transform:scale(1.15);box-shadow:0 0 10px rgba(255,255,255,.4)!important}
+.theme-btn-act::after{content:'';position:absolute;inset:3px;border-radius:50%;background:rgba(255,255,255,.6)}
+
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',system-ui,sans-serif;display:flex;height:100vh;overflow:hidden;font-size:13px}
 /* SCROLLBAR */
 ::-webkit-scrollbar{width:4px;height:4px}
@@ -63,7 +72,7 @@ body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(r
 .ni.act svg{opacity:1;filter:drop-shadow(0 0 4px rgba(124,58,237,.6))}
 /* MAIN */
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;position:relative;z-index:1}
-.topbar{background:rgba(8,11,28,.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--bdr);padding:5px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:relative}
+.topbar{background:var(--sb);backdrop-filter:blur(20px);border-bottom:1px solid var(--bdr);padding:5px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:relative}
 .topbar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(67,97,238,.5),rgba(0,207,255,.3),transparent)}
 .page-title{font-size:20px;font-weight:800;font-family:'Exo 2',sans-serif;background:linear-gradient(90deg,var(--text),#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-0.5px}
 .page-sub{color:var(--gray2);font-size:11px;margin-top:2px}
@@ -588,6 +597,27 @@ tr:hover td{background:rgba(14,18,41,.8)}
     border-radius:20px 20px 0 0;
     transition:bottom .3s cubic-bezier(.4,0,.2,1);
   }
+
+  /* ── ANÁLISIS — filtros como drawer desde la derecha ── */
+  #ast-filter-mob-btn{display:flex!important}
+  #ast-filter-panel{
+    position:fixed!important;
+    top:0;right:-100%;bottom:0;
+    width:82vw;max-width:300px;
+    z-index:9500;
+    transition:right .3s cubic-bezier(.4,0,.2,1);
+    max-height:100vh!important;
+    box-shadow:-8px 0 40px rgba(0,0,0,.6);
+    border-left:1px solid var(--bdr2)!important;
+  }
+  #ast-filter-panel.drawer-open{right:0!important}
+  #ast-filter-close-row{display:flex!important}
+  #ast-filter-overlay{
+    display:none;position:fixed;inset:0;
+    background:rgba(0,0,0,.6);backdrop-filter:blur(2px);
+    z-index:9400;opacity:0;transition:opacity .3s;
+  }
+  #ast-filter-overlay.open{display:block;opacity:1}
   #trade-detail-panel.open{bottom:0;right:auto;box-shadow:0 -8px 60px rgba(0,0,0,.6)}
   #trade-detail-panel::before{display:none}
   /* Línea decorativa top del panel */
@@ -951,6 +981,13 @@ tr:hover td{background:rgba(14,18,41,.8)}
       <div class="logo-sub">CD701 PLATFORM</div>
     </div>
   </div>
+  <!-- ── SELECTOR DE TEMAS ── -->
+  <div class="theme-selector">
+    <span class="theme-label">Tema</span>
+    <div class="theme-pills" id="theme-pills">
+      <button class="theme-btn theme-btn-act" data-theme="dark" onclick="applyTheme('dark')" title="Negro Oscuro" style="background:#1a2240"></button><button class="theme-btn" data-theme="light" onclick="applyTheme('light')" title="Blanco" style="background:#e8ebf5"></button><button class="theme-btn" data-theme="electric" onclick="applyTheme('electric')" title="Azul Eléctrico" style="background:#0088ff"></button><button class="theme-btn" data-theme="matrix" onclick="applyTheme('matrix')" title="Verde Matriz" style="background:#00cc55"></button><button class="theme-btn" data-theme="crimson" onclick="applyTheme('crimson')" title="Crimson" style="background:#cc1133"></button><button class="theme-btn" data-theme="gold" onclick="applyTheme('gold')" title="Oro Premium" style="background:#c9960a"></button>
+    </div>
+  </div>
   <div style="padding:8px;flex:1;display:flex;flex-direction:column;overflow-y:auto">
     <div class="ns">Principal</div>
     <div class="ni act" id="nav-dash" onclick="showTab('dash',this)">
@@ -959,11 +996,11 @@ tr:hover td{background:rgba(14,18,41,.8)}
     <div class="ni" id="nav-registro" onclick="showTab('registro',this)">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.5" y="2" width="13" height="12" rx="1.5"/><line x1="1.5" y1="5.5" x2="14.5" y2="5.5"/><line x1="5" y1="5.5" x2="5" y2="14"/></svg>Operaciones
     </div>
-    <div class="ni" id="nav-analisis" onclick="showTab('analisis',this)">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="1,13 4.5,8 7.5,10.5 11,5 15,7.5"/><polyline points="11,5 15,5 15,7.5"/></svg>Análisis
-    </div>
     <div class="ni" id="nav-stats" onclick="showTab('stats',this)">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="9" width="3" height="6" rx=".8"/><rect x="6" y="5" width="3" height="10" rx=".8"/><rect x="11" y="2" width="3" height="13" rx=".8"/></svg>Estadísticas
+    </div>
+    <div class="ni" id="nav-analisis" onclick="showTab('analisis',this)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="1,13 4.5,8 7.5,10.5 11,5 15,7.5"/><polyline points="11,5 15,5 15,7.5"/></svg>Análisis Avanzado
     </div>
     <div style="margin-top:8px;border-top:1px solid var(--bdr)"></div>
     <!-- Lista de cuentas -->
@@ -1012,6 +1049,10 @@ tr:hover td{background:rgba(14,18,41,.8)}
     <div style="display:flex;gap:8px;align-items:center">
       <input id="acct-inp" type="number" value="10000" style="display:none">
       <button class="btn btn-gold" onclick="document.getElementById('smo').classList.add('show');setSTab('exp')">↕ Sync</button>
+      <button class="btn" onclick="forceAppUpdate()" title="Actualizar app a la última versión" style="gap:5px;background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.4);color:#818cf8;font-size:10px;padding:6px 10px">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-9.5L1 10"/></svg>
+        ↺ App
+      </button>
       <button class="btn btn-csv-hide" onclick="exportCSV()">⬇ CSV</button>
     </div>
   </div>
@@ -1133,7 +1174,23 @@ tr:hover td{background:rgba(14,18,41,.8)}
 
       </div>
       <!-- Acciones derecha -->
-      <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+      <div style="display:flex;align-items:center;gap:6px;margin-left:auto;flex-wrap:wrap">
+        <!-- Exportar CSV -->
+        <button class="btn" onclick="exportCSV()" title="Exportar operaciones a Excel/CSV" style="font-size:10px;gap:4px;padding:6px 10px;background:rgba(0,207,255,.1);border-color:rgba(0,207,255,.3);color:#00cfff">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" width="11" height="11"><path d="M7 1v8M4 6l3 3 3-3"/><path d="M1 10v1a2 2 0 002 2h8a2 2 0 002-2v-1"/></svg>
+          CSV
+        </button>
+        <!-- Importar CSV -->
+        <label class="btn" title="Importar operaciones desde CSV" style="font-size:10px;gap:4px;padding:6px 10px;cursor:pointer;background:rgba(0,229,176,.1);border-color:rgba(0,229,176,.3);color:#00e5b0">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" width="11" height="11"><path d="M7 9V1M4 4l3-3 3 3"/><path d="M1 10v1a2 2 0 002 2h8a2 2 0 002-2v-1"/></svg>
+          Importar
+          <input type="file" accept=".csv" style="display:none" onchange="importCSV(this)">
+        </label>
+        <!-- Reporte para Claude -->
+        <button class="btn" onclick="exportClaudeTxtOps()" title="Descargar reporte .txt para Claude" style="font-size:10px;gap:4px;padding:6px 10px;background:rgba(192,132,252,.1);border-color:rgba(192,132,252,.3);color:#c084fc">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" width="11" height="11"><path d="M2 2h10a1 1 0 011 1v7a1 1 0 01-1 1H5l-3 2V3a1 1 0 011-1z"/></svg>
+          Para IA
+        </button>
         <button class="btn-new-op" onclick="openNewOpPanel()">
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" width="13" height="13"><line x1="8" y1="1" x2="8" y2="15"/><line x1="1" y1="8" x2="15" y2="8"/></svg>
           Nueva operación
@@ -1270,6 +1327,10 @@ tr:hover td{background:rgba(14,18,41,.8)}
           <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M1 7a6 6 0 1 0 12 0 6 6 0 0 0-12 0"/><path d="M7 4v3l2 1"/></svg>
           Actualizar
         </button>
+        <button onclick="exportClaudeTxtStats()" title="Descargar reporte .txt para Claude" style="background:rgba(192,132,252,.12);border:1px solid rgba(192,132,252,.3);color:#c084fc;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" width="11" height="11"><path d="M2 2h10a1 1 0 011 1v7a1 1 0 01-1 1H5l-3 2V3a1 1 0 011-1z"/></svg>
+          Para IA
+        </button>
       </div>
     </div>
 
@@ -1384,9 +1445,14 @@ tr:hover td{background:rgba(14,18,41,.8)}
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
             <div style="font-size:9px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px" id="acnt"></div>
+            <!-- Botón filtros — solo visible en móvil -->
+            <button id="ast-filter-mob-btn" class="btn" onclick="toggleAstFilterDrawer()" style="display:none;align-items:center;gap:5px;font-size:10px">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="12" height="12"><path d="M1 3h14M4 8h8M7 13h2"/></svg>
+              Filtros
+            </button>
             <button class="btn" onclick="aExportReport()" style="display:flex;align-items:center;gap:5px;background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.4);color:#818cf8;font-size:10px">
               <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" width="11" height="11"><path d="M7 1v8M4 6l3 3 3-3"/><path d="M1 10v1a2 2 0 002 2h8a2 2 0 002-2v-1"/></svg>
-              Exportar informe
+              Exportar
             </button>
           </div>
         </div>
@@ -1476,7 +1542,17 @@ tr:hover td{background:rgba(14,18,41,.8)}
         <!-- ── SUB-TAB: TIEMPO ── -->
         <div id="ast-panel-tiempo" class="ast-panel" style="display:none">
           <div class="g2">
-            <div class="card"><div class="card-hdr" style="color:var(--org);border-color:rgba(255,140,66,.2)">SL por Hora (mapa de calor)</div><div class="cw"><canvas id="cah"></canvas></div><div class="ir" id="ahi"></div></div>
+            <div class="card">
+  <div class="card-hdr" style="color:var(--org);border-color:rgba(255,140,66,.2)">Mapa de calor por Hora</div>
+  <!-- TP por hora -->
+  <div style="font-size:8px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px;font-family:'Exo 2',sans-serif">TP por hora</div>
+  <div style="height:110px;position:relative"><canvas id="cah-tp"></canvas></div>
+  <div style="height:10px"></div>
+  <!-- SL por hora -->
+  <div style="font-size:8px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px;font-family:'Exo 2',sans-serif">SL por hora</div>
+  <div style="height:110px;position:relative"><canvas id="cah"></canvas></div>
+  <div class="ir" id="ahi"></div>
+</div>
             <div class="card"><div class="card-hdr" style="color:var(--green);border-color:rgba(0,229,160,.2)">TP/SL por Día de Semana</div><div class="cw"><canvas id="cad"></canvas></div><div class="ir" id="adi"></div></div>
           </div>
           <div class="card" style="margin-top:10px">
@@ -1527,8 +1603,16 @@ tr:hover td{background:rgba(14,18,41,.8)}
 
       </div><!-- fin contenido izquierdo -->
 
+      <!-- Overlay para el drawer de filtros en móvil -->
+      <div id="ast-filter-overlay" onclick="toggleAstFilterDrawer()"></div>
+
       <!-- PANEL FILTROS DERECHO -->
-      <div style="width:258px;flex-shrink:0;border-left:1px solid var(--bdr);background:var(--card);overflow-y:auto;padding:14px 12px;display:flex;flex-direction:column;gap:12px;position:sticky;top:0;max-height:calc(100vh - 50px)">
+      <div id="ast-filter-panel" style="width:258px;flex-shrink:0;border-left:1px solid var(--bdr);background:var(--card);overflow-y:auto;padding:14px 12px;display:flex;flex-direction:column;gap:12px;position:sticky;top:0;max-height:calc(100vh - 50px)">
+        <!-- Botón cerrar — solo visible en móvil -->
+        <div id="ast-filter-close-row" style="display:none;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span style="font-size:11px;font-weight:700;color:var(--text);font-family:'Exo 2',sans-serif;letter-spacing:1px;text-transform:uppercase">Filtros</span>
+          <button onclick="toggleAstFilterDrawer()" style="background:none;border:none;color:var(--gray2);cursor:pointer;font-size:18px;padding:0 4px;line-height:1">✕</button>
+        </div>
 
         <div style="display:flex;align-items:center;justify-content:space-between">
           <span style="font-size:12px;font-weight:700;color:var(--text);font-family:'Exo 2',sans-serif">Filtros</span>
@@ -1935,6 +2019,30 @@ tr:hover td{background:rgba(14,18,41,.8)}
       </div>
     </div>
 
+    <!-- ── BACKUP COMPLETO ── -->
+    <div style="margin-top:16px">
+      <div class="card">
+        <div class="card-hdr" style="color:var(--gold);border-color:rgba(251,191,36,.2)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Backup Completo
+        </div>
+        <div style="font-size:11px;color:var(--gray2);margin-bottom:14px;line-height:1.6">
+          Exporta <b style="color:var(--text)">todas tus cuentas</b> y operaciones en un solo archivo JSON para respaldo o migración. Las imágenes adjuntas no se incluyen para mantener el archivo liviano.
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn" onclick="exportBackup()" style="flex:1;justify-content:center;gap:6px;background:rgba(251,191,36,.12);border-color:rgba(251,191,36,.3);color:var(--gold);font-weight:700">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Exportar backup (.json)
+          </button>
+          <label class="btn" style="flex:1;justify-content:center;gap:6px;cursor:pointer;background:rgba(0,229,176,.1);border-color:rgba(0,229,176,.3);color:var(--green);font-weight:700">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Importar backup (.json)
+            <input type="file" accept=".json" style="display:none" onchange="importBackup(this)">
+          </label>
+        </div>
+      </div>
+    </div>
+
 
   </div><!-- /tab-config -->
 
@@ -2237,6 +2345,7 @@ async function checkLicenseOnLoad() {
   }
 
   startLicensePolling();
+  startRealtimeSync(); // ✅ Realtime: sincronización instantánea entre dispositivos
   hideLicOverlay();
   initApp();
 }
@@ -2529,7 +2638,151 @@ function load(){
 //  SUPABASE — SINCRONIZACIÓN EN LA NUBE
 // ═══════════════════════════════════════════════════════════
 // ── Versioning & Auto-migration ──────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════
+//  SISTEMA DE TEMAS DE COLOR
+// ════════════════════════════════════════════════════════════
+var THEMES = {
+  // ── 1. Negro Oscuro (default) ────────────────────────────
+  'dark': {
+    name:'Negro Oscuro', icon:'⬛',
+    '--bg':'#080d1a','--bg2':'#0c1225','--sb':'#070b18',
+    '--card':'#0d1228','--card2':'#101528','--card3':'#141a30',
+    '--bdr':'#1a2240','--bdr2':'#243060','--bdr3':'#2e3c72',
+    '--green':'#00e5b0','--green2':'#00a87a',
+    '--gd':'rgba(0,229,176,.08)','--gd2':'rgba(0,229,176,.04)',
+    '--red':'#ff3860','--red2':'#cc1a40',
+    '--rd':'rgba(255,56,96,.1)','--rd2':'rgba(255,56,96,.05)',
+    '--blue':'#4d9fff','--blue2':'#0099cc','--blueglow':'rgba(77,159,255,.15)',
+    '--gold':'#f7c948','--purp':'#c084fc','--cyan':'#00cfff','--org':'#ff7043',
+    '--gray':'#2a3356','--gray2':'#6b7899','--text':'#dde4f5','--text2':'#9aa5c8',
+    '--glow-g':'0 0 28px rgba(0,229,176,.25)','--glow-r':'0 0 22px rgba(255,56,96,.3)',
+    '--glow-b':'0 0 22px rgba(124,58,237,.35)','--glow-gold':'0 0 22px rgba(247,201,72,.25)',
+    '--accent':'#7c3aed','--accent2':'#6d28d9','--accentb':'#4f46e5',
+    '--ni-act-bg':'rgba(124,58,237,.18)','--ni-act-border':'rgba(124,58,237,.4)','--ni-act-color':'#a78bfa',
+  },
+
+  // ── 2. Blanco / Claro ─────────────────────────────────────
+  'light': {
+    name:'Blanco', icon:'⬜',
+    '--bg':'#f0f2f8','--bg2':'#e8ebf5','--sb':'#ffffff',
+    '--card':'#ffffff','--card2':'#f4f6fc','--card3':'#ebeef8',
+    '--bdr':'#d4d9ee','--bdr2':'#b8c0de','--bdr3':'#9aa5cc',
+    '--green':'#008f72','--green2':'#006b55',
+    '--gd':'rgba(0,143,114,.1)','--gd2':'rgba(0,143,114,.05)',
+    '--red':'#d42051','--red2':'#a0143c',
+    '--rd':'rgba(212,32,81,.1)','--rd2':'rgba(212,32,81,.05)',
+    '--blue':'#2563eb','--blue2':'#1d4ed8','--blueglow':'rgba(37,99,235,.15)',
+    '--gold':'#d97706','--purp':'#7c3aed','--cyan':'#0891b2','--org':'#ea580c',
+    '--gray':'#c0c7de','--gray2':'#64748b','--text':'#1e2640','--text2':'#475569',
+    '--glow-g':'0 0 20px rgba(0,143,114,.2)','--glow-r':'0 0 20px rgba(212,32,81,.2)',
+    '--glow-b':'0 0 20px rgba(124,58,237,.25)','--glow-gold':'0 0 20px rgba(217,119,6,.2)',
+    '--accent':'#7c3aed','--accent2':'#6d28d9','--accentb':'#4f46e5',
+    '--ni-act-bg':'rgba(124,58,237,.12)','--ni-act-border':'rgba(124,58,237,.35)','--ni-act-color':'#6d28d9',
+  },
+
+  // ── 3. Azul Oscuro Eléctrico ──────────────────────────────
+  'electric': {
+    name:'Azul Eléctrico', icon:'🔵',
+    '--bg':'#020918','--bg2':'#040d20','--sb':'#010713',
+    '--card':'#051028','--card2':'#071430','--card3':'#0a1838',
+    '--bdr':'#0f2a5c','--bdr2':'#153870','--bdr3':'#1a4688',
+    '--green':'#00ffcc','--green2':'#00cc99',
+    '--gd':'rgba(0,255,204,.08)','--gd2':'rgba(0,255,204,.04)',
+    '--red':'#ff2060','--red2':'#cc0040',
+    '--rd':'rgba(255,32,96,.1)','--rd2':'rgba(255,32,96,.05)',
+    '--blue':'#00aaff','--blue2':'#0077cc','--blueglow':'rgba(0,170,255,.2)',
+    '--gold':'#ffd000','--purp':'#aa44ff','--cyan':'#00eeff','--org':'#ff6600',
+    '--gray':'#0d2255','--gray2':'#4a78cc','--text':'#c8e0ff','--text2':'#7aA8e0',
+    '--glow-g':'0 0 30px rgba(0,255,204,.3)','--glow-r':'0 0 25px rgba(255,32,96,.35)',
+    '--glow-b':'0 0 30px rgba(0,170,255,.4)','--glow-gold':'0 0 25px rgba(255,208,0,.3)',
+    '--accent':'#0088ff','--accent2':'#0066cc','--accentb':'#0044aa',
+    '--ni-act-bg':'rgba(0,136,255,.2)','--ni-act-border':'rgba(0,136,255,.5)','--ni-act-color':'#00aaff',
+  },
+
+  // ── 4. Verde Matriz (elección libre 1) ────────────────────
+  'matrix': {
+    name:'Verde Matriz', icon:'🟢',
+    '--bg':'#050d08','--bg2':'#071210','--sb':'#030b06',
+    '--card':'#081510','--card2':'#0a1912','--card3':'#0d1e15',
+    '--bdr':'#0f3018','--bdr2':'#184025','--bdr3':'#1e5030',
+    '--green':'#00ff88','--green2':'#00cc66',
+    '--gd':'rgba(0,255,136,.08)','--gd2':'rgba(0,255,136,.04)',
+    '--red':'#ff4444','--red2':'#cc2222',
+    '--rd':'rgba(255,68,68,.1)','--rd2':'rgba(255,68,68,.05)',
+    '--blue':'#44ddaa','--blue2':'#22aa80','--blueglow':'rgba(68,221,170,.15)',
+    '--gold':'#aaff44','--purp':'#88ff00','--cyan':'#00ffbb','--org':'#ffaa00',
+    '--gray':'#0d2e14','--gray2':'#3a8858','--text':'#ccffe8','--text2':'#7acc99',
+    '--glow-g':'0 0 30px rgba(0,255,136,.35)','--glow-r':'0 0 25px rgba(255,68,68,.3)',
+    '--glow-b':'0 0 25px rgba(68,221,170,.3)','--glow-gold':'0 0 25px rgba(170,255,68,.25)',
+    '--accent':'#00cc55','--accent2':'#009940','--accentb':'#007730',
+    '--ni-act-bg':'rgba(0,204,85,.18)','--ni-act-border':'rgba(0,204,85,.45)','--ni-act-color':'#00ff88',
+  },
+
+  // ── 5. Rojo Crimson (elección libre 2) ────────────────────
+  'crimson': {
+    name:'Crimson', icon:'🔴',
+    '--bg':'#0f0508','--bg2':'#16080c','--sb':'#0a0306',
+    '--card':'#180a0f','--card2':'#1d0c12','--card3':'#230f16',
+    '--bdr':'#3d1020','--bdr2':'#521530','--bdr3':'#661840',
+    '--green':'#00e5b0','--green2':'#00a87a',
+    '--gd':'rgba(0,229,176,.08)','--gd2':'rgba(0,229,176,.04)',
+    '--red':'#ff2244','--red2':'#cc0022',
+    '--rd':'rgba(255,34,68,.12)','--rd2':'rgba(255,34,68,.06)',
+    '--blue':'#ff6699','--blue2':'#cc3366','--blueglow':'rgba(255,102,153,.15)',
+    '--gold':'#ffaa44','--purp':'#ff44aa','--cyan':'#ff8899','--org':'#ff5522',
+    '--gray':'#3a1020','--gray2':'#996677','--text':'#ffe0e8','--text2':'#cc9aaa',
+    '--glow-g':'0 0 28px rgba(0,229,176,.25)','--glow-r':'0 0 30px rgba(255,34,68,.4)',
+    '--glow-b':'0 0 25px rgba(255,68,136,.3)','--glow-gold':'0 0 25px rgba(255,170,68,.3)',
+    '--accent':'#cc1133','--accent2':'#aa0022','--accentb':'#880011',
+    '--ni-act-bg':'rgba(204,17,51,.2)','--ni-act-border':'rgba(204,17,51,.5)','--ni-act-color':'#ff4466',
+  },
+
+  // ── 6. Oro Premium (elección libre 3) ─────────────────────
+  'gold': {
+    name:'Oro Premium', icon:'🟡',
+    '--bg':'#0c0a04','--bg2':'#130f06','--sb':'#080600',
+    '--card':'#161008','--card2':'#1c150a','--card3':'#221a0c',
+    '--bdr':'#3a2c10','--bdr2':'#4e3a14','--bdr3':'#624818',
+    '--green':'#44dd88','--green2':'#22aa66',
+    '--gd':'rgba(68,221,136,.08)','--gd2':'rgba(68,221,136,.04)',
+    '--red':'#ff4444','--red2':'#cc2222',
+    '--rd':'rgba(255,68,68,.1)','--rd2':'rgba(255,68,68,.05)',
+    '--blue':'#ddaa44','--blue2':'#aa7722','--blueglow':'rgba(221,170,68,.15)',
+    '--gold':'#ffd700','--purp':'#ffaa00','--cyan':'#ffcc44','--org':'#ff8800',
+    '--gray':'#3a2a10','--gray2':'#997744','--text':'#fff8e8','--text2':'#ccaa77',
+    '--glow-g':'0 0 25px rgba(68,221,136,.25)','--glow-r':'0 0 22px rgba(255,68,68,.3)',
+    '--glow-b':'0 0 25px rgba(221,170,68,.3)','--glow-gold':'0 0 30px rgba(255,215,0,.4)',
+    '--accent':'#c9960a','--accent2':'#a07808','--accentb':'#7a5c06',
+    '--ni-act-bg':'rgba(201,150,10,.2)','--ni-act-border':'rgba(201,150,10,.5)','--ni-act-color':'#ffd700',
+  },
+};
+
+// ── Aplicar tema ──────────────────────────────────────────────────────────
+var _currentTheme = 'dark';
+function applyTheme(id){
+  var theme = THEMES[id] || THEMES['dark'];
+  var root = document.documentElement;
+  Object.keys(theme).forEach(function(k){
+    if(k.startsWith('--')) root.style.setProperty(k, theme[k]);
+  });
+  _currentTheme = id;
+  localStorage.setItem('tt_theme', id);
+  // Actualizar selector visual
+  document.querySelectorAll('.theme-btn').forEach(function(btn){
+    btn.classList.toggle('theme-btn-act', btn.dataset.theme === id);
+  });
+}
+
+// ── Cargar tema guardado al arrancar ─────────────────────────────────────
+function loadSavedTheme(){
+  var saved = localStorage.getItem('tt_theme') || 'dark';
+  if(!THEMES[saved]) saved = 'dark';
+  applyTheme(saved);
+}
+
 var APP_VERSION = '2.2'; // ⬅ v2.2: Device binding robusto, sin duplicados, freeze inmediato
+// BUILD_TS: cambia automáticamente en cada deploy — invalida el SW cache anterior
+var BUILD_TS = '202605030225';
 
 function migrateData(){
   var pfxV = getLicensePrefix();
@@ -2793,6 +3046,103 @@ async function syncAllAccounts(){
 }
 
 // ✅ FIX v2: Polling mejorado con bloqueo INMEDIATO y visibilitychange
+// ═══════════════════════════════════════════════════════════
+//  SUPABASE REALTIME — Sincronización instantánea entre dispositivos
+//  Se conecta via WebSocket y detecta cambios en journal_data
+// ═══════════════════════════════════════════════════════════
+var _realtimeWs = null;
+var _realtimeReconnectTimer = null;
+var _realtimeConnected = false;
+
+function startRealtimeSync(){
+  var key = getSyncKey();
+  if(!key) return;
+  // Usar el proyecto Supabase activo
+  var wsUrl = SB_URL.replace('https://', 'wss://')
+    .replace('http://', 'ws://')
+    + '/realtime/v1/websocket?apikey=' + SB_KEY + '&vsn=1.0.0';
+
+  function connect(){
+    try{
+      if(_realtimeWs) _realtimeWs.close();
+      _realtimeWs = new WebSocket(wsUrl);
+
+      _realtimeWs.onopen = function(){
+        _realtimeConnected = true;
+        console.log('[Realtime] Conectado');
+        // Suscribirse a cambios en journal_data filtrado por license_key
+        var joinMsg = JSON.stringify({
+          topic: 'realtime:public:journal_data:license_key=eq.' + key,
+          event: 'phx_join',
+          payload: {},
+          ref: '1'
+        });
+        _realtimeWs.send(joinMsg);
+        // Heartbeat cada 30s para mantener la conexión
+        _realtimeWs._hb = setInterval(function(){
+          if(_realtimeWs && _realtimeWs.readyState === 1){
+            _realtimeWs.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:'hb'}));
+          }
+        }, 30000);
+      };
+
+      _realtimeWs.onmessage = function(e){
+        try{
+          var msg = JSON.parse(e.data);
+          // Detectar INSERT o UPDATE en nuestra fila
+          if(msg.event === 'INSERT' || msg.event === 'UPDATE'){
+            var record = msg.payload && msg.payload.record;
+            if(record && record.license_key === key){
+              console.log('[Realtime] Cambio detectado — sincronizando...');
+              // Pequeño delay para evitar loops si el cambio lo hicimos nosotros mismos
+              setTimeout(async function(){
+                var synced = await syncFromCloud();
+                if(synced){
+                  if(typeof initAccounts==='function') initAccounts();
+                  if(typeof refresh==='function') refresh();
+                  if(typeof renderSidebarAccounts==='function') renderSidebarAccounts();
+                  showSyncStatus('☁ Sincronizado');
+                }
+              }, 500);
+            }
+          }
+        }catch(err){}
+      };
+
+      _realtimeWs.onerror = function(){
+        _realtimeConnected = false;
+        console.log('[Realtime] Error de conexión');
+      };
+
+      _realtimeWs.onclose = function(){
+        _realtimeConnected = false;
+        if(_realtimeWs._hb) clearInterval(_realtimeWs._hb);
+        console.log('[Realtime] Desconectado — reintentando en 10s');
+        // Reconectar automáticamente
+        _realtimeReconnectTimer = setTimeout(connect, 10000);
+      };
+    }catch(err){
+      console.log('[Realtime] No disponible:', err);
+    }
+  }
+
+  connect();
+
+  // Reconectar cuando el usuario vuelve a la pestaña/app
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState === 'visible' && !_realtimeConnected){
+      if(_realtimeReconnectTimer) clearTimeout(_realtimeReconnectTimer);
+      connect();
+    }
+  });
+}
+
+function stopRealtimeSync(){
+  if(_realtimeReconnectTimer) clearTimeout(_realtimeReconnectTimer);
+  if(_realtimeWs){ _realtimeWs.onclose = null; _realtimeWs.close(); _realtimeWs = null; }
+  _realtimeConnected = false;
+}
+
 // — Detecta revocación/reseteo cada 30s (en lugar de 60s)
 // — También verifica cuando el usuario vuelve a la pestaña
 // — Al detectar problema: congela la UI inmediatamente (freezeApp)
@@ -3805,7 +4155,7 @@ var CDO={
   plugins:{
     legend:{display:false},
     tooltip:{
-      backgroundColor:'rgba(7,9,26,0.97)',
+      backgroundColor:'var(--card,rgba(7,9,26,0.97))',
       borderColor:'rgba(99,102,241,0.5)',
       borderWidth:1,
       titleColor:'#818cf8',
@@ -4857,11 +5207,32 @@ function renderA(){
     var tg=getTimeGroups(ft);
     var maxSl=Math.max.apply(null,tg.map(function(h){return h.sl;}).concat([0]));
     var maxTp=Math.max.apply(null,tg.map(function(h){return h.tp;}).concat([0]));
+    // ── Mapa de calor TP (arriba) ────────────────────────────────────────
+    var maxTp2=Math.max.apply(null,tg.map(function(h){return h.tp;}).concat([1]));
+    mkC('cah-tp','bar',tg.map(function(h){return h.time;}),
+      [{data:tg.map(function(h){return h.tp;}),
+        backgroundColor:tg.map(function(h){
+          var p=maxTp2>0?h.tp/maxTp2:0;
+          var alpha=0.18+p*0.78;
+          var g2=Math.round(60+170*p);
+          var r=Math.round(30*(1-p));
+          return'rgba('+r+','+g2+',120,'+alpha.toFixed(2)+')';
+        }),
+        label:'TP',borderRadius:7,borderSkipped:false,noGradient:true}],
+      {plugins:{legend:{display:false},tooltip:{callbacks:{
+        title:function(ctx){return ctx[0].label;},
+        label:function(ctx){
+          var h=tg[ctx.dataIndex];
+          return[' TP: '+h.tp,'P&L: '+fU(h.pnl)];
+        }
+      }}},
+      scales:{x:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{display:false},border:{display:false}},y:{ticks:{color:'#6b7ba0',font:{size:9},stepSize:1,callback:function(v){return Number.isInteger(v)?v:'';}},grid:{color:'rgba(30,37,64,0.3)'},border:{display:false},beginAtZero:true}}});
+
+    // ── Mapa de calor SL (abajo) ─────────────────────────────────────────
     mkC('cah','bar',tg.map(function(h){return h.time;}),
       [{data:tg.map(function(h){return h.sl;}),
         backgroundColor:tg.map(function(h){
           var p=maxSl>0?h.sl/maxSl:0;
-          // Escala: 0 SL=azul translúcido, max SL=rojo intenso
           var alpha=0.18+p*0.78;
           var r=Math.round(60+195*p);
           var g2=Math.round(90*(1-p));
@@ -4877,7 +5248,7 @@ function renderA(){
           return[' SL: '+h.sl+' | TP: '+h.tp,' WR: '+wr+'% | P&L: '+fU(h.pnl)];
         }
       }}},
-      scales:{x:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{display:false},border:{display:false}},y:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{color:'rgba(30,37,64,0.3)'},border:{display:false}}}});
+      scales:{x:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{display:false},border:{display:false}},y:{ticks:{color:'#6b7ba0',font:{size:9},stepSize:1,callback:function(v){return Number.isInteger(v)?v:'';}},grid:{color:'rgba(30,37,64,0.3)'},border:{display:false},beginAtZero:true}}});
     var bTH=tg.reduce(function(b,h){return h.tp>b.tp?h:b;},tg[0]||{time:'—',tp:0});
     var wSH=tg.reduce(function(b,h){return h.sl>b.sl?h:b;},tg[0]||{time:'—',sl:0});
     var ahi=g('ahi');if(ahi)ahi.innerHTML='<div class="ib" style="background:var(--rd);border-color:var(--red)"><div class="il">Hora más SL</div><div class="iv" style="color:var(--red)">'+(wSH&&wSH.sl>0?wSH.time+' ('+wSH.sl+')':'—')+'</div></div><div class="ib" style="background:var(--gd);border-color:var(--green)"><div class="il">Hora más TP</div><div class="iv" style="color:var(--green)">'+(bTH&&bTH.tp>0?bTH.time+' ('+bTH.tp+')':'—')+'</div></div>';
@@ -4900,6 +5271,21 @@ function renderA(){
 }
 
 // ── Sub-tab switcher ──
+// ── Drawer de filtros de análisis en móvil ──────────────────────────────
+window.toggleAstFilterDrawer = function(){
+  var panel   = document.getElementById('ast-filter-panel');
+  var overlay = document.getElementById('ast-filter-overlay');
+  if(!panel) return;
+  var isOpen = panel.classList.contains('drawer-open');
+  if(isOpen){
+    panel.classList.remove('drawer-open');
+    if(overlay){ overlay.classList.remove('open'); setTimeout(function(){ overlay.style.display='none'; },300); }
+  } else {
+    if(overlay){ overlay.style.display='block'; setTimeout(function(){ overlay.classList.add('open'); },10); }
+    panel.classList.add('drawer-open');
+  }
+};
+
 window.setAST = function(tab){
   ['resumen','rend','ops','tiempo','meses','instr','recomendaciones'].forEach(function(t){
     var btn=g('ast-'+t), panel=g('ast-panel-'+t);
@@ -5175,10 +5561,433 @@ function genCode(){var data={v:3,t:S.trades,s:S.settings,d:Date.now()};var code=
 function copyCode(){var a=g('exp-area');if(!a.value){toast('Primero genera el código','var(--org)');return;}a.select();try{navigator.clipboard.writeText(a.value).then(function(){g('copy-ok').textContent='✅ Copiado al portapapeles';}).catch(function(){document.execCommand('copy');g('copy-ok').textContent='✅ Copiado';});}catch(e){document.execCommand('copy');g('copy-ok').textContent='✅ Copiado';}}
 function importCode(){var raw=g('imp-area').value.trim();if(!raw){toast('Pega el código','var(--red)');return;}try{var data=JSON.parse(decodeURIComponent(escape(atob(raw))));if(!data.t||!Array.isArray(data.t))throw new Error('Formato inválido');var ids=new Set(S.trades.map(function(t){return t.id;}));var added=0;data.t.forEach(function(t){if(!ids.has(t.id)){S.trades.push(t);added++;}});if(data.s)S.settings=Object.assign({},S.settings,data.s);save();refresh();g('imp-status').innerHTML='<span style="color:var(--green)">✅ '+added+' importadas · Total: '+S.trades.length+'</span>';g('imp-area').value='';toast('✅ '+added+' importadas');}catch(e){g('imp-status').innerHTML='<span style="color:var(--red)">❌ '+e.message+'</span>';}}
 function importFile(input){var file=input.files[0];if(!file)return;var r=new FileReader();r.onload=function(e){try{var data=JSON.parse(e.target.result);var imported=data.trades||data;if(!Array.isArray(imported))throw new Error('Formato inválido');var ids=new Set(S.trades.map(function(t){return t.id;}));var added=0;imported.forEach(function(t){if(!ids.has(t.id)){S.trades.push(t);added++;}});if(data.settings)S.settings=Object.assign({},S.settings,data.settings);save();refresh();g('imp-status').innerHTML='<span style="color:var(--green)">✅ '+added+' importadas</span>';toast('✅ '+added+' importadas');}catch(err){g('imp-status').innerHTML='<span style="color:var(--red)">❌ '+err.message+'</span>';}input.value='';};r.readAsText(file);}
+// ════════════════════════════════════════════════════════════
+//  EXPORT / IMPORT SYSTEM v2
+// ════════════════════════════════════════════════════════════
+
+// ── Helper: descarga un archivo ─────────────────────────────────────────
+function _dlFile(content, filename, mime){
+  var b = new Blob([content], {type: mime});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(b);
+  a.download = filename;
+  a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+}
+
+// ── Helper: nombre de cuenta activa ─────────────────────────────────────
+function _acctName(){
+  var accts = getAccounts();
+  var act = getActiveId();
+  var found = accts.find(function(a){ return a.id === act; });
+  return found ? found.name : 'Mi Cuenta';
+}
+
+// ── CSV mejorado — todos los campos ─────────────────────────────────────
+function exportCSV(){
+  var headers = ['ID','Fecha','Hora','Activo','Resultado','Dirección','P&L','Entrada','Salida','RR','Estrategia','Sesión','Notas'];
+  var rows = [headers];
+  getSorted().forEach(function(t){
+    rows.push([
+      t.id, t.date, t.time||'', t.asset||'', t.result||'',
+      t.direction||'', (t.pnl||0).toFixed(2),
+      t.entry||'', t.exit||'', t.rr||'',
+      t.strategy||'', t.session||'', String(t.notes||'').replace(/[\r\n]+/g,' ')
+    ]);
+  });
+  var csv = rows.map(function(r){
+    return r.map(function(c){ return '"'+String(c).replace(/"/g,'""')+'"'; }).join(',');
+  }).join('\n');
+  _dlFile('﻿'+csv, 'operaciones_'+tod()+'.csv', 'text/csv;charset=utf-8');
+  toast('✅ CSV exportado — '+( rows.length-1)+' operaciones');
+}
+
+// ── Importar CSV con upsert + preview + confirmación ────────────────────
+window.importCSV = function(input){
+  var file = input.files[0]; if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      var lines = e.target.result.split(/\r?\n/).filter(function(l){ return l.trim(); });
+      if(lines.length < 2){ toast('❌ CSV vacío o inválido','var(--red)'); return; }
+      // Parsear header
+      function parseRow(line){
+        var result=[]; var cur=''; var inQ=false;
+        for(var i=0;i<line.length;i++){
+          var c=line[i];
+          if(c==='"'){ if(inQ&&line[i+1]==='"'){cur+='"';i++;}else{inQ=!inQ;} }
+          else if(c===','&&!inQ){ result.push(cur.trim()); cur=''; }
+          else cur+=c;
+        }
+        result.push(cur.trim());
+        return result;
+      }
+      var headers = parseRow(lines[0]).map(function(h){ return h.replace(/['"]/g,'').toLowerCase(); });
+      var idx = {
+        id:      headers.indexOf('id'),
+        date:    headers.findIndex(function(h){ return h.includes('fecha'); }),
+        time:    headers.findIndex(function(h){ return h.includes('hora'); }),
+        asset:   headers.findIndex(function(h){ return h.includes('activo'); }),
+        result:  headers.findIndex(function(h){ return h.includes('resultado'); }),
+        dir:     headers.findIndex(function(h){ return h.includes('direcci'); }),
+        pnl:     headers.findIndex(function(h){ return h.includes('p&l')||h.includes('pnl'); }),
+        entry:   headers.findIndex(function(h){ return h.includes('entrada'); }),
+        exit:    headers.findIndex(function(h){ return h.includes('salida'); }),
+        rr:      headers.indexOf('rr'),
+        strat:   headers.findIndex(function(h){ return h.includes('estrat'); }),
+        session: headers.findIndex(function(h){ return h.includes('sesi'); }),
+        notes:   headers.findIndex(function(h){ return h.includes('nota'); })
+      };
+      var parsed = [];
+      lines.slice(1).forEach(function(line, li){
+        var cols = parseRow(line);
+        var pnl = parseFloat((cols[idx.pnl]||'0').replace(',','.')) || 0;
+        var result = (cols[idx.result]||'').toUpperCase();
+        if(!result) result = pnl >= 0 ? 'TP' : 'SL';
+        parsed.push({
+          id:       cols[idx.id] || ('csv-'+Date.now()+'-'+li),
+          date:     cols[idx.date]  || '',
+          time:     cols[idx.time]  || '',
+          asset:    cols[idx.asset] || '',
+          result:   result,
+          direction:(cols[idx.dir]  || 'BUY').toUpperCase(),
+          pnl:      pnl,
+          entry:    cols[idx.entry] || '',
+          exit:     cols[idx.exit]  || '',
+          rr:       cols[idx.rr]    || '',
+          strategy: cols[idx.strat] || '',
+          session:  cols[idx.session]|| '',
+          notes:    cols[idx.notes] || ''
+        });
+      });
+      if(!parsed.length){ toast('❌ No se encontraron operaciones','var(--red)'); return; }
+      // Calcular preview: nuevas vs actualizadas
+      var existingIds = new Set(S.trades.map(function(t){ return t.id; }));
+      var nuevas = parsed.filter(function(t){ return !existingIds.has(t.id); }).length;
+      var actualiza = parsed.length - nuevas;
+      // Confirmación antes de importar
+      var msg = '📥 Importar '+parsed.length+' operaciones:\n• '+nuevas+' nuevas\n• '+actualiza+' a actualizar\n\n¿Continuar?';
+      if(!confirm(msg)) return;
+      // Upsert: actualizar si existe, agregar si no
+      var tradeMap = {};
+      S.trades.forEach(function(t){ tradeMap[t.id] = t; });
+      parsed.forEach(function(t){
+        if(tradeMap[t.id]){
+          Object.assign(tradeMap[t.id], t); // actualizar existente
+        } else {
+          S.trades.push(t); // agregar nueva
+        }
+      });
+      save();
+      if(typeof syncToCloud==='function') syncToCloud();
+      refresh();
+      toast('✅ '+nuevas+' nuevas · '+actualiza+' actualizadas','var(--green)');
+    }catch(err){
+      toast('❌ Error: '+err.message,'var(--red)');
+    }
+    input.value = '';
+  };
+  reader.readAsText(file, 'UTF-8');
+};
+
+// ── Reporte .txt para Claude — Operaciones ───────────────────────────────
+function exportClaudeTxtOps(){
+  var to = totals();
+  var trades = getSorted();
+  var acctName = _acctName();
+  var dates = trades.map(function(t){ return t.date; }).sort();
+  var desde = dates[0]||'—'; var hasta = dates[dates.length-1]||'—';
+  // Breakdown por activo
+  var byAsset = {};
+  trades.forEach(function(t){
+    var k=t.asset||'Sin activo';
+    if(!byAsset[k]) byAsset[k]={pnl:0,tp:0,sl:0};
+    byAsset[k].pnl+=(t.pnl||0);
+    if(t.result==='TP') byAsset[k].tp++; else byAsset[k].sl++;
+  });
+  var assetLines = Object.keys(byAsset).sort(function(a,b){ return byAsset[b].pnl-byAsset[a].pnl; })
+    .slice(0,10).map(function(k){ var d=byAsset[k]; return '  '+k+': '+fU(d.pnl)+' (TP:'+d.tp+' SL:'+d.sl+')'; }).join('\n');
+  // Breakdown por día
+  var DNAMES=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  var byDay=[0,0,0,0,0,0,0].map(function(_,i){ return {d:DNAMES[i],pnl:0,tp:0,sl:0}; });
+  trades.forEach(function(t){ var d=new Date(t.date+'T12:00:00').getDay(); byDay[d].pnl+=(t.pnl||0); if(t.result==='TP')byDay[d].tp++;else byDay[d].sl++; });
+  var dayLines = byDay.filter(function(d){ return d.tp+d.sl>0; })
+    .map(function(d){ return '  '+d.d+': '+fU(d.pnl)+' (TP:'+d.tp+' SL:'+d.sl+')'; }).join('\n');
+  // Últimas 20 trades
+  var lastTrades = trades.slice(-20).reverse().map(function(t){
+    return '  '+t.date+' '+( t.time||'')+'  '+( t.asset||'')+'  '+(t.direction||'')+'  '+t.result+'  '+fU(t.pnl)+(t.strategy?' ['+t.strategy+']':'');
+  }).join('\n');
+
+  var txt = [
+    '=== TRADING JOURNAL PRO — REPORTE OPERACIONES PARA IA ===',
+    'Cuenta: '+acctName,
+    'Período: '+desde+' al '+hasta,
+    'Generado: '+new Date().toLocaleString('es'),
+    '',
+    '--- RESUMEN GENERAL ---',
+    'Total operaciones: '+trades.length,
+    'Win rate: '+to.winRate.toFixed(1)+'%',
+    'Ganancia neta: '+fU(to.totalPnl),
+    'Balance actual: '+fU(to.balance),
+    'Drawdown %: '+fP(to.ddPct),
+    'TP totales: '+to.totalTP,
+    'SL totales: '+to.totalSL,
+    '',
+    '--- RENDIMIENTO POR ACTIVO (top 10) ---',
+    assetLines,
+    '',
+    '--- RENDIMIENTO POR DÍA DE SEMANA ---',
+    dayLines,
+    '',
+    '--- ÚLTIMAS 20 OPERACIONES ---',
+    lastTrades,
+    '',
+    '=== FIN DEL REPORTE ==='
+  ].join('\n');
+
+  _dlFile(txt, 'reporte_operaciones_'+tod()+'.txt', 'text/plain;charset=utf-8');
+  toast('✅ Reporte .txt descargado');
+}
+
+// ── Reporte .txt para Claude — Estadísticas ──────────────────────────────
+window.exportClaudeTxtStats = function(){
+  var yr = parseInt((g('yr-sel')&&g('yr-sel').value)||String(new Date().getFullYear()));
+  var trades = S.trades.filter(function(t){ return t.date.startsWith(String(yr)); });
+  var to = totals();
+  var acctName = _acctName();
+  // Por mes
+  var byMonth = {};
+  trades.forEach(function(t){
+    var m=t.date.slice(0,7);
+    if(!byMonth[m]) byMonth[m]={pnl:0,tp:0,sl:0};
+    byMonth[m].pnl+=(t.pnl||0);
+    if(t.result==='TP') byMonth[m].tp++; else byMonth[m].sl++;
+  });
+  var monthLines = Object.keys(byMonth).sort().map(function(m){
+    var d=byMonth[m]; var tot=d.tp+d.sl;
+    return '  '+m+': '+fU(d.pnl)+' WR:'+(tot?Math.round(d.tp/tot*100)+'%':'—')+' (TP:'+d.tp+' SL:'+d.sl+')';
+  }).join('\n');
+  // Racha
+  var sorted = trades.slice().sort(function(a,b){ return a.date.localeCompare(b.date); });
+  var maxWin=0,maxLoss=0,curW=0,curL=0;
+  sorted.forEach(function(t){
+    if(t.result==='TP'){ curW++; curL=0; maxWin=Math.max(maxWin,curW); }
+    else { curL++; curW=0; maxLoss=Math.max(maxLoss,curL); }
+  });
+
+  var txt = [
+    '=== TRADING JOURNAL PRO — REPORTE ESTADÍSTICAS PARA IA ===',
+    'Cuenta: '+acctName,
+    'Año: '+yr,
+    'Generado: '+new Date().toLocaleString('es'),
+    '',
+    '--- MÉTRICAS GENERALES '+yr+' ---',
+    'Total operaciones año: '+trades.length,
+    'Win rate: '+to.winRate.toFixed(1)+'%',
+    'P&L total: '+fU(to.totalPnl),
+    'Balance: '+fU(to.balance),
+    'Drawdown: '+fP(to.ddPct),
+    'TP: '+to.totalTP+' | SL: '+to.totalSL,
+    'Racha ganadora máxima: '+maxWin,
+    'Racha perdedora máxima: '+maxLoss,
+    '',
+    '--- RENDIMIENTO MENSUAL ---',
+    monthLines,
+    '',
+    '=== FIN DEL REPORTE ==='
+  ].join('\n');
+
+  _dlFile(txt, 'reporte_estadisticas_'+yr+'.txt', 'text/plain;charset=utf-8');
+  toast('✅ Reporte estadísticas .txt descargado');
+};
+
+// ── Reporte .txt para Claude — Análisis ─────────────────────────────────
+window.aExportReport = function(){
+  var acctName = _acctName();
+  var afAsset  = g('af-asset')  ? g('af-asset').value  : '';
+  var afResult = g('af-result') ? g('af-result').value : '';
+  var afDir    = g('af-dir')    ? g('af-dir').value    : '';
+  var afStrat  = g('af-strategy') ? g('af-strategy').value : '';
+  var afSess   = g('af-session')  ? g('af-session').value  : '';
+  // Filtrar igual que renderA
+  var ft = S.trades.filter(function(t){
+    if(afAsset  && t.asset     !== afAsset)  return false;
+    if(afResult && t.result    !== afResult) return false;
+    if(afDir    && t.direction !== afDir)    return false;
+    if(afStrat  && t.strategy  !== afStrat)  return false;
+    if(afSess   && t.session   !== afSess)   return false;
+    return true;
+  });
+  var tp=ft.filter(function(t){return t.result==='TP';}).length;
+  var sl=ft.filter(function(t){return t.result==='SL';}).length;
+  var pnl=ft.reduce(function(a,t){return a+(t.pnl||0);},0);
+  var wr=ft.length?tp/ft.length*100:0;
+  // Por activo
+  var byA={};
+  ft.forEach(function(t){ var k=t.asset||'—'; if(!byA[k])byA[k]={pnl:0,tp:0,sl:0}; byA[k].pnl+=(t.pnl||0); if(t.result==='TP')byA[k].tp++;else byA[k].sl++; });
+  var aLines=Object.keys(byA).sort(function(a,b){return byA[b].pnl-byA[a].pnl;}).map(function(k){return '  '+k+': '+fU(byA[k].pnl)+' (TP:'+byA[k].tp+' SL:'+byA[k].sl+')';}).join('\n');
+  // Por estrategia
+  var byStr={};
+  ft.forEach(function(t){ var k=t.strategy||'Sin estrategia'; if(!byStr[k])byStr[k]={pnl:0,tp:0,sl:0}; byStr[k].pnl+=(t.pnl||0); if(t.result==='TP')byStr[k].tp++;else byStr[k].sl++; });
+  var sLines=Object.keys(byStr).sort(function(a,b){return byStr[b].pnl-byStr[a].pnl;}).map(function(k){return '  '+k+': '+fU(byStr[k].pnl)+' (TP:'+byStr[k].tp+' SL:'+byStr[k].sl+')';}).join('\n');
+  // Filtros activos
+  var filtros = [afAsset,afResult,afDir,afStrat,afSess].filter(Boolean).join(', ') || 'Ninguno';
+
+  var txt = [
+    '=== TRADING JOURNAL PRO — REPORTE ANÁLISIS AVANZADO PARA IA ===',
+    'Cuenta: '+acctName,
+    'Filtros activos: '+filtros,
+    'Generado: '+new Date().toLocaleString('es'),
+    '',
+    '--- RESUMEN DEL ANÁLISIS ---',
+    'Operaciones filtradas: '+ft.length,
+    'Win rate: '+wr.toFixed(1)+'%',
+    'P&L neto: '+fU(pnl),
+    'TP: '+tp+' | SL: '+sl,
+    '',
+    '--- POR ACTIVO ---',
+    aLines||'  Sin datos',
+    '',
+    '--- POR ESTRATEGIA ---',
+    sLines||'  Sin datos',
+    '',
+    '=== FIN DEL REPORTE ==='
+  ].join('\n');
+
+  _dlFile(txt, 'reporte_analisis_'+tod()+'.txt', 'text/plain;charset=utf-8');
+  toast('✅ Reporte análisis .txt descargado');
+};
+
+// ── Backup completo — todas las cuentas (sin imágenes) ───────────────────
+window.exportBackup = function(){
+  var pfx = getLicensePrefix();
+  if(!pfx){ toast('❌ Sin licencia válida','var(--red)'); return; }
+  var accounts = getAccounts();
+  var backup = {
+    version: APP_VERSION,
+    exportDate: new Date().toISOString(),
+    accounts: accounts,
+    accountsData: {}
+  };
+  accounts.forEach(function(a){
+    try{
+      var n = parseInt(localStorage.getItem(pfx+'n_'+a.id)||'1');
+      var trades = [];
+      for(var i=1;i<=n;i++){
+        var chunk = JSON.parse(localStorage.getItem(pfx+'trades_'+a.id+'_'+i)||'[]');
+        trades = trades.concat(chunk);
+      }
+      var cfg = JSON.parse(localStorage.getItem(pfx+'cfg_'+a.id)||'null');
+      var notas = JSON.parse(localStorage.getItem(pfx+'notas_'+a.id)||'[]');
+      // Eliminar imágenes para no hacer el archivo enorme
+      var tradesClean = trades.map(function(t){
+        var tc = Object.assign({},t);
+        if(tc.images) tc.images = tc.images.map(function(img){
+          if(typeof img === 'string' && img.startsWith('data:')) return '[imagen-omitida]';
+          return img;
+        });
+        return tc;
+      });
+      backup.accountsData[a.id] = { trades: tradesClean, settings: cfg, notas: notas };
+    }catch(e){ backup.accountsData[a.id] = { trades:[], settings:null, notas:[] }; }
+  });
+  _dlFile(JSON.stringify(backup, null, 2), 'backup_completo_'+tod()+'.json', 'application/json');
+  toast('✅ Backup completo descargado');
+};
+
+// ── Importar backup con preview y fusionar/reemplazar ────────────────────
+window.importBackup = function(input){
+  var file = input.files[0]; if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      var data = JSON.parse(e.target.result);
+      if(!data.accounts || !data.accountsData) throw new Error('Formato de backup inválido');
+      var totalTrades = 0;
+      data.accounts.forEach(function(a){
+        var d = data.accountsData[a.id];
+        if(d && d.trades) totalTrades += d.trades.length;
+      });
+      var msg = '📦 Backup del '+new Date(data.exportDate).toLocaleDateString('es')
+        +'\n• '+data.accounts.length+' cuentas'
+        +'\n• '+totalTrades+' operaciones en total'
+        +'\n\n¿Confirmar importación? (Fusionar: conserva datos actuales + agrega nuevos)';
+      if(!confirm(msg)){ input.value=''; return; }
+      // Fusionar: agregar cuentas que no existen + hacer upsert de trades
+      var pfx = getLicensePrefix();
+      if(!pfx){ toast('❌ Sin licencia','var(--red)'); return; }
+      var existingAccounts = getAccounts();
+      var existingIds = new Set(existingAccounts.map(function(a){ return a.id; }));
+      // Agregar cuentas nuevas
+      var accountsToSave = existingAccounts.slice();
+      data.accounts.forEach(function(a){
+        if(!existingIds.has(a.id)) accountsToSave.push(a);
+      });
+      saveAccounts(accountsToSave);
+      // Para cada cuenta en el backup, hacer upsert de trades
+      var totalNew = 0;
+      data.accounts.forEach(function(a){
+        var backupData = data.accountsData[a.id];
+        if(!backupData || !backupData.trades) return;
+        // Leer trades actuales de esa cuenta
+        var n = parseInt(localStorage.getItem(pfx+'n_'+a.id)||'0');
+        var currentTrades = [];
+        for(var i=1;i<=n;i++){
+          try{ currentTrades = currentTrades.concat(JSON.parse(localStorage.getItem(pfx+'trades_'+a.id+'_'+i)||'[]')); }catch(e){}
+        }
+        var currentMap = {};
+        currentTrades.forEach(function(t){ currentMap[t.id]=t; });
+        backupData.trades.forEach(function(t){
+          if(currentMap[t.id]) Object.assign(currentMap[t.id],t);
+          else { currentTrades.push(t); totalNew++; }
+        });
+        // Guardar en chunks de 500
+        var chunkSize = 500;
+        var chunks = Math.ceil(currentTrades.length/chunkSize)||1;
+        localStorage.setItem(pfx+'n_'+a.id, String(chunks));
+        for(var ci=1;ci<=chunks;ci++){
+          localStorage.setItem(pfx+'trades_'+a.id+'_'+ci, JSON.stringify(currentTrades.slice((ci-1)*chunkSize, ci*chunkSize)));
+        }
+        // Settings y notas
+        if(backupData.settings) localStorage.setItem(pfx+'cfg_'+a.id, JSON.stringify(backupData.settings));
+        if(backupData.notas && backupData.notas.length) localStorage.setItem(pfx+'notas_'+a.id, JSON.stringify(backupData.notas));
+      });
+      // Recargar app y sincronizar
+      if(typeof load==='function') load();
+      if(typeof initAccounts==='function') initAccounts();
+      if(typeof refresh==='function') refresh();
+      if(typeof renderSidebarAccounts==='function') renderSidebarAccounts();
+      if(typeof syncToCloud==='function') syncToCloud();
+      toast('✅ Backup importado: '+totalNew+' operaciones nuevas','var(--green)');
+    }catch(err){
+      toast('❌ Error: '+err.message,'var(--red)');
+    }
+    input.value = '';
+  };
+  reader.readAsText(file, 'UTF-8');
+};
+
+// ── genClaude mejorado — usa la función de reporte completo ──────────────
+function genClaude(){
+  var to=totals();
+  var trades=getSorted();
+  var lines = [
+    '=== TRADING JOURNAL PRO — REPORTE PARA IA ===',
+    'Cuenta: '+_acctName(),
+    'Generado: '+new Date().toLocaleString('es'),
+    '',
+    'Total: '+trades.length+' ops | TP: '+to.totalTP+' | SL: '+to.totalSL+' | WR: '+to.winRate.toFixed(1)+'%',
+    'P&L: '+fU(to.totalPnl)+' | Balance: '+fU(to.balance),
+    '',
+    'ÚLTIMAS 15:'
+  ].concat(trades.slice(-15).reverse().map(function(t){
+    return '  '+t.date+' '+(t.time||'')+' | '+(t.asset||'')+' | '+(t.direction||'')+' | '+t.result+' | '+fU(t.pnl)+(t.strategy?' ['+t.strategy+']':'');
+  }));
+  g('cl-area').value=lines.join('\n');
+  g('cl-ok').textContent='';
+}
+function copyClaude(){var a=g('cl-area');if(!a.value){toast('Genera primero','var(--org)');return;}a.select();try{navigator.clipboard.writeText(a.value).then(function(){g('cl-ok').textContent='✅ Copiado';}).catch(function(){document.execCommand('copy');g('cl-ok').textContent='✅ Copiado';});}catch(e){document.execCommand('copy');g('cl-ok').textContent='✅ Copiado';}}// JSON básico
 function exportJSON(){var b=new Blob([JSON.stringify({exportDate:new Date().toISOString(),settings:S.settings,trades:S.trades},null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='tradetrack_'+tod()+'.json';a.click();toast('✅ JSON descargado');}
-function exportCSV(){var rows=[['ID','Fecha','Hora','Activo','Resultado','Direccion','PnL','Estrategia','Notas']];getSorted().forEach(function(t){rows.push([t.id,t.date,t.time||'',t.asset,t.result,t.direction||'',(t.pnl||0).toFixed(2),t.strategy||'',t.notes||'']);});var csv=rows.map(function(r){return r.map(function(c){return'"'+String(c).replace(/"/g,'""')+'"';}).join(',');}).join('\n');var b=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='tradetrack_'+tod()+'.csv';a.click();toast('✅ CSV descargado');}
-function genClaude(){var to=totals();var txt='# TRADETRACK PRO — REPORTE\nFecha: '+new Date().toLocaleString('es')+'\n\nTotal: '+S.trades.length+' ops | TP: '+to.totalTP+' | SL: '+to.totalSL+' | WR: '+to.winRate.toFixed(1)+'%\nP&L: '+fU(to.totalPnl)+' ('+fP(to.ddPct)+')\nBalance: '+fU(to.balance)+'\n\nÚLTIMAS 10:\n'+getSorted().slice(-10).reverse().map(function(t){return'- '+toD(t.date)+' '+( t.time||'')+' | '+t.asset+' | '+t.result+' | '+( t.direction||'')+' | '+fU(t.pnl)+' | '+(t.strategy||'');}).join('\n');g('cl-area').value=txt;g('cl-ok').textContent='';}
-function copyClaude(){var a=g('cl-area');if(!a.value){toast('Genera primero','var(--org)');return;}a.select();try{navigator.clipboard.writeText(a.value).then(function(){g('cl-ok').textContent='✅ Copiado';}).catch(function(){document.execCommand('copy');g('cl-ok').textContent='✅ Copiado';});}catch(e){document.execCommand('copy');g('cl-ok').textContent='✅ Copiado';}}
 
 // ── MOBILE NAV HIGHLIGHT ──
 function mniAct(tab){
@@ -5424,7 +6233,8 @@ function renderSidebarAccounts(){
     html += '<div onclick="seleccionarCuentaSidebar(\''+a.id+'\')" style="display:flex;align-items:center;gap:5px;flex:1;min-width:0;cursor:pointer;overflow:hidden;">';
     html += '<span style="display:inline-block;width:7px;height:7px;min-width:7px;border-radius:50%;flex-shrink:0;background:'+col+';'+(isActive?'animation:active-pulse-col 1.4s ease-in-out infinite;box-shadow:0 0 5px '+col+'bb;':'opacity:.3;')+'"></span>';
     html += '<span style="font-size:10px;font-weight:700;color:'+nameColor+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;" title="'+a.name+'">'+a.name+'</span>';
-    html += '<span style="font-size:8px;color:#555;flex-shrink:0;">$'+Number(a.initialBalance||0).toLocaleString('en')+'</span>';
+    // Balance oculto visualmente en el sidebar (dato sigue existiendo)
+    // html += '<span style="font-size:8px;color:#555;flex-shrink:0;">$'+Number(a.initialBalance||0).toLocaleString('en')+'</span>';
     if(isActive) html += '<span style="font-size:6px;font-weight:700;color:#00e676;animation:active-pulse 2s ease-in-out infinite;font-family:\'Exo 2\',sans-serif;text-transform:uppercase;flex-shrink:0;">ACTIVA</span>';
     html += fondeoLabel;
     html += '</div>';
@@ -6417,10 +7227,16 @@ function initApp(){
   var am=g('am');if(am){am.innerHTML='<option value="">Todos los meses</option>';MSS.forEach(function(m){var o=document.createElement('option');o.value=m;o.textContent=m;am.appendChild(o);});}
   refresh();
   setTimeout(function(){ renderSidebarAccounts(); }, 200);
-  // Sincronizar con la nube
+  // Sincronizar con la nube — delay mínimo para no bloquear el render inicial
   setTimeout(async function(){
     showSyncStatus('⏳ Sincronizando...');
-    var synced = await syncFromCloud();
+    // ✅ PARALELO: cargar datos locales mientras se hace el fetch a Supabase
+    var syncPromise = syncFromCloud();
+    // Mientras syncFromCloud trabaja, hacer render con datos locales (si hay)
+    if(S.trades.length > 0){
+      if(typeof refresh==='function') refresh();
+    }
+    var synced = await syncPromise;
 
     // Si no hay datos en la nube, intentar recuperar de una llave anterior (revocada/cambiada)
     if(!synced){
@@ -6476,6 +7292,7 @@ document.addEventListener('DOMContentLoaded',function(){
     });
   }catch(e){}
   // ÚNICO punto de entrada — nada carga hasta que la licencia esté confirmada
+  loadSavedTheme(); // ✅ Aplicar tema guardado antes de mostrar la app
   checkLicenseOnLoad();
 });
 </script>
@@ -6547,23 +7364,21 @@ document.addEventListener('DOMContentLoaded',function(){
     });
   };
 
-  // Service Worker para modo offline + actualizaciones automáticas
+  // ── Service Worker — auto-actualización al detectar nueva versión ──────
   if('serviceWorker' in navigator){
-    // FIX: CACHE atado a APP_VERSION — cuando subas cambios, el caché viejo se elimina solo
     var swCode = `
-const CACHE = 'cd701-v` + APP_VERSION + `';
+const CACHE = 'cd701-v` + APP_VERSION + `-` + BUILD_TS + `';
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./'])));
-  self.skipWaiting();
+  self.skipWaiting(); // activa inmediatamente sin esperar a que cierren las tabs
 });
 self.addEventListener('activate', e => {
-  // Eliminar cachés de versiones anteriores
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));
-  self.clients.claim();
+  e.waitUntil(caches.keys().then(keys =>
+    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+  ));
+  self.clients.claim(); // toma control de todas las tabs abiertas
 });
 self.addEventListener('fetch', e => {
-  // FIX: Network-first — siempre intenta traer la versión más nueva de la red
-  // Si no hay internet, cae al caché para modo offline
   if(e.request.method !== 'GET') return;
   e.respondWith(
     fetch(e.request).then(function(r){
@@ -6575,11 +7390,71 @@ self.addEventListener('fetch', e => {
     })
   );
 });
+// Notificar a todas las tabs cuando este SW toma el control
+self.addEventListener('activate', e => {
+  e.waitUntil(self.clients.matchAll({type:'window'}).then(function(clients){
+    clients.forEach(function(c){ c.postMessage({type:'SW_UPDATED'}); });
+  }));
+});
 `;
     var swBlob = new Blob([swCode], {type:'text/javascript'});
     var swUrl = URL.createObjectURL(swBlob);
-    navigator.serviceWorker.register(swUrl).catch(function(){});
+
+    navigator.serviceWorker.register(swUrl).then(function(reg){
+      // Revisar actualizaciones al abrir la app
+      reg.update();
+
+      // Cuando el SW nuevo se instala y activa, recargar la página automáticamente
+      reg.addEventListener('updatefound', function(){
+        var newWorker = reg.installing;
+        if(!newWorker) return;
+        newWorker.addEventListener('statechange', function(){
+          if(newWorker.state === 'activated' && navigator.serviceWorker.controller){
+            // Nueva versión activa — mostrar aviso en vez de recargar silenciosamente
+            if(typeof showUpdateBanner === 'function') showUpdateBanner();
+          }
+        });
+      });
+    }).catch(function(){});
+
+    // Escuchar mensaje del SW indicando que se actualizó
+    navigator.serviceWorker.addEventListener('message', function(e){
+      if(e.data && e.data.type === 'SW_UPDATED'){
+        if(typeof showUpdateBanner === 'function') showUpdateBanner();
+      }
+    });
+
+    // Cuando el controllerchange ocurre (nuevo SW tomó el control), recargar
+    var refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function(){
+      if(!refreshing){ refreshing = true; window.location.reload(); }
+    });
   }
+
+  // Función que muestra el banner de actualización disponible
+  window.showUpdateBanner = function(){
+    var existing = document.getElementById('update-banner');
+    if(existing) return; // ya visible
+    var banner = document.createElement('div');
+    banner.id = 'update-banner';
+    banner.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,rgba(99,102,241,.95),rgba(124,58,237,.95));color:#fff;padding:12px 20px;border-radius:12px;font-size:12px;font-weight:700;font-family:"Exo 2",sans-serif;z-index:99999;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.15);cursor:pointer;';
+    var bannerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>';
+    bannerHTML += '<span>Nueva versi\u00f3n disponible</span>';
+    bannerHTML += '<button onclick="window.location.reload()" style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:5px 12px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">Actualizar</button>';
+    bannerHTML += '<button onclick="document.getElementById(\'update-banner\').remove()" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:16px;cursor:pointer;padding:0 4px">\u2715</button>';
+    banner.innerHTML = bannerHTML;
+    document.body.appendChild(banner);
+  };
+
+  // Botón manual de actualización (para PWA instalada sin opción de recargar)
+  window.forceAppUpdate = function(){
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.getRegistrations().then(function(regs){
+        regs.forEach(function(r){ r.update(); });
+      });
+    }
+    window.location.reload(true);
+  };
 })();
 </script>
 
