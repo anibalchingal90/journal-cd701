@@ -389,6 +389,28 @@ tr:hover td{background:rgba(14,18,41,.8)}
   .kcard{min-width:calc(50% - 4px);flex:0 0 calc(50% - 4px);padding:10px 8px}
   .kval{font-size:17px}
 
+  /* ── Dashboard KPIs: scroll horizontal para 5 cards ── */
+  #dash-kpis{
+    display:flex!important;
+    overflow-x:auto;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none;gap:8px;
+    grid-template-columns:unset!important;
+  }
+  #dash-kpis::-webkit-scrollbar{display:none}
+  #dash-kpis .card{
+    flex:0 0 160px!important;min-width:160px!important;
+    padding:12px 10px!important;
+  }
+
+  /* ── Stats KPIs filas: 2 columnas ── */
+  #st-kpi-main,#st-kpi-adv{
+    grid-template-columns:1fr 1fr!important;gap:8px!important;
+  }
+  /* Texto no se corte */
+  #st-kpi-main .card-hdr,#st-kpi-adv .card-hdr{
+    font-size:8px!important;letter-spacing:1px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+
   /* ── CALENDARIO ── */
   .cal-layout{flex-direction:column;gap:8px}
   .cal-side{width:100%}
@@ -539,6 +561,22 @@ tr:hover td{background:rgba(14,18,41,.8)}
   .reg-nav-bar{gap:6px;margin-bottom:10px}
   .reg-pair-sel{font-size:10px;flex:1;min-width:0}
 
+  /* ── BOTONES EXTRA TOOLBAR (CSV/Importar/Para IA) — scroll horizontal ── */
+  .reg-toolbar > div[style*="margin-left:auto"]{
+    width:100%;order:3;
+    display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none;gap:6px;
+    flex-wrap:nowrap!important;
+  }
+  .reg-toolbar > div[style*="margin-left:auto"]::-webkit-scrollbar{display:none}
+  .reg-toolbar > div[style*="margin-left:auto"] .btn{
+    flex:0 0 auto;font-size:10px;padding:7px 10px;white-space:nowrap;
+  }
+  .reg-toolbar > div[style*="margin-left:auto"] .btn-new-op{
+    flex:0 0 auto;width:auto!important;
+    font-size:11px;padding:9px 14px;
+  }
+
   /* ── OCULTAR PANEL DERECHO ── */
   #reg-right-panel{display:none!important}
   .tsec.act.reg-split{flex-direction:column}
@@ -661,6 +699,43 @@ tr:hover td{background:rgba(14,18,41,.8)}
   /* ── INSIGHT / BURN BARS ── */
   .bc{flex-direction:column;align-items:flex-start;gap:6px}
   .ddbar{height:8px}
+
+  /* ── ESTADÍSTICAS — header botones en fila ── */
+  #tab-stats [style*="justify-content:space-between"]{
+    flex-direction:column!important;align-items:flex-start!important;gap:8px!important;
+  }
+  #tab-stats [style*="display:flex;align-items:center;gap:8px"]{
+    width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none;flex-wrap:nowrap!important;
+  }
+  #tab-stats [style*="display:flex;align-items:center;gap:8px"]::-webkit-scrollbar{display:none}
+  /* Grids de stats → 1 columna */
+  #st-row1{grid-template-columns:1fr!important;gap:8px!important}
+
+  /* ── DASHBOARD — grids apilados en móvil ── */
+  #dash-row1,#dash-row2,#dash-row3{
+    grid-template-columns:1fr!important;
+    gap:8px!important;
+  }
+  /* Equity canvas más compacto */
+  #dash-row1 canvas{height:140px!important}
+  /* Días semana y activos — más compactos */
+  #dash-row2 .card:nth-child(2),
+  #dash-row2 .card:nth-child(3){padding:10px 8px}
+
+  /* ── ANÁLISIS — layout sin el panel lateral ── */
+  #analisis-layout{
+    flex-direction:column!important;
+  }
+  /* El contenido izquierdo ocupa todo */
+  #analisis-layout > div:first-child{
+    overflow-y:visible!important;
+    padding:12px 10px 16px!important;
+  }
+  /* Header del análisis — compacto ── */
+  #tab-analisis [style*="justify-content:space-between"]{
+    flex-wrap:wrap!important;gap:8px!important;
+  }
 }
 
 /* ── TABLET 641–900px ── */
@@ -1096,7 +1171,7 @@ tr:hover td{background:rgba(14,18,41,.8)}
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px" id="dash-kpis"></div>
 
     <!-- Fila 1: Equity grande + Stats rápidas verticales -->
-    <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:12px">
+    <div id="dash-row1" style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:12px">
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
           <div class="card-hdr" style="color:var(--green);border:none;padding:0;margin:0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg> Curva de Equity</div>
@@ -1111,7 +1186,7 @@ tr:hover td{background:rgba(14,18,41,.8)}
     </div>
 
     <!-- Fila 2: P&L mensual + Días semana + Activos top -->
-    <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:12px">
+    <div id="dash-row2" style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:12px">
       <div class="card">
         <div class="card-hdr" style="color:var(--blue);border-color:rgba(77,159,255,.2)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="3" y="4" width="18" height="17" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="4" x2="8" y2="9"/><line x1="16" y1="4" x2="16" y2="9"/></svg> P&amp;L Mensual (últimos 12 meses)</div>
         <div style="height:130px;position:relative"><canvas id="cmon"></canvas></div>
@@ -1127,7 +1202,7 @@ tr:hover td{background:rgba(14,18,41,.8)}
     </div>
 
     <!-- Fila 3: TP/SL por hora + Últimas ops + Recomendaciones -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+    <div id="dash-row3" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
       <div class="card">
         <div class="card-hdr" style="color:var(--org);border-color:rgba(255,140,66,.2)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg> TP/SL por Hora</div>
         <div style="height:130px;position:relative"><canvas id="chrd"></canvas></div>
@@ -1176,18 +1251,18 @@ tr:hover td{background:rgba(14,18,41,.8)}
       <!-- Acciones derecha -->
       <div style="display:flex;align-items:center;gap:6px;margin-left:auto;flex-wrap:wrap">
         <!-- Exportar CSV -->
-        <button class="btn" onclick="exportCSV()" title="Exportar operaciones a Excel/CSV" style="font-size:10px;gap:4px;padding:6px 10px;background:rgba(0,207,255,.1);border-color:rgba(0,207,255,.3);color:#00cfff">
+        <button class="btn btn-csv-hide" onclick="exportCSV()" title="Exportar operaciones a Excel/CSV" style="font-size:10px;gap:4px;padding:6px 10px;background:rgba(0,207,255,.1);border-color:rgba(0,207,255,.3);color:#00cfff">
           <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" width="11" height="11"><path d="M7 1v8M4 6l3 3 3-3"/><path d="M1 10v1a2 2 0 002 2h8a2 2 0 002-2v-1"/></svg>
           CSV
         </button>
         <!-- Importar CSV -->
-        <label class="btn" title="Importar operaciones desde CSV" style="font-size:10px;gap:4px;padding:6px 10px;cursor:pointer;background:rgba(0,229,176,.1);border-color:rgba(0,229,176,.3);color:#00e5b0">
+        <label class="btn btn-csv-hide" title="Importar operaciones desde CSV" style="font-size:10px;gap:4px;padding:6px 10px;cursor:pointer;background:rgba(0,229,176,.1);border-color:rgba(0,229,176,.3);color:#00e5b0">
           <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" width="11" height="11"><path d="M7 9V1M4 4l3-3 3 3"/><path d="M1 10v1a2 2 0 002 2h8a2 2 0 002-2v-1"/></svg>
           Importar
           <input type="file" accept=".csv" style="display:none" onchange="importCSV(this)">
         </label>
         <!-- Reporte para Claude -->
-        <button class="btn" onclick="exportClaudeTxtOps()" title="Descargar reporte .txt para Claude" style="font-size:10px;gap:4px;padding:6px 10px;background:rgba(192,132,252,.1);border-color:rgba(192,132,252,.3);color:#c084fc">
+        <button class="btn btn-csv-hide" onclick="exportClaudeTxtOps()" title="Descargar reporte .txt para Claude" style="font-size:10px;gap:4px;padding:6px 10px;background:rgba(192,132,252,.1);border-color:rgba(192,132,252,.3);color:#c084fc">
           <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" width="11" height="11"><path d="M2 2h10a1 1 0 011 1v7a1 1 0 01-1 1H5l-3 2V3a1 1 0 011-1z"/></svg>
           Para IA
         </button>
@@ -1341,7 +1416,7 @@ tr:hover td{background:rgba(14,18,41,.8)}
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px" id="st-kpi-adv"></div>
 
     <!-- Gráficas fila 1: Equity (grande) + Donut -->
-    <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:12px">
+    <div id="st-row1" style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:12px">
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
           <div class="card-hdr" style="color:var(--green);border-color:rgba(0,229,160,.2);margin-bottom:0;border-bottom:none;padding:0">Curva de Equity</div>
@@ -1432,7 +1507,7 @@ tr:hover td{background:rgba(14,18,41,.8)}
     </div>
 
     <!-- Layout principal: contenido + panel filtros -->
-    <div style="display:flex;gap:0;min-height:0">
+    <div id="analisis-layout" style="display:flex;gap:0;min-height:0">
 
       <!-- CONTENIDO IZQUIERDO -->
       <div style="flex:1;min-width:0;overflow-y:auto;padding:16px 16px 24px">
