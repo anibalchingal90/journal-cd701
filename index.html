@@ -530,14 +530,29 @@ tr:hover td{background:rgba(14,18,41,.8)}
   .content{padding:10px 10px 20px}
   .topbar{padding:10px 12px;gap:10px}
 
-  /* ── CALENDARIO MÓVIL — compacto para caber en pantalla ── */
+  /* ── CALENDARIO MÓVIL — adaptativo al ancho de pantalla ── */
   .cal-grid{gap:2px}
-  /* Celdas más pequeñas para que el calendario quepa sin cortes */
-  .cal-cell{min-height:38px;padding:2px 2px;border-radius:5px;font-size:7px;overflow:hidden}
-  .cal-cell .cdn{font-size:8px;font-weight:700;line-height:1.1}
-  .cal-cell .cpnl{font-size:7px!important;padding:1px 2px!important;margin-bottom:1px!important;letter-spacing:0}
-  .cal-cell .cal-cell-ops{font-size:7px!important;display:none!important}
-  .cal-dow{font-size:6px;padding:3px 0 4px;letter-spacing:.2px}
+  /* Celdas usando vw para adaptarse a cualquier pantalla sin cortar */
+  .cal-cell{
+    min-height:calc((100vw - 32px) / 7 * 1.1);
+    padding:2px 2px;border-radius:5px;overflow:hidden;
+    box-sizing:border-box;
+  }
+  .cal-cell .cdn{
+    font-size:clamp(7px,2.2vw,11px);
+    font-weight:700;line-height:1.1;margin-bottom:1px;
+  }
+  .cal-cell .cpnl{
+    font-size:clamp(6px,2vw,10px)!important;
+    padding:1px 3px!important;margin-bottom:1px!important;
+    letter-spacing:0;max-width:100%;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap;display:block;
+  }
+  .cal-cell .cal-cell-ops{display:none!important}
+  .cal-dow{
+    font-size:clamp(6px,2vw,9px);
+    padding:3px 0 4px;letter-spacing:.1px;
+  }
 
   /* ── KPI BAR MÓVIL — scroll horizontal, sin cortes ── */
   .reg-kpi-bar{display:flex!important;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px;scrollbar-width:none;grid-template-columns:unset;width:100%;box-sizing:border-box}
@@ -547,24 +562,48 @@ tr:hover td{background:rgba(14,18,41,.8)}
   .reg-kpi-lbl{font-size:6px;letter-spacing:.2px}
   .reg-kpi-icon{font-size:12px;margin-bottom:1px}
 
-  /* ── MSUM (barra de totales mensuales) — scroll horizontal ── */
+  /* ── MSUM / KPI BAR — scroll horizontal (el elemento usa class=reg-kpi-bar id=msum) ── */
+  #msum,
   .msum{
     display:flex!important;
-    overflow-x:auto!important;overflow-y:hidden!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
     -webkit-overflow-scrolling:touch;
     flex-wrap:nowrap!important;
     scrollbar-width:none;
     width:100%;box-sizing:border-box;
     border-radius:12px!important;
+    grid-template-columns:unset!important;
   }
+  #msum::-webkit-scrollbar,
   .msum::-webkit-scrollbar{display:none}
+
+  /* Items del panel (class=msc) */
+  #msum .msc,
+  .msum .msc,
   .msc{
     flex:0 0 auto!important;
-    min-width:100px!important;
+    min-width:110px!important;
+    max-width:130px!important;
     padding:10px 10px!important;
     border-right:1px solid var(--bdr)!important;
+    box-sizing:border-box!important;
   }
+  #msum .msc:last-child,
+  .msum .msc:last-child,
   .msc:last-child{border-right:none!important}
+
+  /* Texto dentro del item — no se corta */
+  .msv{
+    font-size:clamp(12px,4vw,17px)!important;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .msl{
+    font-size:clamp(6px,1.8vw,8px)!important;
+    white-space:nowrap;
+  }
 
   /* ── TABLA DÍA — ocultar columnas no esenciales ── */
   .col-tf,.col-s,.col-rr,.col-notas{display:none!important}
@@ -1135,10 +1174,14 @@ tr:hover td{background:rgba(14,18,41,.8)}
     </div>
   </div>
   <!-- ── SELECTOR DE TEMAS ── -->
-  <div class="theme-selector">
-    <span class="theme-label">Tema</span>
+  <div class="theme-selector" id="theme-selector-wrap">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <span class="theme-label" style="margin-bottom:0">Tema</span>
+      <button id="theme-toggle-btn" onclick="toggleThemePanel()" title="Ocultar/Mostrar temas"
+        style="background:none;border:none;color:var(--gray2);cursor:pointer;font-size:11px;padding:2px 4px;border-radius:4px;line-height:1;transition:color .2s">▲</button>
+    </div>
     <div class="theme-pills" id="theme-pills">
-      <button class="theme-btn theme-btn-act" data-theme="dark" onclick="applyTheme('dark')" title="Negro Oscuro" style="background:#1a2240"></button><button class="theme-btn" data-theme="light" onclick="applyTheme('light')" title="Blanco" style="background:#e8ebf5"></button><button class="theme-btn" data-theme="electric" onclick="applyTheme('electric')" title="Azul Eléctrico" style="background:#0088ff"></button><button class="theme-btn" data-theme="matrix" onclick="applyTheme('matrix')" title="Verde Matriz" style="background:#00cc55"></button><button class="theme-btn" data-theme="crimson" onclick="applyTheme('crimson')" title="Crimson" style="background:#cc1133"></button><button class="theme-btn" data-theme="gold" onclick="applyTheme('gold')" title="Oro Premium" style="background:#c9960a"></button>
+      <button class="theme-btn theme-btn-act" data-theme="dark" onclick="applyTheme('dark')" title="Negro Oscuro" style="background:#1a2240"></button><button class="theme-btn" data-theme="light" onclick="applyTheme('light')" title="Blanco" style="background:#f0f2f8"></button><button class="theme-btn" data-theme="electric" onclick="applyTheme('electric')" title="Azul Eléctrico" style="background:#0088ff"></button><button class="theme-btn" data-theme="matrix" onclick="applyTheme('matrix')" title="Verde Matriz" style="background:#00cc55"></button><button class="theme-btn" data-theme="crimson" onclick="applyTheme('crimson')" title="Crimson" style="background:#cc1133"></button><button class="theme-btn" data-theme="gold" onclick="applyTheme('gold')" title="Oro Premium" style="background:#b8860b"></button>
     </div>
   </div>
   <div style="padding:8px;flex:1;display:flex;flex-direction:column;overflow-y:auto">
@@ -1506,13 +1549,16 @@ tr:hover td{background:rgba(14,18,41,.8)}
         <div style="height:180px;position:relative"><canvas id="seq"></canvas></div>
         <div id="st-equity-stats" style="display:flex;gap:16px;margin-top:8px;padding-top:8px;border-top:1px solid var(--bdr)"></div>
       </div>
-      <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
-        <div class="card-hdr" style="color:var(--cyan);border-color:rgba(6,182,212,.2);width:100%;margin-bottom:8px">Distribución</div>
-        <div style="position:relative;width:140px;height:140px;display:flex;align-items:center;justify-content:center">
-          <canvas id="st-donut" style="position:absolute;inset:0"></canvas>
-          <div id="st-donut-mid" style="text-align:center;pointer-events:none;z-index:1"></div>
+      <div class="card" style="display:flex;flex-direction:column">
+        <div class="card-hdr" style="color:var(--cyan);border-color:rgba(6,182,212,.2);width:100%;margin-bottom:12px">Distribución</div>
+        <!-- Dona centrada con texto en el medio -->
+        <div style="flex:1;display:flex;align-items:center;justify-content:center">
+          <div style="position:relative;width:130px;height:130px">
+            <canvas id="st-donut" style="position:absolute;inset:0;width:100%!important;height:100%!important"></canvas>
+            <div id="st-donut-mid" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;z-index:1"></div>
+          </div>
         </div>
-        <div id="st-donut-legend" style="display:flex;flex-direction:column;gap:5px;margin-top:10px;width:100%"></div>
+        <div id="st-donut-legend" style="margin-top:12px;width:100%"></div>
       </div>
     </div>
 
@@ -1640,11 +1686,13 @@ tr:hover td{background:rgba(14,18,41,.8)}
             </div>
             <div class="card">
               <div class="card-hdr" style="color:var(--cyan);border-color:rgba(6,182,212,.2)">Distribución de resultados</div>
-              <div style="height:130px;display:flex;align-items:center;justify-content:center;position:relative">
-                <canvas id="a-donut" style="max-width:130px;max-height:130px"></canvas>
-                <div id="a-donut-center" style="position:absolute;text-align:center;pointer-events:none"></div>
+              <div style="display:flex;align-items:center;justify-content:center;padding:8px 0 4px">
+                <div style="position:relative;width:120px;height:120px">
+                  <canvas id="a-donut" style="position:absolute;inset:0;width:100%!important;height:100%!important"></canvas>
+                  <div id="a-donut-center" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;z-index:1"></div>
+                </div>
               </div>
-              <div id="a-donut-legend" style="display:flex;gap:10px;justify-content:center;margin-top:4px;font-size:9px;color:var(--gray2)"></div>
+              <div id="a-donut-legend" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:6px;font-size:9px;color:var(--gray2)"></div>
             </div>
           </div>
 
@@ -2795,118 +2843,119 @@ function load(){
 //  SISTEMA DE TEMAS DE COLOR
 // ════════════════════════════════════════════════════════════
 var THEMES = {
-  // ── 1. Negro Oscuro (default) ────────────────────────────
+
+  // ── 1. Negro Oscuro (default) ── base oscura profunda, acentos neón
   'dark': {
     name:'Negro Oscuro', icon:'⬛',
     '--bg':'#080d1a','--bg2':'#0c1225','--sb':'#070b18',
-    '--card':'#0d1228','--card2':'#101528','--card3':'#141a30',
-    '--bdr':'#1a2240','--bdr2':'#243060','--bdr3':'#2e3c72',
-    '--green':'#00e5b0','--green2':'#00a87a',
+    '--card':'#0d1228','--card2':'#111830','--card3':'#151e38',
+    '--bdr':'#1e2b50','--bdr2':'#273670','--bdr3':'#324088',
+    '--green':'#00e5b0','--green2':'#00b88c',
     '--gd':'rgba(0,229,176,.08)','--gd2':'rgba(0,229,176,.04)',
     '--red':'#ff3860','--red2':'#cc1a40',
     '--rd':'rgba(255,56,96,.1)','--rd2':'rgba(255,56,96,.05)',
-    '--blue':'#4d9fff','--blue2':'#0099cc','--blueglow':'rgba(77,159,255,.15)',
-    '--gold':'#f7c948','--purp':'#c084fc','--cyan':'#00cfff','--org':'#ff7043',
-    '--gray':'#2a3356','--gray2':'#6b7899','--text':'#dde4f5','--text2':'#9aa5c8',
-    '--glow-g':'0 0 28px rgba(0,229,176,.25)','--glow-r':'0 0 22px rgba(255,56,96,.3)',
-    '--glow-b':'0 0 22px rgba(124,58,237,.35)','--glow-gold':'0 0 22px rgba(247,201,72,.25)',
+    '--blue':'#4d9fff','--blue2':'#1a7de0','--blueglow':'rgba(77,159,255,.18)',
+    '--gold':'#f7c948','--purp':'#c084fc','--cyan':'#22d3ee','--org':'#fb923c',
+    '--gray':'#253060','--gray2':'#7888b0','--text':'#e2e8f8','--text2':'#9aa5c8',
+    '--glow-g':'0 0 28px rgba(0,229,176,.28)','--glow-r':'0 0 22px rgba(255,56,96,.32)',
+    '--glow-b':'0 0 22px rgba(124,58,237,.35)','--glow-gold':'0 0 22px rgba(247,201,72,.28)',
     '--accent':'#7c3aed','--accent2':'#6d28d9','--accentb':'#4f46e5',
-    '--ni-act-bg':'rgba(124,58,237,.18)','--ni-act-border':'rgba(124,58,237,.4)','--ni-act-color':'#a78bfa',
+    '--ni-act-bg':'rgba(124,58,237,.18)','--ni-act-border':'rgba(124,58,237,.45)','--ni-act-color':'#a78bfa',
   },
 
-  // ── 2. Blanco / Claro ─────────────────────────────────────
+  // ── 2. Blanco ── fondo blanco limpio, texto oscuro con alto contraste
   'light': {
     name:'Blanco', icon:'⬜',
-    '--bg':'#f0f2f8','--bg2':'#e8ebf5','--sb':'#ffffff',
-    '--card':'#ffffff','--card2':'#f4f6fc','--card3':'#ebeef8',
-    '--bdr':'#d4d9ee','--bdr2':'#b8c0de','--bdr3':'#9aa5cc',
-    '--green':'#008f72','--green2':'#006b55',
-    '--gd':'rgba(0,143,114,.1)','--gd2':'rgba(0,143,114,.05)',
-    '--red':'#d42051','--red2':'#a0143c',
-    '--rd':'rgba(212,32,81,.1)','--rd2':'rgba(212,32,81,.05)',
-    '--blue':'#2563eb','--blue2':'#1d4ed8','--blueglow':'rgba(37,99,235,.15)',
-    '--gold':'#d97706','--purp':'#7c3aed','--cyan':'#0891b2','--org':'#ea580c',
-    '--gray':'#c0c7de','--gray2':'#64748b','--text':'#1e2640','--text2':'#475569',
-    '--glow-g':'0 0 20px rgba(0,143,114,.2)','--glow-r':'0 0 20px rgba(212,32,81,.2)',
-    '--glow-b':'0 0 20px rgba(124,58,237,.25)','--glow-gold':'0 0 20px rgba(217,119,6,.2)',
-    '--accent':'#7c3aed','--accent2':'#6d28d9','--accentb':'#4f46e5',
-    '--ni-act-bg':'rgba(124,58,237,.12)','--ni-act-border':'rgba(124,58,237,.35)','--ni-act-color':'#6d28d9',
+    '--bg':'#f1f5fb','--bg2':'#e8eef8','--sb':'#ffffff',
+    '--card':'#ffffff','--card2':'#f5f7fd','--card3':'#ebeffa',
+    '--bdr':'#dde3f5','--bdr2':'#c5cde8','--bdr3':'#aab5d8',
+    '--green':'#047857','--green2':'#065f46',
+    '--gd':'rgba(4,120,87,.1)','--gd2':'rgba(4,120,87,.05)',
+    '--red':'#be123c','--red2':'#9f1239',
+    '--rd':'rgba(190,18,60,.1)','--rd2':'rgba(190,18,60,.05)',
+    '--blue':'#1d4ed8','--blue2':'#1e40af','--blueglow':'rgba(29,78,216,.12)',
+    '--gold':'#b45309','--purp':'#6d28d9','--cyan':'#0e7490','--org':'#c2410c',
+    '--gray':'#cbd5e1','--gray2':'#475569','--text':'#0f172a','--text2':'#334155',
+    '--glow-g':'0 0 14px rgba(4,120,87,.18)','--glow-r':'0 0 14px rgba(190,18,60,.18)',
+    '--glow-b':'0 0 14px rgba(109,40,217,.18)','--glow-gold':'0 0 14px rgba(180,83,9,.18)',
+    '--accent':'#6d28d9','--accent2':'#5b21b6','--accentb':'#4c1d95',
+    '--ni-act-bg':'rgba(109,40,217,.1)','--ni-act-border':'rgba(109,40,217,.3)','--ni-act-color':'#5b21b6',
   },
 
-  // ── 3. Azul Oscuro Eléctrico ──────────────────────────────
+  // ── 3. Azul Eléctrico ── navy profundo, destellos eléctricos
   'electric': {
     name:'Azul Eléctrico', icon:'🔵',
-    '--bg':'#020918','--bg2':'#040d20','--sb':'#010713',
-    '--card':'#051028','--card2':'#071430','--card3':'#0a1838',
-    '--bdr':'#0f2a5c','--bdr2':'#153870','--bdr3':'#1a4688',
-    '--green':'#00ffcc','--green2':'#00cc99',
-    '--gd':'rgba(0,255,204,.08)','--gd2':'rgba(0,255,204,.04)',
-    '--red':'#ff2060','--red2':'#cc0040',
-    '--rd':'rgba(255,32,96,.1)','--rd2':'rgba(255,32,96,.05)',
-    '--blue':'#00aaff','--blue2':'#0077cc','--blueglow':'rgba(0,170,255,.2)',
-    '--gold':'#ffd000','--purp':'#aa44ff','--cyan':'#00eeff','--org':'#ff6600',
-    '--gray':'#0d2255','--gray2':'#4a78cc','--text':'#c8e0ff','--text2':'#7aA8e0',
-    '--glow-g':'0 0 30px rgba(0,255,204,.3)','--glow-r':'0 0 25px rgba(255,32,96,.35)',
-    '--glow-b':'0 0 30px rgba(0,170,255,.4)','--glow-gold':'0 0 25px rgba(255,208,0,.3)',
-    '--accent':'#0088ff','--accent2':'#0066cc','--accentb':'#0044aa',
-    '--ni-act-bg':'rgba(0,136,255,.2)','--ni-act-border':'rgba(0,136,255,.5)','--ni-act-color':'#00aaff',
+    '--bg':'#03061a','--bg2':'#060a22','--sb':'#020416',
+    '--card':'#080d2a','--card2':'#0c1132','--card3':'#10163c',
+    '--bdr':'#142060','--bdr2':'#1c2c80','--bdr3':'#243898',
+    '--green':'#00f0b0','--green2':'#00c090',
+    '--gd':'rgba(0,240,176,.08)','--gd2':'rgba(0,240,176,.04)',
+    '--red':'#ff2255','--red2':'#cc0033',
+    '--rd':'rgba(255,34,85,.1)','--rd2':'rgba(255,34,85,.05)',
+    '--blue':'#38bdf8','--blue2':'#0ea5e9','--blueglow':'rgba(56,189,248,.2)',
+    '--gold':'#fbbf24','--purp':'#818cf8','--cyan':'#22d3ee','--org':'#fb923c',
+    '--gray':'#1e3a6e','--gray2':'#7090cc','--text':'#e0eeff','--text2':'#94b4e0',
+    '--glow-g':'0 0 28px rgba(0,240,176,.28)','--glow-r':'0 0 22px rgba(255,34,85,.32)',
+    '--glow-b':'0 0 30px rgba(56,189,248,.38)','--glow-gold':'0 0 22px rgba(251,191,36,.28)',
+    '--accent':'#3b82f6','--accent2':'#2563eb','--accentb':'#1d4ed8',
+    '--ni-act-bg':'rgba(59,130,246,.2)','--ni-act-border':'rgba(59,130,246,.5)','--ni-act-color':'#60a5fa',
   },
 
-  // ── 4. Verde Matriz (elección libre 1) ────────────────────
+  // ── 4. Verde Bosque ── verde oscuro elegante, sin los verdes neón chillones
   'matrix': {
-    name:'Verde Matriz', icon:'🟢',
-    '--bg':'#050d08','--bg2':'#071210','--sb':'#030b06',
-    '--card':'#081510','--card2':'#0a1912','--card3':'#0d1e15',
-    '--bdr':'#0f3018','--bdr2':'#184025','--bdr3':'#1e5030',
-    '--green':'#00ff88','--green2':'#00cc66',
-    '--gd':'rgba(0,255,136,.08)','--gd2':'rgba(0,255,136,.04)',
-    '--red':'#ff4444','--red2':'#cc2222',
-    '--rd':'rgba(255,68,68,.1)','--rd2':'rgba(255,68,68,.05)',
-    '--blue':'#44ddaa','--blue2':'#22aa80','--blueglow':'rgba(68,221,170,.15)',
-    '--gold':'#aaff44','--purp':'#88ff00','--cyan':'#00ffbb','--org':'#ffaa00',
-    '--gray':'#0d2e14','--gray2':'#3a8858','--text':'#ccffe8','--text2':'#7acc99',
-    '--glow-g':'0 0 30px rgba(0,255,136,.35)','--glow-r':'0 0 25px rgba(255,68,68,.3)',
-    '--glow-b':'0 0 25px rgba(68,221,170,.3)','--glow-gold':'0 0 25px rgba(170,255,68,.25)',
-    '--accent':'#00cc55','--accent2':'#009940','--accentb':'#007730',
-    '--ni-act-bg':'rgba(0,204,85,.18)','--ni-act-border':'rgba(0,204,85,.45)','--ni-act-color':'#00ff88',
+    name:'Verde Bosque', icon:'🟢',
+    '--bg':'#061209','--bg2':'#08160b','--sb':'#040d06',
+    '--card':'#0a1a0d','--card2':'#0d2010','--card3':'#102614',
+    '--bdr':'#1a4022','--bdr2':'#225030','--bdr3':'#2a6038',
+    '--green':'#34d399','--green2':'#10b981',
+    '--gd':'rgba(52,211,153,.08)','--gd2':'rgba(52,211,153,.04)',
+    '--red':'#f87171','--red2':'#ef4444',
+    '--rd':'rgba(248,113,113,.1)','--rd2':'rgba(248,113,113,.05)',
+    '--blue':'#6ee7b7','--blue2':'#34d399','--blueglow':'rgba(110,231,183,.15)',
+    '--gold':'#fcd34d','--purp':'#a7f3d0','--cyan':'#6ee7b7','--org':'#fb923c',
+    '--gray':'#14401c','--gray2':'#6aaa88','--text':'#d1fae5','--text2':'#a7f3d0',
+    '--glow-g':'0 0 28px rgba(52,211,153,.32)','--glow-r':'0 0 22px rgba(248,113,113,.3)',
+    '--glow-b':'0 0 22px rgba(110,231,183,.28)','--glow-gold':'0 0 22px rgba(252,211,77,.28)',
+    '--accent':'#059669','--accent2':'#047857','--accentb':'#065f46',
+    '--ni-act-bg':'rgba(5,150,105,.2)','--ni-act-border':'rgba(5,150,105,.5)','--ni-act-color':'#34d399',
   },
 
-  // ── 5. Rojo Crimson (elección libre 2) ────────────────────
+  // ── 5. Crimson ── rojo oscuro con texto claro visible, acentos rosas legibles
   'crimson': {
     name:'Crimson', icon:'🔴',
-    '--bg':'#0f0508','--bg2':'#16080c','--sb':'#0a0306',
-    '--card':'#180a0f','--card2':'#1d0c12','--card3':'#230f16',
-    '--bdr':'#3d1020','--bdr2':'#521530','--bdr3':'#661840',
-    '--green':'#00e5b0','--green2':'#00a87a',
-    '--gd':'rgba(0,229,176,.08)','--gd2':'rgba(0,229,176,.04)',
-    '--red':'#ff2244','--red2':'#cc0022',
-    '--rd':'rgba(255,34,68,.12)','--rd2':'rgba(255,34,68,.06)',
-    '--blue':'#ff6699','--blue2':'#cc3366','--blueglow':'rgba(255,102,153,.15)',
-    '--gold':'#ffaa44','--purp':'#ff44aa','--cyan':'#ff8899','--org':'#ff5522',
-    '--gray':'#3a1020','--gray2':'#996677','--text':'#ffe0e8','--text2':'#cc9aaa',
-    '--glow-g':'0 0 28px rgba(0,229,176,.25)','--glow-r':'0 0 30px rgba(255,34,68,.4)',
-    '--glow-b':'0 0 25px rgba(255,68,136,.3)','--glow-gold':'0 0 25px rgba(255,170,68,.3)',
-    '--accent':'#cc1133','--accent2':'#aa0022','--accentb':'#880011',
-    '--ni-act-bg':'rgba(204,17,51,.2)','--ni-act-border':'rgba(204,17,51,.5)','--ni-act-color':'#ff4466',
+    '--bg':'#100408','--bg2':'#18060c','--sb':'#0c0306',
+    '--card':'#1c0810','--card2':'#220a14','--card3':'#280c18',
+    '--bdr':'#4a1020','--bdr2':'#621530','--bdr3':'#7a1a3e',
+    '--green':'#34d399','--green2':'#10b981',
+    '--gd':'rgba(52,211,153,.08)','--gd2':'rgba(52,211,153,.04)',
+    '--red':'#fb7185','--red2':'#f43f5e',
+    '--rd':'rgba(251,113,133,.12)','--rd2':'rgba(251,113,133,.06)',
+    '--blue':'#f9a8d4','--blue2':'#f472b6','--blueglow':'rgba(249,168,212,.15)',
+    '--gold':'#fcd34d','--purp':'#e879f9','--cyan':'#f0abfc','--org':'#fb923c',
+    '--gray':'#4a1428','--gray2':'#c08098','--text':'#fff1f5','--text2':'#fda4af',
+    '--glow-g':'0 0 28px rgba(52,211,153,.28)','--glow-r':'0 0 30px rgba(251,113,133,.42)',
+    '--glow-b':'0 0 22px rgba(249,168,212,.28)','--glow-gold':'0 0 22px rgba(252,211,77,.28)',
+    '--accent':'#e11d48','--accent2':'#be123c','--accentb':'#9f1239',
+    '--ni-act-bg':'rgba(225,29,72,.2)','--ni-act-border':'rgba(225,29,72,.5)','--ni-act-color':'#fb7185',
   },
 
-  // ── 6. Oro Premium (elección libre 3) ─────────────────────
+  // ── 6. Oro Premium ── negro cálido con oro brillante, legible y lujoso
   'gold': {
     name:'Oro Premium', icon:'🟡',
-    '--bg':'#0c0a04','--bg2':'#130f06','--sb':'#080600',
-    '--card':'#161008','--card2':'#1c150a','--card3':'#221a0c',
-    '--bdr':'#3a2c10','--bdr2':'#4e3a14','--bdr3':'#624818',
-    '--green':'#44dd88','--green2':'#22aa66',
-    '--gd':'rgba(68,221,136,.08)','--gd2':'rgba(68,221,136,.04)',
-    '--red':'#ff4444','--red2':'#cc2222',
-    '--rd':'rgba(255,68,68,.1)','--rd2':'rgba(255,68,68,.05)',
-    '--blue':'#ddaa44','--blue2':'#aa7722','--blueglow':'rgba(221,170,68,.15)',
-    '--gold':'#ffd700','--purp':'#ffaa00','--cyan':'#ffcc44','--org':'#ff8800',
-    '--gray':'#3a2a10','--gray2':'#997744','--text':'#fff8e8','--text2':'#ccaa77',
-    '--glow-g':'0 0 25px rgba(68,221,136,.25)','--glow-r':'0 0 22px rgba(255,68,68,.3)',
-    '--glow-b':'0 0 25px rgba(221,170,68,.3)','--glow-gold':'0 0 30px rgba(255,215,0,.4)',
-    '--accent':'#c9960a','--accent2':'#a07808','--accentb':'#7a5c06',
-    '--ni-act-bg':'rgba(201,150,10,.2)','--ni-act-border':'rgba(201,150,10,.5)','--ni-act-color':'#ffd700',
+    '--bg':'#0d0a04','--bg2':'#141008','--sb':'#090600',
+    '--card':'#181208','--card2':'#1e160a','--card3':'#241a0c',
+    '--bdr':'#3d2e10','--bdr2':'#523d14','--bdr3':'#664c18',
+    '--green':'#4ade80','--green2':'#22c55e',
+    '--gd':'rgba(74,222,128,.08)','--gd2':'rgba(74,222,128,.04)',
+    '--red':'#f87171','--red2':'#ef4444',
+    '--rd':'rgba(248,113,113,.1)','--rd2':'rgba(248,113,113,.05)',
+    '--blue':'#fbbf24','--blue2':'#f59e0b','--blueglow':'rgba(251,191,36,.18)',
+    '--gold':'#fde047','--purp':'#fcd34d','--cyan':'#fef08a','--org':'#fb923c',
+    '--gray':'#3d2e18','--gray2':'#b89a60','--text':'#fffbeb','--text2':'#fde68a',
+    '--glow-g':'0 0 24px rgba(74,222,128,.28)','--glow-r':'0 0 22px rgba(248,113,113,.3)',
+    '--glow-b':'0 0 26px rgba(251,191,36,.35)','--glow-gold':'0 0 32px rgba(253,224,71,.42)',
+    '--accent':'#d97706','--accent2':'#b45309','--accentb':'#92400e',
+    '--ni-act-bg':'rgba(217,119,6,.22)','--ni-act-border':'rgba(217,119,6,.5)','--ni-act-color':'#fbbf24',
   },
 };
 
@@ -2926,11 +2975,34 @@ function applyTheme(id){
   });
 }
 
+// ── Toggle visibilidad del panel de temas ────────────────────────────────
+window.toggleThemePanel = function(){
+  var pills = document.getElementById('theme-pills');
+  var btn   = document.getElementById('theme-toggle-btn');
+  var wrap  = document.getElementById('theme-selector-wrap');
+  if(!pills) return;
+  var hidden = pills.style.display === 'none';
+  pills.style.display = hidden ? 'flex' : 'none';
+  if(btn) btn.textContent = hidden ? '▲' : '▼';
+  if(wrap) wrap.style.paddingBottom = hidden ? '' : '6px';
+  localStorage.setItem('tt_theme_panel', hidden ? 'show' : 'hide');
+};
+
 // ── Cargar tema guardado al arrancar ─────────────────────────────────────
 function loadSavedTheme(){
   var saved = localStorage.getItem('tt_theme') || 'dark';
   if(!THEMES[saved]) saved = 'dark';
   applyTheme(saved);
+  // Restaurar estado oculto/visible del panel
+  var panelState = localStorage.getItem('tt_theme_panel');
+  if(panelState === 'hide'){
+    var pills = document.getElementById('theme-pills');
+    var btn   = document.getElementById('theme-toggle-btn');
+    var wrap  = document.getElementById('theme-selector-wrap');
+    if(pills){ pills.style.display='none'; }
+    if(btn)   { btn.textContent='▼'; }
+    if(wrap)  { wrap.style.paddingBottom='6px'; }
+  }
 }
 
 var APP_VERSION = '2.2'; // ⬅ v2.2: Device binding robusto, sin duplicados, freeze inmediato
@@ -4905,7 +4977,7 @@ function showDayOpsSheet(trades, dateStr){
 
   sheet.innerHTML =
     // Handle
-    '<div style="width:36px;height:3px;background:var(--bdr2);border-radius:99px;margin:10px auto 0;flex-shrink:0"></div>'+
+    ''+
     // Header
     '<div style="padding:12px 16px 10px;border-bottom:1px solid var(--bdr);flex-shrink:0;display:flex;align-items:center;justify-content:space-between">'+
       '<div>'+
@@ -5206,21 +5278,24 @@ function renderStats(){
 
   // Donut
   var donutEl=g('st-donut'),donutMid=g('st-donut-mid'),donutLeg=g('st-donut-legend');
-  if(donutMid)donutMid.innerHTML='<div style="font-size:22px;font-weight:900;color:var(--text);font-family:\'Exo 2\',sans-serif">'+tT+'</div><div style="font-size:9px;color:var(--gray2)">total</div>';
-  if(donutLeg)donutLeg.innerHTML=[['var(--green)',tTP,'Ganadoras',tT?Math.round(tTP/tT*100):0],['var(--red)',tSL,'Perdedoras',tT?Math.round(tSL/tT*100):0]].map(function(r){return'<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(30,38,64,.3)"><div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:'+r[0]+';display:inline-block"></span><span style="font-size:10px;color:var(--gray2)">'+r[2]+'</span></div><div><span style="font-size:11px;font-weight:700;color:'+r[0]+'">'+r[1]+'</span><span style="font-size:9px;color:var(--gray2);margin-left:4px">'+r[3]+'%</span></div></div>';}).join('');
+  if(donutMid)donutMid.innerHTML='<div style="font-size:24px;font-weight:900;color:var(--text);font-family:\'Exo 2\',sans-serif;line-height:1">'+tT+'</div><div style="font-size:9px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-top:2px">total</div>';
+  if(donutLeg)donutLeg.innerHTML=[['var(--green)',tTP,'Ganadoras',tT?Math.round(tTP/tT*100):0],['var(--red)',tSL,'Perdedoras',tT?Math.round(tSL/tT*100):0]].map(function(r){return'<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-radius:7px;background:var(--card2);margin-bottom:5px"><div style="display:flex;align-items:center;gap:7px"><span style="width:10px;height:10px;border-radius:3px;background:'+r[0]+';display:inline-block;flex-shrink:0"></span><span style="font-size:10px;color:var(--text2);font-weight:600">'+r[2]+'</span></div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:900;color:'+r[0]+';font-family:\'Exo 2\',sans-serif">'+r[1]+'</span><span style="font-size:9px;color:var(--gray2);background:var(--bdr);border-radius:4px;padding:1px 5px">'+r[3]+'%</span></div></div>';}).join('');
   if(donutEl)mkC('st-donut','doughnut',['Ganadoras','Perdedoras'],[{
   data:[tTP,tSL],
-  backgroundColor:['rgba(0,235,185,0.95)','rgba(255,50,90,0.92)'],
-  hoverBackgroundColor:['rgba(0,255,210,1)','rgba(255,75,105,1)'],
-  borderWidth:4,
-  borderColor:['rgba(8,12,32,1)','rgba(8,12,32,1)'],
-  borderRadius:8,
-  hoverOffset:12,
-  spacing:3
+  backgroundColor:['rgba(0,229,176,0.92)','rgba(255,56,96,0.88)'],
+  hoverBackgroundColor:['rgba(0,255,200,1)','rgba(255,80,110,1)'],
+  borderWidth:0,
+  borderColor:'transparent',
+  borderRadius:6,
+  hoverOffset:8,
+  spacing:4
 }],{
-  plugins:{legend:{display:false}},
-  cutout:'62%',
-  animation:{animateRotate:true,animateScale:false,duration:1000,easing:'easeInOutQuart'}
+  plugins:{legend:{display:false},tooltip:{callbacks:{
+    label:function(ctx){return' '+ctx.label+': '+ctx.raw+' ('+Math.round(ctx.raw/(tTP+tSL)*100)+'%)';}
+  }}},
+  cutout:'68%',
+  rotation:-90,
+  animation:{animateRotate:true,animateScale:true,duration:900,easing:'easeOutQuart'}
 });
 
   // P&L mensual
@@ -5591,21 +5666,24 @@ function aRenderEquity(ft){
 function aRenderDonut(tp,sl,total){
   var el=g('a-donut');if(!el)return;
   var center=g('a-donut-center'),legend=g('a-donut-legend');
-  if(center)center.innerHTML='<div style="font-size:22px;font-weight:900;color:var(--text);font-family:\'Exo 2\',sans-serif">'+total+'</div><div style="font-size:9px;color:var(--gray2)">Total</div>';
-  if(legend)legend.innerHTML='<span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:50%;background:#00e5a0;display:inline-block"></span>Ganadoras '+tp+' ('+(total?Math.round(tp/total*100):0)+'%)</span><span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:50%;background:#ff3d5a;display:inline-block"></span>Perdedoras '+sl+' ('+(total?Math.round(sl/total*100):0)+'%)</span>';
+  if(center)center.innerHTML='<div style="font-size:22px;font-weight:900;color:var(--text);font-family:\'Exo 2\',sans-serif;line-height:1">'+total+'</div><div style="font-size:8px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-top:2px">total</div>';
+  if(legend)legend.innerHTML=['<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:5px;background:rgba(0,229,176,.1);border:1px solid rgba(0,229,176,.2)"><span style="width:7px;height:7px;border-radius:2px;background:rgba(0,229,176,.9);display:inline-block"></span><span style="color:var(--green);font-weight:700">'+tp+'</span><span style="color:var(--text2)"> Gan · '+(total?Math.round(tp/total*100):0)+'%</span></span>','<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:5px;background:rgba(255,56,96,.1);border:1px solid rgba(255,56,96,.2)"><span style="width:7px;height:7px;border-radius:2px;background:rgba(255,56,96,.9);display:inline-block"></span><span style="color:var(--red);font-weight:700">'+sl+'</span><span style="color:var(--text2)"> Per · '+(total?Math.round(sl/total*100):0)+'%</span></span>'].join('');
   mkC('a-donut','doughnut',['Ganadoras','Perdedoras'],[{
   data:[tp,sl],
-  backgroundColor:['rgba(0,235,185,0.95)','rgba(255,50,90,0.92)'],
-  hoverBackgroundColor:['rgba(0,255,210,1)','rgba(255,75,105,1)'],
-  borderWidth:4,
-  borderColor:['rgba(8,12,32,1)','rgba(8,12,32,1)'],
-  borderRadius:8,
-  hoverOffset:12,
-  spacing:3
+  backgroundColor:['rgba(0,229,176,0.92)','rgba(255,56,96,0.88)'],
+  hoverBackgroundColor:['rgba(0,255,200,1)','rgba(255,80,110,1)'],
+  borderWidth:0,
+  borderColor:'transparent',
+  borderRadius:6,
+  hoverOffset:8,
+  spacing:4
 }],{
-  plugins:{legend:{display:false}},
-  cutout:'62%',
-  animation:{animateRotate:true,animateScale:false,duration:1000,easing:'easeInOutQuart'}
+  plugins:{legend:{display:false},tooltip:{callbacks:{
+    label:function(ctx){return' '+ctx.label+': '+ctx.raw+' ('+(total?Math.round(ctx.raw/total*100):0)+'%)';}
+  }}},
+  cutout:'68%',
+  rotation:-90,
+  animation:{animateRotate:true,animateScale:true,duration:900,easing:'easeOutQuart'}
 });
 }
 
@@ -8451,7 +8529,20 @@ function renderTradeDetailSheet(){
   // Sheet
   var sheet = document.createElement('div');
   sheet.id = 'td-detail-sheet';
-  sheet.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:9600;background:var(--card);border-radius:20px 20px 0 0;border-top:1px solid var(--bdr2);box-shadow:0 -8px 40px rgba(0,0,0,.6);max-height:82vh;display:flex;flex-direction:column;overflow:hidden;';
+  sheet.style.cssText = [
+    'position:fixed;top:0;right:0;bottom:0;',
+    'width:92vw;max-width:400px;',
+    'z-index:9600;',
+    'background:var(--card);',
+    'border-left:1px solid var(--bdr2);',
+    'border-radius:16px 0 0 16px;',
+    'box-shadow:-8px 0 40px rgba(0,0,0,.6);',
+    'display:flex;flex-direction:column;overflow:hidden;',
+    'transform:translateX(100%);',
+    'transition:transform .28s cubic-bezier(.4,0,.2,1);'
+  ].join('');
+  // Animar entrada
+  setTimeout(function(){ sheet.style.transform = 'translateX(0)'; }, 10);
 
   // Construir contenido del sheet
   var hasNav = trades.length > 1;
@@ -8548,8 +8639,14 @@ window.navTradeSheet = function(dir){
 function closeTradeDetailSheet(){
   var s  = document.getElementById('td-detail-sheet');
   var ov = document.getElementById('td-detail-overlay');
-  if(s)  s.remove();
-  if(ov) ov.remove();
+  if(s){
+    s.style.transform = 'translateX(100%)';
+    setTimeout(function(){ if(s) s.remove(); }, 280);
+  }
+  if(ov){
+    ov.style.opacity = '0';
+    setTimeout(function(){ if(ov) ov.remove(); }, 280);
+  }
 }
 
 window.handleTDSheetAction = function(btn){
