@@ -776,18 +776,21 @@ tr:hover td{background:rgba(14,18,41,.8)}
   }
 
   /* ── ANÁLISIS — filtros como drawer desde la derecha ── */
+  /* Evitar que el swipe horizontal exponga el panel oculto */
+  #tab-analisis,#analisis-layout{overflow-x:hidden!important;}
   #ast-filter-mob-btn{display:flex!important}
   #ast-filter-panel{
     position:fixed!important;
-    top:0;right:-100%;bottom:0;
+    top:0;right:-110%;bottom:0;
     width:82vw;max-width:300px;
     z-index:9500;
     transition:right .3s cubic-bezier(.4,0,.2,1);
     max-height:100vh!important;
     box-shadow:-8px 0 40px rgba(0,0,0,.6);
     border-left:1px solid var(--bdr2)!important;
+    visibility:hidden;
   }
-  #ast-filter-panel.drawer-open{right:0!important}
+  #ast-filter-panel.drawer-open{right:0!important;visibility:visible;}
   #ast-filter-close-row{display:flex!important}
   #ast-filter-overlay{
     display:none;position:fixed;inset:0;
