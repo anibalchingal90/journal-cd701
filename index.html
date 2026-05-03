@@ -548,7 +548,17 @@ tr:hover td{background:rgba(14,18,41,.8)}
     letter-spacing:0;max-width:100%;overflow:hidden;
     text-overflow:ellipsis;white-space:nowrap;display:block;
   }
-  .cal-cell .cal-cell-ops{display:none!important}
+  /* Contador de operaciones — compacto, visible en móvil */
+  .cal-cell .cal-cell-ops{
+    display:block!important;
+    font-size:clamp(5px,1.6vw,8px)!important;
+    color:var(--gray2);
+    margin-top:1px;
+    line-height:1.1;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
   .cal-dow{
     font-size:clamp(6px,2vw,9px);
     padding:3px 0 4px;letter-spacing:.1px;
@@ -603,6 +613,30 @@ tr:hover td{background:rgba(14,18,41,.8)}
   .msl{
     font-size:clamp(6px,1.8vw,8px)!important;
     white-space:nowrap;
+  }
+
+  /* ── OPTIMIZACIONES DE RENDIMIENTO MÓVIL ── */
+  /* 1. Eliminar backdrop-filter en móvil (muy costoso en GPU) */
+  .msum,.reg-kpi-bar,.topbar,
+  #mob-sidebar-overlay,
+  #trade-detail-panel{
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+  }
+  /* 2. Desactivar transiciones complejas en celdas del calendario */
+  .cal-cell{
+    transition:background .15s!important;
+    background:var(--card2)!important; /* sin linear-gradient costoso */
+  }
+  /* 3. Reducir transiciones de kcard */
+  .kcard{transition:none!important}
+  /* 4. Promover capas de GPU para elementos que animan */
+  .td-detail-sheet,
+  #mob-sidebar,
+  #day-ops-sheet{
+    will-change:transform;
+    -webkit-transform:translateZ(0);
+    transform:translateZ(0);
   }
 
   /* ── TABLA DÍA — ocultar columnas no esenciales ── */
@@ -1181,7 +1215,7 @@ tr:hover td{background:rgba(14,18,41,.8)}
         style="background:none;border:none;color:var(--gray2);cursor:pointer;font-size:11px;padding:2px 4px;border-radius:4px;line-height:1;transition:color .2s">▲</button>
     </div>
     <div class="theme-pills" id="theme-pills">
-      <button class="theme-btn theme-btn-act" data-theme="dark" onclick="applyTheme('dark')" title="Negro Oscuro" style="background:#1a2240"></button><button class="theme-btn" data-theme="light" onclick="applyTheme('light')" title="Blanco" style="background:#f0f2f8"></button><button class="theme-btn" data-theme="electric" onclick="applyTheme('electric')" title="Azul Eléctrico" style="background:#0088ff"></button><button class="theme-btn" data-theme="matrix" onclick="applyTheme('matrix')" title="Verde Matriz" style="background:#00cc55"></button><button class="theme-btn" data-theme="crimson" onclick="applyTheme('crimson')" title="Crimson" style="background:#cc1133"></button><button class="theme-btn" data-theme="gold" onclick="applyTheme('gold')" title="Oro Premium" style="background:#b8860b"></button>
+      <button class="theme-btn theme-btn-act" data-theme="dark"    onclick="applyTheme('dark')"    title="Negro Oscuro"   style="background:#0d1228"></button><button class="theme-btn" data-theme="light"   onclick="applyTheme('light')"   title="Blanco"         style="background:#dde3f5"></button><button class="theme-btn" data-theme="electric" onclick="applyTheme('electric')" title="Azul Eléctrico" style="background:#0078d4"></button><button class="theme-btn" data-theme="purple"  onclick="applyTheme('purple')"  title="Morado"         style="background:#6d28d9"></button><button class="theme-btn" data-theme="silver"  onclick="applyTheme('silver')"  title="Plateado"       style="background:#64748b"></button><button class="theme-btn" data-theme="gold"    onclick="applyTheme('gold')"    title="Oro Premium"   style="background:#b8860b"></button>
     </div>
   </div>
   <div style="padding:8px;flex:1;display:flex;flex-direction:column;overflow-y:auto">
@@ -2844,7 +2878,7 @@ function load(){
 // ════════════════════════════════════════════════════════════
 var THEMES = {
 
-  // ── 1. Negro Oscuro (default) ── base oscura profunda, acentos neón
+  // ── 1. Negro Oscuro — base oscura profunda, referencia de la plataforma
   'dark': {
     name:'Negro Oscuro', icon:'⬛',
     '--bg':'#080d1a','--bg2':'#0c1225','--sb':'#070b18',
@@ -2863,83 +2897,83 @@ var THEMES = {
     '--ni-act-bg':'rgba(124,58,237,.18)','--ni-act-border':'rgba(124,58,237,.45)','--ni-act-color':'#a78bfa',
   },
 
-  // ── 2. Blanco ── fondo blanco limpio, texto oscuro con alto contraste
+  // ── 2. Blanco — gris azulado muy suave, contraste alto, nada se pierde
   'light': {
     name:'Blanco', icon:'⬜',
-    '--bg':'#f1f5fb','--bg2':'#e8eef8','--sb':'#ffffff',
-    '--card':'#ffffff','--card2':'#f5f7fd','--card3':'#ebeffa',
-    '--bdr':'#dde3f5','--bdr2':'#c5cde8','--bdr3':'#aab5d8',
+    '--bg':'#e8ecf8','--bg2':'#dce2f5','--sb':'#f4f6fd',
+    '--card':'#f4f6fd','--card2':'#eaeef8','--card3':'#e0e6f5',
+    '--bdr':'#c8d0e8','--bdr2':'#b0bbd8','--bdr3':'#98a5c8',
     '--green':'#047857','--green2':'#065f46',
     '--gd':'rgba(4,120,87,.1)','--gd2':'rgba(4,120,87,.05)',
     '--red':'#be123c','--red2':'#9f1239',
     '--rd':'rgba(190,18,60,.1)','--rd2':'rgba(190,18,60,.05)',
     '--blue':'#1d4ed8','--blue2':'#1e40af','--blueglow':'rgba(29,78,216,.12)',
-    '--gold':'#b45309','--purp':'#6d28d9','--cyan':'#0e7490','--org':'#c2410c',
-    '--gray':'#cbd5e1','--gray2':'#475569','--text':'#0f172a','--text2':'#334155',
-    '--glow-g':'0 0 14px rgba(4,120,87,.18)','--glow-r':'0 0 14px rgba(190,18,60,.18)',
-    '--glow-b':'0 0 14px rgba(109,40,217,.18)','--glow-gold':'0 0 14px rgba(180,83,9,.18)',
-    '--accent':'#6d28d9','--accent2':'#5b21b6','--accentb':'#4c1d95',
-    '--ni-act-bg':'rgba(109,40,217,.1)','--ni-act-border':'rgba(109,40,217,.3)','--ni-act-color':'#5b21b6',
+    '--gold':'#92400e','--purp':'#5b21b6','--cyan':'#0e7490','--org':'#c2410c',
+    '--gray':'#c8d0e8','--gray2':'#374151','--text':'#0f172a','--text2':'#1e293b',
+    '--glow-g':'0 0 14px rgba(4,120,87,.2)','--glow-r':'0 0 14px rgba(190,18,60,.2)',
+    '--glow-b':'0 0 14px rgba(29,78,216,.2)','--glow-gold':'0 0 14px rgba(146,64,14,.2)',
+    '--accent':'#5b21b6','--accent2':'#4c1d95','--accentb':'#3b0764',
+    '--ni-act-bg':'rgba(91,33,182,.1)','--ni-act-border':'rgba(91,33,182,.35)','--ni-act-color':'#5b21b6',
   },
 
-  // ── 3. Azul Eléctrico ── navy profundo, destellos eléctricos
+  // ── 3. Azul Eléctrico — navy profundo, destellos eléctricos claros
   'electric': {
     name:'Azul Eléctrico', icon:'🔵',
-    '--bg':'#03061a','--bg2':'#060a22','--sb':'#020416',
-    '--card':'#080d2a','--card2':'#0c1132','--card3':'#10163c',
+    '--bg':'#020917','--bg2':'#060b22','--sb':'#010614',
+    '--card':'#080e2a','--card2':'#0c1232','--card3':'#10163c',
     '--bdr':'#142060','--bdr2':'#1c2c80','--bdr3':'#243898',
     '--green':'#00f0b0','--green2':'#00c090',
     '--gd':'rgba(0,240,176,.08)','--gd2':'rgba(0,240,176,.04)',
     '--red':'#ff2255','--red2':'#cc0033',
     '--rd':'rgba(255,34,85,.1)','--rd2':'rgba(255,34,85,.05)',
-    '--blue':'#38bdf8','--blue2':'#0ea5e9','--blueglow':'rgba(56,189,248,.2)',
+    '--blue':'#38bdf8','--blue2':'#0ea5e9','--blueglow':'rgba(56,189,248,.22)',
     '--gold':'#fbbf24','--purp':'#818cf8','--cyan':'#22d3ee','--org':'#fb923c',
-    '--gray':'#1e3a6e','--gray2':'#7090cc','--text':'#e0eeff','--text2':'#94b4e0',
-    '--glow-g':'0 0 28px rgba(0,240,176,.28)','--glow-r':'0 0 22px rgba(255,34,85,.32)',
-    '--glow-b':'0 0 30px rgba(56,189,248,.38)','--glow-gold':'0 0 22px rgba(251,191,36,.28)',
+    '--gray':'#1e3a6e','--gray2':'#7090cc','--text':'#e8f0ff','--text2':'#a0b8e0',
+    '--glow-g':'0 0 26px rgba(0,240,176,.3)','--glow-r':'0 0 22px rgba(255,34,85,.32)',
+    '--glow-b':'0 0 30px rgba(56,189,248,.4)','--glow-gold':'0 0 22px rgba(251,191,36,.3)',
     '--accent':'#3b82f6','--accent2':'#2563eb','--accentb':'#1d4ed8',
     '--ni-act-bg':'rgba(59,130,246,.2)','--ni-act-border':'rgba(59,130,246,.5)','--ni-act-color':'#60a5fa',
   },
 
-  // ── 4. Verde Bosque ── verde oscuro elegante, sin los verdes neón chillones
-  'matrix': {
-    name:'Verde Bosque', icon:'🟢',
-    '--bg':'#061209','--bg2':'#08160b','--sb':'#040d06',
-    '--card':'#0a1a0d','--card2':'#0d2010','--card3':'#102614',
-    '--bdr':'#1a4022','--bdr2':'#225030','--bdr3':'#2a6038',
-    '--green':'#34d399','--green2':'#10b981',
-    '--gd':'rgba(52,211,153,.08)','--gd2':'rgba(52,211,153,.04)',
+  // ── 4. Morado — violeta profundo, acentos lavanda brillantes
+  'purple': {
+    name:'Morado', icon:'🟣',
+    '--bg':'#0d0818','--bg2':'#120c22','--sb':'#09051a',
+    '--card':'#150e28','--card2':'#1a1232','--card3':'#1f163c',
+    '--bdr':'#2e1a60','--bdr2':'#3c2280','--bdr3':'#4a2a98',
+    '--green':'#a3e635','--green2':'#84cc16',
+    '--gd':'rgba(163,230,53,.08)','--gd2':'rgba(163,230,53,.04)',
     '--red':'#f87171','--red2':'#ef4444',
     '--rd':'rgba(248,113,113,.1)','--rd2':'rgba(248,113,113,.05)',
-    '--blue':'#6ee7b7','--blue2':'#34d399','--blueglow':'rgba(110,231,183,.15)',
-    '--gold':'#fcd34d','--purp':'#a7f3d0','--cyan':'#6ee7b7','--org':'#fb923c',
-    '--gray':'#14401c','--gray2':'#6aaa88','--text':'#d1fae5','--text2':'#a7f3d0',
-    '--glow-g':'0 0 28px rgba(52,211,153,.32)','--glow-r':'0 0 22px rgba(248,113,113,.3)',
-    '--glow-b':'0 0 22px rgba(110,231,183,.28)','--glow-gold':'0 0 22px rgba(252,211,77,.28)',
-    '--accent':'#059669','--accent2':'#047857','--accentb':'#065f46',
-    '--ni-act-bg':'rgba(5,150,105,.2)','--ni-act-border':'rgba(5,150,105,.5)','--ni-act-color':'#34d399',
+    '--blue':'#a78bfa','--blue2':'#8b5cf6','--blueglow':'rgba(167,139,250,.22)',
+    '--gold':'#fbbf24','--purp':'#e879f9','--cyan':'#c084fc','--org':'#fb923c',
+    '--gray':'#2d1a55','--gray2':'#9070cc','--text':'#f0e8ff','--text2':'#c4b0f0',
+    '--glow-g':'0 0 26px rgba(163,230,53,.3)','--glow-r':'0 0 22px rgba(248,113,113,.32)',
+    '--glow-b':'0 0 30px rgba(167,139,250,.42)','--glow-gold':'0 0 22px rgba(251,191,36,.3)',
+    '--accent':'#7c3aed','--accent2':'#6d28d9','--accentb':'#5b21b6',
+    '--ni-act-bg':'rgba(124,58,237,.22)','--ni-act-border':'rgba(124,58,237,.55)','--ni-act-color':'#c084fc',
   },
 
-  // ── 5. Crimson ── rojo oscuro con texto claro visible, acentos rosas legibles
-  'crimson': {
-    name:'Crimson', icon:'🔴',
-    '--bg':'#100408','--bg2':'#18060c','--sb':'#0c0306',
-    '--card':'#1c0810','--card2':'#220a14','--card3':'#280c18',
-    '--bdr':'#4a1020','--bdr2':'#621530','--bdr3':'#7a1a3e',
-    '--green':'#34d399','--green2':'#10b981',
-    '--gd':'rgba(52,211,153,.08)','--gd2':'rgba(52,211,153,.04)',
-    '--red':'#fb7185','--red2':'#f43f5e',
-    '--rd':'rgba(251,113,133,.12)','--rd2':'rgba(251,113,133,.06)',
-    '--blue':'#f9a8d4','--blue2':'#f472b6','--blueglow':'rgba(249,168,212,.15)',
-    '--gold':'#fcd34d','--purp':'#e879f9','--cyan':'#f0abfc','--org':'#fb923c',
-    '--gray':'#4a1428','--gray2':'#c08098','--text':'#fff1f5','--text2':'#fda4af',
-    '--glow-g':'0 0 28px rgba(52,211,153,.28)','--glow-r':'0 0 30px rgba(251,113,133,.42)',
-    '--glow-b':'0 0 22px rgba(249,168,212,.28)','--glow-gold':'0 0 22px rgba(252,211,77,.28)',
-    '--accent':'#e11d48','--accent2':'#be123c','--accentb':'#9f1239',
-    '--ni-act-bg':'rgba(225,29,72,.2)','--ni-act-border':'rgba(225,29,72,.5)','--ni-act-color':'#fb7185',
+  // ── 5. Plateado — gris acero oscuro, acentos plata brillante
+  'silver': {
+    name:'Plateado', icon:'🪨',
+    '--bg':'#0e1117','--bg2':'#131820','--sb':'#0a0d13',
+    '--card':'#161d28','--card2':'#1c2535','--card3':'#222c40',
+    '--bdr':'#2a3650','--bdr2':'#364870','--bdr3':'#425a88',
+    '--green':'#4ade80','--green2':'#22c55e',
+    '--gd':'rgba(74,222,128,.08)','--gd2':'rgba(74,222,128,.04)',
+    '--red':'#f87171','--red2':'#ef4444',
+    '--rd':'rgba(248,113,113,.1)','--rd2':'rgba(248,113,113,.05)',
+    '--blue':'#94a3b8','--blue2':'#64748b','--blueglow':'rgba(148,163,184,.18)',
+    '--gold':'#e2e8f0','--purp':'#cbd5e1','--cyan':'#bae6fd','--org':'#fed7aa',
+    '--gray':'#243040','--gray2':'#94a3b8','--text':'#f1f5f9','--text2':'#cbd5e1',
+    '--glow-g':'0 0 24px rgba(74,222,128,.28)','--glow-r':'0 0 22px rgba(248,113,113,.3)',
+    '--glow-b':'0 0 22px rgba(148,163,184,.28)','--glow-gold':'0 0 24px rgba(226,232,240,.28)',
+    '--accent':'#64748b','--accent2':'#475569','--accentb':'#334155',
+    '--ni-act-bg':'rgba(100,116,139,.22)','--ni-act-border':'rgba(148,163,184,.5)','--ni-act-color':'#e2e8f0',
   },
 
-  // ── 6. Oro Premium ── negro cálido con oro brillante, legible y lujoso
+  // ── 6. Oro Premium — negro cálido con dorado, legible y lujoso
   'gold': {
     name:'Oro Premium', icon:'🟡',
     '--bg':'#0d0a04','--bg2':'#141008','--sb':'#090600',
@@ -2949,11 +2983,11 @@ var THEMES = {
     '--gd':'rgba(74,222,128,.08)','--gd2':'rgba(74,222,128,.04)',
     '--red':'#f87171','--red2':'#ef4444',
     '--rd':'rgba(248,113,113,.1)','--rd2':'rgba(248,113,113,.05)',
-    '--blue':'#fbbf24','--blue2':'#f59e0b','--blueglow':'rgba(251,191,36,.18)',
-    '--gold':'#fde047','--purp':'#fcd34d','--cyan':'#fef08a','--org':'#fb923c',
-    '--gray':'#3d2e18','--gray2':'#b89a60','--text':'#fffbeb','--text2':'#fde68a',
+    '--blue':'#fbbf24','--blue2':'#f59e0b','--blueglow':'rgba(251,191,36,.2)',
+    '--gold':'#fde047','--purp':'#fcd34d','--cyan':'#fed7aa','--org':'#fb923c',
+    '--gray':'#3d2e18','--gray2':'#c8a870','--text':'#fffbeb','--text2':'#fef3c7',
     '--glow-g':'0 0 24px rgba(74,222,128,.28)','--glow-r':'0 0 22px rgba(248,113,113,.3)',
-    '--glow-b':'0 0 26px rgba(251,191,36,.35)','--glow-gold':'0 0 32px rgba(253,224,71,.42)',
+    '--glow-b':'0 0 26px rgba(251,191,36,.38)','--glow-gold':'0 0 32px rgba(253,224,71,.45)',
     '--accent':'#d97706','--accent2':'#b45309','--accentb':'#92400e',
     '--ni-act-bg':'rgba(217,119,6,.22)','--ni-act-border':'rgba(217,119,6,.5)','--ni-act-color':'#fbbf24',
   },
@@ -4250,10 +4284,13 @@ Chart.defaults.font.weight = '600';
 // ═══════════════════════════════════════════════════════════
 //  PLUGIN PREMIUM v3: Fill gradiente manual + Neon glow
 // ═══════════════════════════════════════════════════════════
+// Plugin de efectos premium — se deshabilita en móvil para mejor rendimiento
+var _mobNow = window.innerWidth <= 640;
 Chart.register({
   id:'premiumCharts',
 
   afterDraw:function(chart){
+    if(_isMob) return; // sin efectos de canvas en móvil
     var ctx  = chart.ctx;
     var type = chart.config.type;
     var ca   = chart.chartArea; if(!ca) return;
@@ -4325,8 +4362,8 @@ Chart.register({
     }
 
     // ════════════════════════════════════════════════════════
-    //  DONUT: glow solo en el arco exterior — sin path cerrado
-    //  (path cerrado + shadowBlur = negro adentro, bug conocido)
+    //  DONUT: glow sutil — solo shadowBlur, sin stroke visible
+    //  lineWidth mínimo para que no cree un segundo anillo
     // ════════════════════════════════════════════════════════
     if(type==='doughnut'){
       chart.data.datasets.forEach(function(ds, di){
@@ -4334,7 +4371,6 @@ Chart.register({
         meta.data.forEach(function(arc, i){
           var bgArr  = ds.backgroundColor;
           var rawCol = Array.isArray(bgArr) ? bgArr[i] : bgArr;
-          // Color sólido para shadowColor
           var glowCol = rawCol.replace(
             /rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)[^)]*\)/,
             'rgb($1,$2,$3)'
@@ -4343,27 +4379,15 @@ Chart.register({
           var sa=arc.startAngle, ea=arc.endAngle;
           if(Math.abs(ea-sa)<0.005) return;
 
-          // Glow solo sobre el borde exterior del arco (sin cerrar path)
+          // Halo exterior: solo brillo difuso, sin trazo visible (alpha muy bajo)
           ctx.save();
           ctx.beginPath();
           ctx.arc(x, y, r1, sa, ea);
           ctx.strokeStyle = glowCol;
-          ctx.lineWidth   = 8;
-          ctx.shadowBlur  = 28;
+          ctx.lineWidth   = 1;
+          ctx.shadowBlur  = 18;
           ctx.shadowColor = glowCol;
-          ctx.globalAlpha = 0.55;
-          ctx.stroke();
-          ctx.restore();
-
-          // Segundo pase — halo más amplio y suave
-          ctx.save();
-          ctx.beginPath();
-          ctx.arc(x, y, r1+1, sa, ea);
-          ctx.strokeStyle = glowCol;
-          ctx.lineWidth   = 14;
-          ctx.shadowBlur  = 55;
-          ctx.shadowColor = glowCol;
-          ctx.globalAlpha = 0.18;
+          ctx.globalAlpha = 0.22;
           ctx.stroke();
           ctx.restore();
         });
@@ -4373,10 +4397,11 @@ Chart.register({
 });
 
 // ── CDO: opciones base para todos los gráficos ───────────────────────────
+var _isMob = window.innerWidth <= 640;
 var CDO={
   responsive:true,
   maintainAspectRatio:false,
-  animation:{duration:1000,easing:'easeInOutQuart'},
+  animation:{duration:_isMob?0:1000,easing:'easeInOutQuart'},
   plugins:{
     legend:{display:false},
     tooltip:{
@@ -4453,6 +4478,11 @@ function slBgFn(context){
 }
 
 // ── mkC: constructor universal de gráficos ────────────────────────────────
+// ── Helper: leer CSS variable actual del tema ──────────────────────────
+function themeColor(varName){
+  return getComputedStyle(document.documentElement).getPropertyValue(varName).trim() || '#6b7ba0';
+}
+
 function mkC(id,type,labels,datasets,ex){
   if(CH[id])CH[id].destroy();
   var ctx=g(id); if(!ctx) return;
@@ -4691,7 +4721,7 @@ function renderDash(){
       {data:tg.map(function(h){return h.sl;}),backgroundColor:slBgFn,label:'SL',borderRadius:7,borderSkipped:false,noGradient:true}
     ],
     {plugins:{legend:{display:true,labels:{color:'#8892b0',font:{family:"'JetBrains Mono',monospace",size:9},boxWidth:8,boxHeight:8,borderRadius:3}}},
-     scales:{x:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{display:false},border:{display:false}},y:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{color:'rgba(30,37,64,0.3)'},border:{display:false}}}});
+     scales:{x:{ticks:{color:themeColor('--gray2'),font:{size:9}},grid:{display:false},border:{display:false}},y:{ticks:{color:themeColor('--gray2'),font:{size:9}},grid:{color:themeColor('--bdr')},border:{display:false}}}});
 
   // ── Últimas operaciones ───────────────────────────────────
   var lastOps=g('dash-last-ops');
@@ -4955,7 +4985,7 @@ function showDayOpsSheet(trades, dateStr){
   // Overlay oscuro
   var ov = document.createElement('div');
   ov.id = 'day-ops-overlay';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:9300;background:rgba(0,0,0,.55);backdrop-filter:blur(2px);';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9300;background:rgba(0,0,0,.55);';
   ov.onclick = function(){ closeDayOpsSheet(); };
   document.body.appendChild(ov);
 
@@ -5301,7 +5331,7 @@ function renderStats(){
   // P&L mensual
   mkC('smon','bar',mSt.map(function(m){return m.m.slice(0,3);}),
     [{data:mSt.map(function(m){return+m.pnl.toFixed(2);}),borderRadius:10,borderSkipped:false}],
-    {plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{display:false},border:{display:false}},y:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{color:'rgba(30,37,64,0.3)'},border:{display:false}}}});
+    {plugins:{legend:{display:false}},scales:{x:{ticks:{color:themeColor('--gray2'),font:{size:9}},grid:{display:false},border:{display:false}},y:{ticks:{color:themeColor('--gray2'),font:{size:9}},grid:{color:themeColor('--bdr')},border:{display:false}}}});
 
   // D\xedas semana
   var dayList=g('st-daylist');
@@ -5696,7 +5726,7 @@ function aRenderMonthly(ft,canvasId){
   var MNAMES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   var labels=months.map(function(m){var p=m.split('-');return MNAMES[+p[1]-1]+' \''+p[0].slice(2);});
   var vals=months.map(function(m){return byMonth[m];});
-  mkC(canvasId,'bar',labels,[{data:vals,borderRadius:9,borderSkipped:false}],{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{display:false},border:{display:false}},y:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{color:'rgba(30,37,64,0.3)'},border:{display:false}}}});
+  mkC(canvasId,'bar',labels,[{data:vals,borderRadius:9,borderSkipped:false}],{plugins:{legend:{display:false}},scales:{x:{ticks:{color:themeColor('--gray2'),font:{size:9}},grid:{display:false},border:{display:false}},y:{ticks:{color:themeColor('--gray2'),font:{size:9}},grid:{color:themeColor('--bdr')},border:{display:false}}}});
 }
 
 // ── Días de la semana lista ──
@@ -8503,10 +8533,14 @@ function showTradeDetailSheet(trade, dayList, idx){
 }
 
 function renderTradeDetailSheet(){
-  var trades = window._tdSheetTrades;
-  var idx    = window._tdSheetIdx;
+  var trades = window._tdSheetTrades || [];
+  var idx    = window._tdSheetIdx || 0;
   var trade  = trades[idx];
   if(!trade) return;
+
+  // Sincronizar con las variables que usa buildHTML
+  window._rpDayTrades = trades;
+  window._rpDayIdx    = idx;
 
   // Remover sheet anterior si existe
   var old = document.getElementById('td-detail-sheet');
@@ -8514,19 +8548,14 @@ function renderTradeDetailSheet(){
   var oldOv = document.getElementById('td-detail-overlay');
   if(oldOv) oldOv.remove();
 
-  var isWin = trade.result === 'TP';
-  var pnl   = trade.pnl || 0;
-  var pnlClr = isWin ? 'var(--green)' : 'var(--red)';
-  var bdrClr = isWin ? 'rgba(0,229,176,.3)' : 'rgba(255,56,96,.25)';
-
   // Overlay
   var ov = document.createElement('div');
   ov.id = 'td-detail-overlay';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,.55);backdrop-filter:blur(2px);';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,.5);';
   ov.onclick = function(){ closeTradeDetailSheet(); };
   document.body.appendChild(ov);
 
-  // Sheet
+  // Sheet desde la derecha
   var sheet = document.createElement('div');
   sheet.id = 'td-detail-sheet';
   sheet.style.cssText = [
@@ -8536,103 +8565,57 @@ function renderTradeDetailSheet(){
     'background:var(--card);',
     'border-left:1px solid var(--bdr2);',
     'border-radius:16px 0 0 16px;',
-    'box-shadow:-8px 0 40px rgba(0,0,0,.6);',
+    'box-shadow:-8px 0 32px rgba(0,0,0,.6);',
     'display:flex;flex-direction:column;overflow:hidden;',
     'transform:translateX(100%);',
-    'transition:transform .28s cubic-bezier(.4,0,.2,1);'
+    'transition:transform .25s cubic-bezier(.4,0,.2,1);'
   ].join('');
-  // Animar entrada
-  setTimeout(function(){ sheet.style.transform = 'translateX(0)'; }, 10);
 
-  // Construir contenido del sheet
+  // Header con navegación entre ops del día y X de cierre
   var hasNav = trades.length > 1;
   var navHtml = '';
   if(hasNav){
-    navHtml = '<div style="display:flex;align-items:center;gap:8px">'
-      +'<button onclick="navTradeSheet(-1)" style="background:var(--card2);border:1px solid var(--bdr);color:var(--text2);border-radius:7px;width:30px;height:30px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center">‹</button>'
-      +'<span style="font-size:10px;color:var(--gray2);font-family:JetBrains Mono,monospace">'+(idx+1)+'/'+trades.length+'</span>'
-      +'<button onclick="navTradeSheet(1)" style="background:var(--card2);border:1px solid var(--bdr);color:var(--text2);border-radius:7px;width:30px;height:30px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center">›</button>'
+    var prevDis = idx === 0 ? 'opacity:.3;pointer-events:none;' : '';
+    var nextDis = idx === trades.length-1 ? 'opacity:.3;pointer-events:none;' : '';
+    navHtml = '<div style="display:flex;align-items:center;gap:6px">'
+      +'<button onclick="navTradeSheet(-1)" style="border:1px solid var(--bdr);background:var(--card2);color:var(--text);border-radius:7px;width:28px;height:28px;cursor:pointer;font-size:14px;'+prevDis+'">‹</button>'
+      +'<span style="font-size:10px;color:var(--gray2);white-space:nowrap">'+(idx+1)+'/'+trades.length+'</span>'
+      +'<button onclick="navTradeSheet(1)" style="border:1px solid var(--bdr);background:var(--card2);color:var(--text);border-radius:7px;width:28px;height:28px;cursor:pointer;font-size:14px;'+nextDis+'">›</button>'
       +'</div>';
   }
 
-  var extrasHtml = '';
-  var extras = [];
-  if(trade.strategy) extras.push('<span style="font-size:11px;color:var(--purp)">'+trade.strategy+'</span>');
-  if(trade.rr)       extras.push('<span style="font-size:11px;color:var(--cyan)">RR 1:'+trade.rr+'</span>');
-  if(trade.session)  extras.push('<span style="font-size:11px;color:var(--gold)">'+trade.session+'</span>');
-  if(extras.length)  extrasHtml = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">'+extras.join('')+'</div>';
-
-  var notesHtml = '';
-  if(trade.notes){
-    notesHtml = '<div style="margin-top:10px;padding:10px;background:var(--bg2);border-radius:9px;border:1px solid var(--bdr)">'
-      +'<div style="font-size:9px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px">Notas</div>'
-      +'<div style="font-size:12px;color:var(--text);line-height:1.6;white-space:pre-wrap">'+trade.notes+'</div>'
-      +'</div>';
-  }
-
-  var entryExitHtml = '';
-  if(trade.entry || trade.exit){
-    entryExitHtml = '<div style="display:flex;gap:8px;margin-top:10px">';
-    if(trade.entry) entryExitHtml += '<div style="flex:1;background:var(--bg2);border-radius:8px;padding:8px 10px;border:1px solid var(--bdr)"><div style="font-size:8px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Entrada</div><div style="font-size:13px;font-weight:700;color:var(--text);font-family:JetBrains Mono,monospace">'+trade.entry+'</div></div>';
-    if(trade.exit)  entryExitHtml += '<div style="flex:1;background:var(--bg2);border-radius:8px;padding:8px 10px;border:1px solid var(--bdr)"><div style="font-size:8px;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Salida</div><div style="font-size:13px;font-weight:700;color:var(--text);font-family:JetBrains Mono,monospace">'+trade.exit+'</div></div>';
-    entryExitHtml += '</div>';
-  }
-
-  var imgsHtml = '';
-  var images = trade.images || [];
-  if(images.length){
-    imgsHtml = '<div style="display:flex;gap:5px;margin-top:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px">';
-    images.forEach(function(img){
-      var s = img.src || img;
-      imgsHtml += '<div style="flex:0 0 80px;height:60px;border-radius:7px;overflow:hidden;border:1px solid var(--bdr)">'
-        +'<img src="'+s+'" style="width:100%;height:100%;object-fit:cover">'
-        +'</div>';
-    });
-    imgsHtml += '</div>';
-  }
+  // Usar buildHTML del panel desktop para mostrar TODOS los datos
+  var bodyContent = (typeof buildHTML === 'function')
+    ? buildHTML(trade)
+    : '<div style="padding:16px;color:var(--text)">Error: buildHTML no disponible</div>';
 
   sheet.innerHTML =
-    '<div style="width:36px;height:3px;background:var(--bdr2);border-radius:99px;margin:10px auto 0;flex-shrink:0"></div>'
-    // Header
-    +'<div style="padding:12px 16px 10px;border-bottom:1px solid var(--bdr);flex-shrink:0;display:flex;align-items:center;justify-content:space-between">'
-      +'<div style="display:flex;align-items:center;gap:8px">'
-        +'<span style="font-size:17px;font-weight:900;color:'+pnlClr+'">'+(pnl>=0?'+$':'-$')+Math.abs(pnl).toFixed(2)+'</span>'
-        +'<span class="'+(isWin?'btp':'bsl')+'" style="font-size:11px;padding:3px 8px">'+trade.result+'</span>'
-      +'</div>'
+    '<div style="padding:10px 16px;border-bottom:1px solid var(--bdr);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;background:var(--card)">'
+      +'<span style="font-size:11px;font-weight:700;color:var(--gray2);text-transform:uppercase;letter-spacing:1px">Detalle de operación</span>'
       +'<div style="display:flex;align-items:center;gap:8px">'
         +navHtml
         +'<button onclick="closeTradeDetailSheet()" style="background:none;border:none;color:var(--gray2);font-size:20px;cursor:pointer;padding:0 4px;line-height:1">✕</button>'
       +'</div>'
     +'</div>'
-    // Body
-    +'<div style="overflow-y:auto;padding:14px 16px 32px;flex:1">'
-      // Instrumento + dirección
-      +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
-        +'<div style="display:flex;align-items:center;gap:8px">'
-          +'<span style="font-size:20px;font-weight:900;font-family:Exo 2,sans-serif;color:var(--text)">'+( trade.asset||'—')+'</span>'
-          +'<span class="'+(trade.direction==='BUY'?'bbuy':'bsell')+'">'+( trade.direction==='BUY'?'▲ Compra':'▼ Venta')+'</span>'
-        +'</div>'
-        +'<span style="font-size:11px;color:var(--gray2);font-family:JetBrains Mono,monospace">'+( trade.time||'')+'</span>'
-      +'</div>'
-      +extrasHtml
-      +entryExitHtml
-      +notesHtml
-      +imgsHtml
-      // Botones editar/eliminar
-      +'<div style="display:flex;gap:8px;margin-top:14px">'
-        +'<button data-tdaction="edit" data-tdid="'+String(trade.id)+'" onclick="handleTDSheetAction(this)" style="flex:1;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);color:#818cf8;border-radius:9px;padding:10px;font-size:12px;font-weight:700;cursor:pointer">✏ Editar</button>'
-        +'<button data-tdaction="del" data-tdid="'+String(trade.id)+'" onclick="handleTDSheetAction(this)" style="flex:1;background:rgba(255,56,96,.12);border:1px solid rgba(255,56,96,.25);color:var(--red);border-radius:9px;padding:10px;font-size:12px;font-weight:700;cursor:pointer">🗑 Eliminar</button>'
-      +'</div>'
-    +'</div>';
+    +'<div id="td-sheet-body" style="overflow-y:auto;flex:1">'+bodyContent+'</div>';
 
   document.body.appendChild(sheet);
+
+  // Animar entrada
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      sheet.style.transform = 'translateX(0)';
+    });
+  });
 }
+
 
 window.navTradeSheet = function(dir){
   var trades = window._tdSheetTrades || [];
-  var newIdx = window._tdSheetIdx + dir;
+  var newIdx = (window._tdSheetIdx || 0) + dir;
   if(newIdx < 0 || newIdx >= trades.length) return;
   window._tdSheetIdx = newIdx;
+  window._rpDayIdx   = newIdx; // sincronizar con buildHTML
   renderTradeDetailSheet();
 };
 
@@ -8984,7 +8967,7 @@ window.renderRegCharts = function() {
         {data:tg.map(function(h){return h.sl;}),backgroundColor:slBgFn,label:'SL',borderRadius:7,borderSkipped:false,noGradient:true}
       ],
       {plugins:{legend:{display:true,labels:{color:'#8892b0',font:{family:"'JetBrains Mono',monospace",size:9},boxWidth:8,boxHeight:8,borderRadius:3}}},
-       scales:{x:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{display:false},border:{display:false}},y:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{color:'rgba(30,37,64,0.3)'},border:{display:false}}}});
+       scales:{x:{ticks:{color:themeColor('--gray2'),font:{size:9}},grid:{display:false},border:{display:false}},y:{ticks:{color:themeColor('--gray2'),font:{size:9}},grid:{color:themeColor('--bdr')},border:{display:false}}}});
   }
 };
 
