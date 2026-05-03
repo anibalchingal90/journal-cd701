@@ -8,9 +8,9 @@
 <meta name="theme-color" content="#0a1628">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%237c3aed'/><text x='16' y='22' text-anchor='middle' font-size='18' fill='white'>⚡</text></svg>">
 <link rel="manifest" id="pwa-manifest">
-<meta name="apple-mobile-web-app-title" content="CD701 Journal">
+<meta name="apple-mobile-web-app-title" content="TraderTrack Journal">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Cursos Digitales 701 — Journal</title>
+<title>TraderTrack Journal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;800;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -859,8 +859,11 @@ tr:hover td{background:rgba(14,18,41,.8)}
     grid-template-columns:1fr!important;
     gap:8px!important;
   }
-  /* Equity canvas más compacto */
-  #dash-row1 canvas{height:140px!important}
+  /* Equity canvas — altura adecuada en móvil */
+  #dash-row1 canvas{height:150px!important}
+  /* P&L Mensual canvas — altura adecuada en móvil */
+  #dash-row2 .card:first-child canvas{height:140px!important}
+  #dash-row2 .card:first-child > div[style*="height:130px"]{height:140px!important}
   /* Días semana y activos — más compactos */
   #dash-row2 .card:nth-child(2),
   #dash-row2 .card:nth-child(3){padding:10px 8px}
@@ -2501,7 +2504,7 @@ tr:hover td{background:rgba(14,18,41,.8)}
 var FB_PROJECT = 'journa-2d389';   // ← Reemplazar con tu Project ID
 var FB_KEY = 'AIzaSyDi65NcJKjx0ClhJ0T2RFjf4XLK38AidNw';          // ← Reemplazar con tu Web API Key
 var FB_COL = 'licenses';
-var EMPRESA = 'CD701';
+var EMPRESA = 'TraderTrack';
 var FB_BASE = 'https://firestore.googleapis.com/v1/projects/' + FB_PROJECT + '/databases/(default)/documents/' + FB_COL;
 
 function getDeviceFingerprint() {
@@ -4807,8 +4810,8 @@ function renderDash(){
     {
       plugins:{legend:{display:false}},
       scales:{
-        x:{ticks:{maxTicksLimit:8,color:chartTickColor(),font:{size:10}},grid:{color:chartGridColor()},border:{display:false}},
-        y:{ticks:{color:chartTickColor(),font:{size:10},callback:function(v){return'$'+Math.round(v).toLocaleString('en');}},grid:{color:chartGridColor()},border:{display:false}}
+        x:{ticks:{maxTicksLimit:window.innerWidth<480?5:8,maxRotation:0,minRotation:0,autoSkip:true,color:chartTickColor(),font:{size:window.innerWidth<480?7:10}},grid:{color:chartGridColor()},border:{display:false}},
+        y:{ticks:{color:chartTickColor(),font:{size:window.innerWidth<480?8:10},callback:function(v){return'$'+Math.round(v).toLocaleString('en');}},grid:{color:chartGridColor()},border:{display:false}}
       }
     });
   var finalBal=eq.length>1?eq[eq.length-1].b:a;
@@ -4851,8 +4854,8 @@ function renderDash(){
     {
       plugins:{legend:{display:false}},
       scales:{
-        x:{ticks:{color:chartTickColor(),font:{size:9}},grid:{display:false},border:{display:false}},
-        y:{ticks:{color:chartTickColor(),font:{size:9}},grid:{color:chartGridColor()},border:{display:false}}
+        x:{ticks:{maxRotation:0,minRotation:0,autoSkip:true,maxTicksLimit:window.innerWidth<480?5:12,color:chartTickColor(),font:{size:window.innerWidth<480?7:9}},grid:{display:false},border:{display:false}},
+        y:{ticks:{color:chartTickColor(),font:{size:window.innerWidth<480?8:9}},grid:{color:chartGridColor()},border:{display:false}}
       }
     });
 
@@ -7868,8 +7871,8 @@ document.addEventListener('DOMContentLoaded',function(){
 (function(){
   // Manifest dinámico
   var manifest = {
-    name: "Cursos Digitales 701 — Journal",
-    short_name: "CD701",
+    name: "TraderTrack Journal",
+    short_name: "TraderTrack",
     description: "Journal de trading profesional",
     start_url: "./",
     display: "standalone",
