@@ -246,7 +246,7 @@ tr:hover td{background:rgba(14,18,41,.8)}
 .ops-view-btn.act{background:var(--card3);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.3)}
 .ops-view-btn svg{width:13px;height:13px}
 /* RIGHT PANEL - TRADE DETAIL */
-#trade-detail-panel{position:fixed;right:-400px;top:0;bottom:0;width:380px;background:rgba(8,11,28,.97);border-left:1px solid var(--bdr);z-index:200;transition:right .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow:hidden}
+#trade-detail-panel{position:fixed;right:-400px;top:0;bottom:0;width:380px;background:var(--bg);border-left:1px solid var(--bdr);z-index:200;transition:right .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow:hidden}
 #trade-detail-panel.open{right:0;box-shadow:-8px 0 60px rgba(0,0,0,.5)}
 #trade-detail-panel::before{content:'';position:absolute;left:0;top:0;bottom:0;width:1px;background:linear-gradient(180deg,transparent,rgba(99,102,241,.5),rgba(0,207,255,.3),transparent)}
 .tdp-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--bdr);flex-shrink:0}
@@ -871,9 +871,13 @@ tr:hover td{background:rgba(14,18,41,.8)}
   /* ── ANÁLISIS — layout sin el panel lateral ── */
   #analisis-layout{
     flex-direction:column!important;
+    min-height:auto!important;
+    height:auto!important;
   }
   /* El contenido izquierdo ocupa todo el ancho */
   #analisis-layout > div:first-child{
+    flex:none!important;
+    height:auto!important;
     overflow-y:visible!important;
     padding:10px 8px 16px!important;
     min-width:0!important;
@@ -5758,9 +5762,7 @@ function renderA(){
           return[' TP: '+h.tp,'P&L: '+fU(h.pnl)];
         }
       }}},
-      scales:{x:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{display:false},border:{display:false}},y:{ticks:{color:'#6b7ba0',font:{size:9},stepSize:1,callback:function(v){return Number.isInteger(v)?v:'';}},grid:{color:'rgba(30,37,64,0.3)'},border:{display:false},beginAtZero:true}}});
-
-    // ── Mapa de calor SL (abajo) ─────────────────────────────────────────
+      scales:{x:{ticks:{maxRotation:0,minRotation:0,autoSkip:true,maxTicksLimit:window.innerWidth<480?6:12,color:'#6b7ba0',font:{size:window.innerWidth<480?7:9}},grid:{display:false},border:{display:false}},y:{ticks:{color:'#6b7ba0',font:{size:9},stepSize:1,callback:function(v){return Number.isInteger(v)?v:'';}},grid:{color:'rgba(30,37,64,0.3)'},border:{display:false},beginAtZero:true}}});
     mkC('cah','bar',tg.map(function(h){return h.time;}),
       [{data:tg.map(function(h){return h.sl;}),
         backgroundColor:tg.map(function(h){
@@ -5780,7 +5782,7 @@ function renderA(){
           return[' SL: '+h.sl+' | TP: '+h.tp,' WR: '+wr+'% | P&L: '+fU(h.pnl)];
         }
       }}},
-      scales:{x:{ticks:{color:'#6b7ba0',font:{size:9}},grid:{display:false},border:{display:false}},y:{ticks:{color:'#6b7ba0',font:{size:9},stepSize:1,callback:function(v){return Number.isInteger(v)?v:'';}},grid:{color:'rgba(30,37,64,0.3)'},border:{display:false},beginAtZero:true}}});
+      scales:{x:{ticks:{maxRotation:0,minRotation:0,autoSkip:true,maxTicksLimit:window.innerWidth<480?6:12,color:'#6b7ba0',font:{size:window.innerWidth<480?7:9}},grid:{display:false},border:{display:false}},y:{ticks:{color:'#6b7ba0',font:{size:9},stepSize:1,callback:function(v){return Number.isInteger(v)?v:'';}},grid:{color:'rgba(30,37,64,0.3)'},border:{display:false},beginAtZero:true}}});
     var bTH=tg.reduce(function(b,h){return h.tp>b.tp?h:b;},tg[0]||{time:'—',tp:0});
     var wSH=tg.reduce(function(b,h){return h.sl>b.sl?h:b;},tg[0]||{time:'—',sl:0});
     var ahi=g('ahi');if(ahi)ahi.innerHTML='<div class="ib" style="background:var(--rd);border-color:var(--red)"><div class="il">Hora más SL</div><div class="iv" style="color:var(--red)">'+(wSH&&wSH.sl>0?wSH.time+' ('+wSH.sl+')':'—')+'</div></div><div class="ib" style="background:var(--gd);border-color:var(--green)"><div class="il">Hora más TP</div><div class="iv" style="color:var(--green)">'+(bTH&&bTH.tp>0?bTH.time+' ('+bTH.tp+')':'—')+'</div></div>';
@@ -6876,6 +6878,7 @@ function borrarCuentaDirecto(id, nombre){
       renderSidebarAccounts();
       renderConfigAccounts();
       updateAcctBtn();
+      if(typeof renderMobAccounts==='function') renderMobAccounts();
       if(typeof toast==='function') toast('🗑 Cuenta "'+nombre+'" eliminada','#ff1744');
       if(typeof syncToCloud==='function') syncToCloud();
     },
