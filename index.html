@@ -2987,6 +2987,7 @@ function save(){
     var oldN=parseInt(localStorage.getItem(pfx+'old_'+id)||String(n));
     for(var j=n;j<=oldN;j++) localStorage.removeItem(pfx+id+'_'+j);
     localStorage.setItem(pfx+'old_'+id, String(n));
+    localStorage.setItem(pfx+'save_ts', String(Date.now())); // ✅ FIX SYNC: marca timestamp de guardado local para resolución de conflictos
     syncToCloudDeferred();
   }catch(e){
     console.error('save',e);
@@ -3276,6 +3277,7 @@ function setSupabaseServer(servidor) {
 }
 var _syncTimeout = null;
 var _syncPending = false;
+var _lastCloudWriteAt = 0; // ✅ FIX SYNC: timestamp del último upload propio — evita re-importar el propio cambio vía Realtime
 
 function getSyncKey(){
   try{var l=JSON.parse(localStorage.getItem('ttlic')||'null');return l&&l.key?l.key:null;}catch(e){return null;}
@@ -3294,11 +3296,11 @@ function getAcctId(){
   return (typeof getActiveId === 'function') ? getActiveId() : 'default';
 }
 
-// Versión diferida: agrupa múltiples llamadas en 1.5s para no saturar la red
+// Versión diferida: agrupa múltiples llamadas en 300ms para no saturar la red
 var _syncTimer = null;
 function syncToCloudDeferred(){
   if(_syncTimer) clearTimeout(_syncTimer);
-  _syncTimer = setTimeout(function(){ syncToCloud(); }, 1500);
+  _syncTimer = setTimeout(function(){ syncToCloud(); }, 300); // ✅ FIX SYNC: reducido de 1500ms a 300ms — datos llegan a la nube mucho más rápido
 }
 
 function syncToCloud(){
@@ -3308,9 +3310,9 @@ function syncToCloud(){
   var key = getSyncKey(); if(!key) return;
   clearTimeout(_syncTimeout);
   _syncPending = true;
-  _syncTimeout = setTimeout(async function(){ // FIX: reducido de 1500ms a 400ms
+  _syncTimeout = setTimeout(async function(){ // ✅ FIX SYNC: reducido de 400ms a 50ms — upload casi inmediato tras el debounce de 300ms
     try{
-      // ✅ Re-verificar licencia dentro del async — puede haber expirado en los 400ms de delay
+      // ✅ Re-verificar licencia dentro del async — puede haber expirado en los 50ms de delay
       var key2 = getSyncKey(); if(!key2){ _syncPending=false; return; }
       var pfx = getLicensePrefix(); if(!pfx){ _syncPending=false; return; }
 
@@ -3352,6 +3354,7 @@ function syncToCloud(){
       if(res.ok || res.status===201 || res.status===204){
         showSyncStatus('☁ Guardado en nube');
         _syncPending = false;
+        _lastCloudWriteAt = Date.now(); // ✅ FIX SYNC: marcar que NOSOTROS subimos — Realtime ignorará este evento
       } else {
         var errText = await res.text();
         // ✅ Si falla por columna faltante, reintentar sin all_accounts_data
@@ -3366,6 +3369,7 @@ function syncToCloud(){
           if(res2.ok || res2.status===201 || res2.status===204){
             showSyncStatus('☁ Guardado en nube');
             _syncPending = false;
+            _lastCloudWriteAt = Date.now(); // ✅ FIX SYNC: marcar upload propio también en fallback
             console.warn('[TradeTrack] Columna all_accounts_data no existe aún en Supabase. Ejecuta el SQL de migración.');
           } else {
             console.warn('Supabase sync error (fallback):', res2.status, await res2.text());
@@ -3380,7 +3384,7 @@ function syncToCloud(){
       console.warn('syncToCloud error:', e);
       showSyncStatus('⚠ Sin conexión');
     }
-  }, 400); // FIX: reducido de 1500ms a 400ms
+  }, 50); // ✅ FIX SYNC: reducido de 400ms a 50ms
 }
 
 async function syncFromCloud(){
@@ -3409,6 +3413,20 @@ async function syncFromCloud(){
     // 2. Restaurar datos de TODAS las cuentas al localStorage (con prefijo de licencia)
     var pfx2 = getLicensePrefix();
     if(!pfx2) return false; // ✅ guard: sin licencia válida no escribir en localStorage
+
+    // ✅ FIX SYNC — Resolución de conflictos local vs nube:
+    // Capturar estado local ANTES de sobreescribir, por si local es más reciente
+    var localSaveTs = parseInt(localStorage.getItem(pfx2+'save_ts')||'0');
+    var cloudTs = row.updated_at ? new Date(row.updated_at).getTime() : 0;
+    var activeAcctIdConflict = (typeof getActiveId==='function') ? getActiveId() : '';
+    // S.trades ya fue cargado por load() en initApp() antes de llamar syncFromCloud
+    var localTradesBackup = S.trades.slice();
+    // Local es más reciente si: tiene timestamp guardado, más nuevo que la nube, y tiene datos
+    var localIsNewer = localSaveTs > 0 && cloudTs > 0 && localSaveTs > cloudTs && localTradesBackup.length > 0;
+    if(localIsNewer){
+      console.log('[TradeTrack] Conflicto detectado: local ('+new Date(localSaveTs).toISOString()+') > nube ('+row.updated_at+'). Restaurando datos locales y sincronizando hacia la nube.');
+    }
+    // ════════════════════════════════════════════════════════
     if(Object.keys(allData).length){
       Object.keys(allData).forEach(function(acctId){
         var acctData = allData[acctId];
@@ -3454,6 +3472,22 @@ async function syncFromCloud(){
       if(x) try{ t = t.concat(JSON.parse(x)); }catch(ex2){}
     }
     S.trades = t; // siempre reemplazar con datos de la nube
+
+    // ✅ FIX SYNC — Resolución de conflictos: si local era más reciente para esta cuenta, restaurar
+    if(localIsNewer && id === activeAcctIdConflict){
+      console.log('[TradeTrack] Restaurando '+localTradesBackup.length+' trades locales y subiendo a nube...');
+      S.trades = localTradesBackup;
+      // Re-escribir trades locales en localStorage (revertir lo que vino de la nube para esta cuenta)
+      var n3 = Math.ceil(localTradesBackup.length/500)||1;
+      localStorage.setItem(pfx2+'n_'+id, String(n3));
+      for(var i3=0;i3<n3;i3++){
+        localStorage.setItem(pfx2+id+'_'+i3, JSON.stringify(localTradesBackup.slice(i3*500,(i3+1)*500)));
+      }
+      localStorage.setItem(pfx2+'save_ts', String(Date.now())); // resetear timestamp
+      // Subir datos locales correctos a la nube
+      setTimeout(function(){ syncToCloud(); }, 200);
+    }
+    // ═════════════════════════════════════════════════════════
 
     return true;
   }catch(e){
@@ -3516,8 +3550,14 @@ function startRealtimeSync(){
           if(msg.event === 'INSERT' || msg.event === 'UPDATE'){
             var record = msg.payload && msg.payload.record;
             if(record && record.license_key === key){
-              console.log('[Realtime] Cambio detectado — sincronizando...');
-              // Pequeño delay para evitar loops si el cambio lo hicimos nosotros mismos
+              // ✅ FIX SYNC: ignorar el evento si NOSOTROS mismos acabamos de subir (evita loop destructivo)
+              // Damos 4s de margen para que el Realtime no cancele nuestro propio upload
+              if(Date.now() - _lastCloudWriteAt < 4000){
+                console.log('[Realtime] Evento ignorado: es nuestro propio upload reciente');
+                return;
+              }
+              console.log('[Realtime] Cambio externo detectado — sincronizando...');
+              // Pequeño delay para asegurar que el cambio externo ya está committed en Supabase
               setTimeout(async function(){
                 var synced = await syncFromCloud();
                 if(synced){
@@ -3526,7 +3566,7 @@ function startRealtimeSync(){
                   if(typeof renderSidebarAccounts==='function') renderSidebarAccounts();
                   showSyncStatus('☁ Sincronizado');
                 }
-              }, 150);
+              }, 300);
             }
           }
         }catch(err){}
@@ -3553,9 +3593,28 @@ function startRealtimeSync(){
 
   // Reconectar cuando el usuario vuelve a la pestaña/app
   document.addEventListener('visibilitychange', function(){
-    if(document.visibilityState === 'visible' && !_realtimeConnected){
-      if(_realtimeReconnectTimer) clearTimeout(_realtimeReconnectTimer);
-      connect();
+    if(document.visibilityState === 'visible'){
+      // Reconectar WebSocket si se desconectó
+      if(!_realtimeConnected){
+        if(_realtimeReconnectTimer) clearTimeout(_realtimeReconnectTimer);
+        connect();
+      }
+      // ✅ FIX SYNC: sincronizar desde la nube al volver al app (crítico en móvil)
+      // Solo si la app está inicializada y no subimos datos hace menos de 2s (no es nuestro propio cambio)
+      if(_appInitialized && Date.now() - _lastCloudWriteAt > 2000){
+        setTimeout(async function(){
+          showSyncStatus('⏳ Actualizando...');
+          var synced = await syncFromCloud();
+          if(synced){
+            if(typeof initAccounts==='function') initAccounts();
+            if(typeof refresh==='function') refresh();
+            if(typeof renderSidebarAccounts==='function') renderSidebarAccounts();
+            showSyncStatus('☁ Sincronizado');
+          } else {
+            showSyncStatus('');
+          }
+        }, 600); // pequeño delay para asegurar que el WS está activo
+      }
     }
   });
 }
