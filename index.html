@@ -639,6 +639,37 @@ tr:hover td{background:rgba(14,18,41,.8)}
     transform:translateZ(0);
   }
 
+  /* ── STATS HIGHLIGHTS — 2x2 en móvil, scroll horizontal ── */
+  .st-highlights-grid{
+    display:flex!important;
+    overflow-x:auto!important;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    gap:8px!important;
+    grid-template-columns:unset!important;
+    padding-bottom:4px;
+  }
+  .st-highlights-grid::-webkit-scrollbar{display:none}
+  .st-highlights-grid .card,
+  .st-highlights-grid > .card{
+    flex:0 0 140px!important;
+    min-width:140px!important;
+    padding:10px!important;
+  }
+  /* Labels y valores no se corten */
+  .st-highlights-grid .card-hdr{
+    font-size:8px!important;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .st-highlights-grid [style*="font-size:22px"],
+  .st-highlights-grid [style*="font-size:20px"]{
+    font-size:16px!important;
+    white-space:nowrap;
+  }
+  .st-highlights-grid [style*="font-size:11px"]{
+    font-size:10px!important;
+  }
+
   /* ── TABLA DÍA — ocultar columnas no esenciales ── */
   .col-tf,.col-s,.col-rr,.col-notas{display:none!important}
   .day-ops-table{font-size:11px;min-width:unset;table-layout:fixed;width:100%}
@@ -1117,6 +1148,21 @@ tr:hover td{background:rgba(14,18,41,.8)}
     </button>
   </div>
 
+  <!-- Selector de temas -->
+  <div style="padding:10px 14px;border-bottom:1px solid var(--bdr);flex-shrink:0">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
+      <span style="font-size:8px;font-weight:700;color:var(--gray2);text-transform:uppercase;letter-spacing:2px;font-family:'Exo 2',sans-serif">Tema</span>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="theme-btn" data-theme="dark"     onclick="applyTheme('dark');updateMobThemeBtns()" title="Negro Oscuro"   style="background:#0d1228;width:26px;height:26px"></button>
+      <button class="theme-btn" data-theme="light"    onclick="applyTheme('light');updateMobThemeBtns()" title="Blanco"        style="background:#dce3f0;border:1px solid #aaa"></button>
+      <button class="theme-btn" data-theme="electric" onclick="applyTheme('electric');updateMobThemeBtns()" title="Azul Eléctrico" style="background:#0078d4"></button>
+      <button class="theme-btn" data-theme="purple"   onclick="applyTheme('purple');updateMobThemeBtns()" title="Morado"        style="background:#6d28d9"></button>
+      <button class="theme-btn" data-theme="silver"   onclick="applyTheme('silver');updateMobThemeBtns()" title="Plateado"      style="background:#64748b"></button>
+      <button class="theme-btn" data-theme="gold"     onclick="applyTheme('gold');updateMobThemeBtns()" title="Oro Premium"   style="background:#b8860b"></button>
+    </div>
+  </div>
+
   <!-- Cuentas -->
   <div style="padding:12px 10px;flex:1;overflow-y:auto">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:0 8px;margin-bottom:8px">
@@ -1281,7 +1327,7 @@ tr:hover td{background:rgba(14,18,41,.8)}
       <button class="btn btn-gold" onclick="document.getElementById('smo').classList.add('show');setSTab('exp')">↕ Sync</button>
       <button class="btn" onclick="forceAppUpdate()" title="Actualizar app a la última versión" style="gap:5px;background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.4);color:#818cf8;font-size:10px;padding:6px 10px">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-9.5L1 10"/></svg>
-        ↺ App
+        ↺ Actualizar
       </button>
       <button class="btn btn-csv-hide" onclick="exportCSV()">⬇ CSV</button>
     </div>
@@ -1368,7 +1414,7 @@ tr:hover td{background:rgba(14,18,41,.8)}
       </div>
       <div class="card" style="display:flex;flex-direction:column">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--bdr)">
-          <div class="card-hdr" style="color:var(--green);border:none;padding:0;margin:0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/></svg> Recomendaciones</div>
+          <div class="card-hdr" style="color:var(--green);border:none;padding:0;margin:0;cursor:pointer;transition:opacity .2s" onclick="showTab('analisis',document.getElementById('nav-analisis'));setTimeout(function(){setAST('recomendaciones');},120);" title="Ver análisis completo de recomendaciones"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/></svg> Recomendaciones <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:4px;opacity:.6"><polyline points="5,2 11,8 5,14"/></svg></div>
           <span id="dash-rec-count" style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;background:rgba(0,229,160,.1);color:var(--green)"></span>
         </div>
         <div id="dash-insights" style="display:flex;flex-direction:column;gap:6px;overflow-y:auto;flex:1;max-height:200px"></div>
@@ -1609,7 +1655,7 @@ tr:hover td{background:rgba(14,18,41,.8)}
     </div>
 
     <!-- Cards destacadas: mejor/peor mes, mejor/peor op -->
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px" id="st-highlights"></div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px" id="st-highlights" class="st-highlights-grid"></div>
 
     <!-- Tabla mensual mejorada -->
     <div class="card" style="margin-bottom:12px">
@@ -2897,23 +2943,23 @@ var THEMES = {
     '--ni-act-bg':'rgba(124,58,237,.18)','--ni-act-border':'rgba(124,58,237,.45)','--ni-act-color':'#a78bfa',
   },
 
-  // ── 2. Blanco — gris azulado muy suave, contraste alto, nada se pierde
+  // ── 2. Blanco — azul pizarra claro, máximo contraste en todo
   'light': {
     name:'Blanco', icon:'⬜',
-    '--bg':'#e8ecf8','--bg2':'#dce2f5','--sb':'#f4f6fd',
-    '--card':'#f4f6fd','--card2':'#eaeef8','--card3':'#e0e6f5',
-    '--bdr':'#c8d0e8','--bdr2':'#b0bbd8','--bdr3':'#98a5c8',
-    '--green':'#047857','--green2':'#065f46',
-    '--gd':'rgba(4,120,87,.1)','--gd2':'rgba(4,120,87,.05)',
-    '--red':'#be123c','--red2':'#9f1239',
-    '--rd':'rgba(190,18,60,.1)','--rd2':'rgba(190,18,60,.05)',
-    '--blue':'#1d4ed8','--blue2':'#1e40af','--blueglow':'rgba(29,78,216,.12)',
-    '--gold':'#92400e','--purp':'#5b21b6','--cyan':'#0e7490','--org':'#c2410c',
-    '--gray':'#c8d0e8','--gray2':'#374151','--text':'#0f172a','--text2':'#1e293b',
-    '--glow-g':'0 0 14px rgba(4,120,87,.2)','--glow-r':'0 0 14px rgba(190,18,60,.2)',
-    '--glow-b':'0 0 14px rgba(29,78,216,.2)','--glow-gold':'0 0 14px rgba(146,64,14,.2)',
-    '--accent':'#5b21b6','--accent2':'#4c1d95','--accentb':'#3b0764',
-    '--ni-act-bg':'rgba(91,33,182,.1)','--ni-act-border':'rgba(91,33,182,.35)','--ni-act-color':'#5b21b6',
+    '--bg':'#dce3f0','--bg2':'#cdd5e8','--sb':'#edf0f8',
+    '--card':'#edf0f8','--card2':'#e2e7f3','--card3':'#d6dded',
+    '--bdr':'#b8c2d8','--bdr2':'#a0adc5','--bdr3':'#8898b5',
+    '--green':'#166534','--green2':'#14532d',
+    '--gd':'rgba(22,101,52,.12)','--gd2':'rgba(22,101,52,.06)',
+    '--red':'#991b1b','--red2':'#7f1d1d',
+    '--rd':'rgba(153,27,27,.12)','--rd2':'rgba(153,27,27,.06)',
+    '--blue':'#1e40af','--blue2':'#1e3a8a','--blueglow':'rgba(30,64,175,.14)',
+    '--gold':'#78350f','--purp':'#4c1d95','--cyan':'#155e75','--org':'#9a3412',
+    '--gray':'#b0bdd0','--gray2':'#1e293b','--text':'#0a0f1e','--text2':'#0f172a',
+    '--glow-g':'0 0 10px rgba(22,101,52,.2)','--glow-r':'0 0 10px rgba(153,27,27,.2)',
+    '--glow-b':'0 0 10px rgba(30,64,175,.2)','--glow-gold':'0 0 10px rgba(120,53,15,.2)',
+    '--accent':'#4c1d95','--accent2':'#3b0764','--accentb':'#2e1065',
+    '--ni-act-bg':'rgba(76,29,149,.12)','--ni-act-border':'rgba(76,29,149,.4)','--ni-act-color':'#4c1d95',
   },
 
   // ── 3. Azul Eléctrico — navy profundo, destellos eléctricos claros
@@ -3009,6 +3055,15 @@ function applyTheme(id){
   });
 }
 
+// ── Sincronizar estado activo de temas en sidebar móvil ─────────────────
+window.updateMobThemeBtns = function(){
+  var cur = localStorage.getItem('tt_theme') || 'dark';
+  // Actualizar botones del sidebar desktop
+  document.querySelectorAll('.theme-btn').forEach(function(btn){
+    btn.classList.toggle('theme-btn-act', btn.dataset.theme === cur);
+  });
+};
+
 // ── Toggle visibilidad del panel de temas ────────────────────────────────
 window.toggleThemePanel = function(){
   var pills = document.getElementById('theme-pills');
@@ -3027,6 +3082,7 @@ function loadSavedTheme(){
   var saved = localStorage.getItem('tt_theme') || 'dark';
   if(!THEMES[saved]) saved = 'dark';
   applyTheme(saved);
+  setTimeout(updateMobThemeBtns, 50); // sincronizar estado activo en todos los botones
   // Restaurar estado oculto/visible del panel
   var panelState = localStorage.getItem('tt_theme_panel');
   if(panelState === 'hide'){
