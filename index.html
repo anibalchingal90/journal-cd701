@@ -3242,9 +3242,6 @@ function migrateData(){
 
   localStorage.setItem(pfxV+'version', APP_VERSION);
   if(typeof save === 'function') save(); // guarda con estructura nueva y sube a nube
-  // ✅ FIX SYNC v3: resetear save_ts a 0 tras migración para que syncFromCloud
-  // pueda descargar datos de la nube sin que migration bloquee la comparación de timestamps
-  var pfxMig = getLicensePrefix(); if(pfxMig) localStorage.setItem(pfxMig+'save_ts', '0');
   console.log('[TradeTrack] Migración completa → v' + APP_VERSION);
 }
 // ─────────────────────────────────────────────────────────────────────────────
@@ -3477,13 +3474,6 @@ async function syncFromCloud(){
       if(x) try{ t = t.concat(JSON.parse(x)); }catch(ex2){}
     }
     S.trades = t; // reemplazar con datos de la nube (nube es más reciente)
-
-    // ✅ FIX SYNC v3: marcar save_ts con el timestamp de la nube para que
-    // la próxima comparación en syncFromCloud sea correcta.
-    // Sin esto, un save_ts antiguo (de migración u operación previa) puede
-    // aparecer como "más reciente" que la nube en el siguiente sync, causando
-    // que el usuario deba refrescar 4-5 veces para ver datos del otro dispositivo.
-    localStorage.setItem(pfx2+'save_ts', String(cloudTs));
 
     return true;
   }catch(e){
@@ -7936,7 +7926,7 @@ document.addEventListener('DOMContentLoaded',function(){
     name: "TraderTrack Journal",
     short_name: "TraderTrack",
     description: "Journal de trading profesional",
-    start_url: "./",
+    start_url: "/",
     display: "standalone",
     background_color: "#0a1628",
     theme_color: "#0a1628",
