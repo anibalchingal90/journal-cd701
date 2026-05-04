@@ -3241,7 +3241,11 @@ function migrateData(){
   // ─────────────────────────────────────────────────────────────────────────
 
   localStorage.setItem(pfxV+'version', APP_VERSION);
-  if(typeof save === 'function') save(); // guarda con estructura nueva y sube a nube
+  // PROTECCIÓN: solo guardar si hay datos reales.
+  // Si el localStorage está vacío (carga fresca tras limpiar caché),
+  // NO llamar save() para evitar que save_ts se marque con timestamp actual
+  // y engañe al resolutor de conflictos haciéndole creer que local > nube.
+  if(S.trades && S.trades.length > 0 && typeof save === 'function') save();
   console.log('[TradeTrack] Migración completa → v' + APP_VERSION);
 }
 // ─────────────────────────────────────────────────────────────────────────────
@@ -3308,6 +3312,24 @@ function syncToCloud(){
   // Un solo registro por licencia contiene: trades activos, settings, lista de cuentas
   // y un snapshot de todas las cuentas para recuperación completa
   var key = getSyncKey(); if(!key) return;
+  // PROTECCIÓN CRÍTICA: si no hay datos locales en absoluto, NO subir a la nube.
+  // Evita que un estado vacío (por timing en arranque o reload del SW) sobreescriba la nube.
+  if(S.trades && S.trades.length === 0){
+    try{
+      var _spfx = getLicensePrefix();
+      var _saccts = (typeof getAccounts==='function') ? getAccounts() : [];
+      // Verificar si hay datos reales en localStorage para alguna cuenta
+      var _hasLocalData = _saccts.some(function(a){
+        return parseInt(localStorage.getItem(_spfx+'n_'+a.id)||'0') > 0 ||
+               localStorage.getItem(_spfx+a.id+'_0');
+      });
+      // Si no hay datos en memoria NI en localStorage, abortar upload
+      if(!_hasLocalData){
+        console.warn('[TradeTrack] syncToCloud() abortado — estado vacío, esperando syncFromCloud primero');
+        return;
+      }
+    }catch(e){}
+  }
   clearTimeout(_syncTimeout);
   _syncPending = true;
   _syncTimeout = setTimeout(async function(){ // ✅ FIX SYNC: reducido de 400ms a 50ms — upload casi inmediato tras el debounce de 300ms
@@ -3415,7 +3437,12 @@ async function syncFromCloud(){
     // ✅ FIX v2: local es fuente de verdad si su save_ts supera el updated_at de la nube.
     // Ahora saveAccounts() también actualiza save_ts, por lo que este check protege
     // tanto trades como cambios de cuentas (crear, borrar, editar).
-    var localIsNewer = localSaveTs > 0 && cloudTs > 0 && localSaveTs > cloudTs;
+    // PROTECCIÓN DOBLE: si local no tiene datos, SIEMPRE preferir la nube
+    // Evita que una carga fresca (localStorage vacío + save_ts reciente por migración)
+    // sobreescriba la nube con operaciones vacías.
+    var _localAccounts = (typeof getAccounts==='function') ? getAccounts() : [];
+    var _localHasData = (S.trades && S.trades.length > 0) || _localAccounts.length > 0;
+    var localIsNewer = _localHasData && localSaveTs > 0 && cloudTs > 0 && localSaveTs > cloudTs;
     if(localIsNewer){
       console.log('[TradeTrack] Local más reciente ('+new Date(localSaveTs).toISOString()+') que nube ('+row.updated_at+') — manteniendo estado local y subiendo a nube');
       setTimeout(function(){ syncToCloud(); }, 200); // subir estado local correcto a la nube
@@ -3610,6 +3637,148 @@ function stopRealtimeSync(){
   if(_realtimeWs){ _realtimeWs.onclose = null; _realtimeWs.close(); _realtimeWs = null; }
   _realtimeConnected = false;
 }
+
+// ════════════════════════════════════════════════════════════
+//  SISTEMA DE BACKUP AUTOMÁTICO
+//  Guarda snapshot de datos verificados (post-syncFromCloud) en
+//  localStorage (últimas 3) y Supabase (fila separada con _bk).
+//  Completamente aislado del sync normal — no interfiere en nada.
+// ════════════════════════════════════════════════════════════
+var _backupDoneThisSession = false;
+
+function autoBackup(){
+  // Solo una vez por sesión y solo si hay datos reales confirmados
+  if(_backupDoneThisSession) return;
+  var key = getSyncKey(); if(!key) return;
+  var pfx = getLicensePrefix(); if(!pfx) return;
+  var accounts = (typeof getAccounts==='function') ? getAccounts() : [];
+  if(!accounts.length) return;
+
+  // Construir snapshot completo desde localStorage (fuente de verdad local)
+  var snapshot = {};
+  var totalTrades = 0;
+  accounts.forEach(function(acct){
+    var n = parseInt(localStorage.getItem(pfx+'n_'+acct.id)||'0');
+    var trades = [];
+    for(var i=0;i<n;i++){
+      var x = localStorage.getItem(pfx+acct.id+'_'+i);
+      if(x) try{ trades = trades.concat(JSON.parse(x)); }catch(e){}
+    }
+    var cfg = null;
+    try{ cfg = JSON.parse(localStorage.getItem(pfx+'cfg_'+acct.id)||'null'); }catch(e){}
+    snapshot[acct.id] = { trades:trades, settings:cfg||{}, meta:acct };
+    totalTrades += trades.length;
+  });
+
+  // No hacer backup si no hay operaciones reales
+  if(totalTrades === 0) return;
+
+  // ── 1. Backup en localStorage (últimas 3 sesiones) ───────────────────────
+  try{
+    var existing = [];
+    try{ existing = JSON.parse(localStorage.getItem(pfx+'auto_backups')||'[]'); }catch(e){}
+    existing.unshift({ ts:Date.now(), date:new Date().toISOString(), totalTrades:totalTrades, accounts:accounts, data:snapshot });
+    if(existing.length > 3) existing = existing.slice(0,3);
+    localStorage.setItem(pfx+'auto_backups', JSON.stringify(existing));
+    console.log('[TradeTrack] ✅ Backup local guardado — '+totalTrades+' operaciones, '+new Date().toLocaleString());
+  }catch(e){
+    console.warn('[TraderTrack] Error backup local:',e);
+  }
+
+  // ── 2. Backup en Supabase (fila separada con sufijo _bk) ─────────────────
+  // Usa el mismo table/schema pero con id diferente — no interfiere con sync normal
+  try{
+    var bkKey = key+'_bk';
+    var bkPayload = {
+      id: bkKey,
+      license_key: bkKey,
+      accounts: accounts,
+      all_accounts_data: snapshot,
+      updated_at: new Date().toISOString()
+    };
+    fetch(SB_URL+'/rest/v1/'+SB_TABLE, {
+      method:'POST',
+      headers: Object.assign({}, sbHeaders(), {'Prefer':'resolution=merge-duplicates,return=minimal'}),
+      body: JSON.stringify(bkPayload)
+    }).then(function(r){
+      if(r.ok||r.status===201||r.status===204){
+        console.log('[TradeTrack] ✅ Backup nube guardado — '+totalTrades+' ops');
+      } else {
+        console.warn('[TradeTrack] Backup nube falló:',r.status);
+      }
+    }).catch(function(e){
+      console.warn('[TradeTrack] Backup nube error de red:',e);
+    });
+  }catch(e){
+    console.warn('[TradeTrack] Error preparando backup nube:',e);
+  }
+
+  _backupDoneThisSession = true;
+}
+
+// ── Función de recuperación de emergencia ────────────────────────────────────
+// Llamar desde consola del navegador si se pierden datos: restoreFromBackup()
+window.restoreFromBackup = async function(useCloud){
+  var key = getSyncKey(); if(!key){ console.error('Sin licencia activa'); return; }
+  var pfx = getLicensePrefix(); if(!pfx){ console.error('Sin prefijo'); return; }
+
+  if(useCloud){
+    // Restaurar desde el backup en Supabase (_bk)
+    console.log('[TradeTrack] Intentando restaurar desde backup nube...');
+    try{
+      var bkKey = key+'_bk';
+      var res = await fetch(SB_URL+'/rest/v1/'+SB_TABLE+'?id=eq.'+encodeURIComponent(bkKey)+'&select=*&limit=1',{
+        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+      });
+      if(!res.ok){ console.error('Error al leer backup nube:', res.status); return; }
+      var rows = await res.json();
+      if(!rows||!rows.length){ console.warn('No hay backup en la nube aún'); return; }
+      var bkRow = rows[0];
+      var allData = bkRow.all_accounts_data||{};
+      var bkAccounts = bkRow.accounts||[];
+      console.log('[TradeTrack] Backup nube encontrado — cuentas:', bkAccounts.length);
+      if(bkAccounts.length && typeof saveAccounts==='function') saveAccounts(bkAccounts, true);
+      Object.keys(allData).forEach(function(acctId){
+        var d = allData[acctId];
+        var trades = d.trades||[];
+        localStorage.setItem(pfx+'cfg_'+acctId, JSON.stringify(d.settings||{}));
+        var n = Math.ceil(trades.length/500)||1;
+        localStorage.setItem(pfx+'n_'+acctId, String(n));
+        for(var i=0;i<n;i++) localStorage.setItem(pfx+acctId+'_'+i, JSON.stringify(trades.slice(i*500,(i+1)*500)));
+        console.log('[TradeTrack]  Cuenta '+acctId+': '+trades.length+' operaciones restauradas');
+      });
+      if(typeof load==='function') load();
+      if(typeof refresh==='function') refresh();
+      if(typeof renderSidebarAccounts==='function') renderSidebarAccounts();
+      console.log('[TradeTrack] ✅ Restauración desde backup nube completada. Recarga la página.');
+    }catch(e){ console.error('Error restaurando desde backup nube:',e); }
+  } else {
+    // Restaurar desde backup local
+    var backups = [];
+    try{ backups = JSON.parse(localStorage.getItem(pfx+'auto_backups')||'[]'); }catch(e){}
+    if(!backups.length){ console.warn('No hay backups locales. Intenta: restoreFromBackup(true) para usar la nube'); return; }
+    console.log('[TradeTrack] Backups locales disponibles:');
+    backups.forEach(function(b,i){ console.log('  ['+i+'] '+b.date+' — '+b.totalTrades+' operaciones'); });
+    var bk = backups[0];
+    var accounts = bk.accounts||[];
+    var data = bk.data||{};
+    if(accounts.length && typeof saveAccounts==='function') saveAccounts(accounts, true);
+    Object.keys(data).forEach(function(acctId){
+      var d = data[acctId];
+      var trades = d.trades||[];
+      localStorage.setItem(pfx+'cfg_'+acctId, JSON.stringify(d.settings||{}));
+      var n = Math.ceil(trades.length/500)||1;
+      localStorage.setItem(pfx+'n_'+acctId, String(n));
+      for(var i=0;i<n;i++) localStorage.setItem(pfx+acctId+'_'+i, JSON.stringify(trades.slice(i*500,(i+1)*500)));
+      console.log('[TradeTrack]  Cuenta '+acctId+': '+trades.length+' operaciones restauradas');
+    });
+    if(typeof load==='function') load();
+    if(typeof refresh==='function') refresh();
+    if(typeof renderSidebarAccounts==='function') renderSidebarAccounts();
+    console.log('[TradeTrack] ✅ Restauración desde backup local completada. Recarga la página.');
+  }
+};
+
 
 // — Detecta revocación/reseteo cada 30s (en lugar de 60s)
 // — También verifica cuando el usuario vuelve a la pestaña
@@ -7906,9 +8075,15 @@ function initApp(){
       if(typeof renderSidebarAccounts==='function') renderSidebarAccounts();
       if(typeof refresh==='function') refresh();
       if(typeof toast==='function') toast('☁ Datos sincronizados','#4d9fff');
+      // Backup automático: datos verificados desde la nube → guardar snapshot local + nube (_bk)
+      setTimeout(function(){ if(typeof autoBackup==='function') autoBackup(); }, 2000);
     } else {
       showSyncStatus('✓ Listo');
-      if(S.trades.length > 0) syncToCloud();
+      if(S.trades.length > 0){
+        syncToCloud();
+        // Backup automático: datos locales confirmados sin nube → guardar igualmente
+        setTimeout(function(){ if(typeof autoBackup==='function') autoBackup(); }, 2000);
+      }
       else setTimeout(function(){toast('👋 Bienvenido — toca el Registro y luego un día para empezar');},800);
     }
     _appInitialized = true; // ✅ Marcar como inicializado DESPUÉS del primer sync completo
