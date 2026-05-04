@@ -3895,7 +3895,14 @@ function renderAssets(){
   }).join('');
 }
 function renderASels(){
-  var assets=S.settings.assets;
+  // Leer pares del localStorage de la cuenta activa para garantizar que siempre sean los correctos
+  var assets = S.settings.assets;
+  try{
+    var _aid=(typeof getActiveId==='function')?getActiveId():'default';
+    var _pfx=(typeof getLicensePrefix==='function')?getLicensePrefix():'';
+    var _cfg=JSON.parse(localStorage.getItem(_pfx+'cfg_'+_aid)||'null');
+    if(_cfg&&Array.isArray(_cfg.assets)&&_cfg.assets.length) assets=_cfg.assets;
+  }catch(e){}
   ['f-asset','aa'].forEach(function(id){
     var sel=g(id);if(!sel)return;
     var cur=sel.value;
@@ -4055,8 +4062,18 @@ function renderConfig(){
   var cfd=g('cfd');if(cfd)cfd.value=s.maxDailyLoss;
   var cft=g('cft');if(cft)cft.value=s.maxTotalLoss;
   var cfg=g('cfg');if(cfg)cfg.value=s.profitTarget;
-  var t=g('ctog');if(t){if(s.challengeActive)t.classList.add('on');else t.classList.remove('on');}
-  var t2=g('ctog2');if(t2){if(s.challengeActive)t2.classList.add('on');else t2.classList.remove('on');}
+  // Leer fondeo directamente del localStorage de la cuenta activa para reflejarlo al instante
+  var _fondeoActive = s.challengeActive;
+  if(!_modoNuevaCuenta){
+    try{
+      var _faid=(typeof getActiveId==='function')?getActiveId():'default';
+      var _fpfx=(typeof getLicensePrefix==='function')?getLicensePrefix():'';
+      var _fcfg=JSON.parse(localStorage.getItem(_fpfx+'cfg_'+_faid)||'null');
+      if(_fcfg&&typeof _fcfg.challengeActive!=='undefined') _fondeoActive=!!_fcfg.challengeActive;
+    }catch(e){}
+  }
+  var t=g('ctog');if(t){if(_fondeoActive)t.classList.add('on');else t.classList.remove('on');}
+  var t2=g('ctog2');if(t2){if(_fondeoActive)t2.classList.add('on');else t2.classList.remove('on');}
   // Populate the unified accounts form fields (solo si no estamos creando una nueva)
   if(!_modoNuevaCuenta){
     var accounts=getAccounts();var id=getActiveId();
@@ -7122,7 +7139,6 @@ function guardarCuenta(){
     _draft = {name:'',currency:'USD',initial:'',desc:'',color:'#8b5cf6',icon:'🏦',challengeActive:false,maxDailyLoss:5,maxTotalLoss:10,profitTarget:10};
     _selectedColor='#8b5cf6'; _selectedIcon='🏦';
     S.settings = {accountSize:10000,assets:[].concat(DEF_ASSETS),challengeActive:false,maxDailyLoss:5,maxTotalLoss:10,profitTarget:10,alertAt:80};
-    loadAccountData(newId); // Recarga pares y fondeo de la cuenta recién creada
     _modoNuevaCuenta = true;
     renderConfig();
     actualizarBtnGuardar();
@@ -7158,7 +7174,6 @@ function guardarCuenta(){
   _draft = {name:'',currency:'USD',initial:'',desc:'',color:'#8b5cf6',icon:'🏦',challengeActive:false,maxDailyLoss:5,maxTotalLoss:10,profitTarget:10};
   _selectedColor='#8b5cf6'; _selectedIcon='🏦';
   S.settings = {accountSize:10000,assets:[].concat(DEF_ASSETS),challengeActive:false,maxDailyLoss:5,maxTotalLoss:10,profitTarget:10,alertAt:80};
-  loadAccountData(activeId); // Recarga pares y fondeo de la cuenta activa al instante
   renderConfig();
   actualizarBtnGuardar();
   _updatePreviewDraft();
@@ -10082,28 +10097,28 @@ function renderMobAccounts(){
 })();
 
 
-// ── Swipe calendario en móvil ─────────────────────────────
+// ── Deslizamiento del calendario en móvil ────────────────────
 (function(){
-  var _swStartX = 0, _swStartY = 0;
-  function attachCalSwipe(){
+  var _swX = 0, _swY = 0;
+  function hookCalSwipe(){
     var el = document.getElementById('log-cal');
-    if(!el || el._calSwipe) return;
-    el._calSwipe = true;
+    if(!el || el._swHooked) return;
+    el._swHooked = true;
     el.addEventListener('touchstart', function(e){
-      _swStartX = e.touches[0].clientX;
-      _swStartY = e.touches[0].clientY;
+      _swX = e.touches[0].clientX;
+      _swY = e.touches[0].clientY;
     }, {passive:true});
     el.addEventListener('touchend', function(e){
-      var dx = e.changedTouches[0].clientX - _swStartX;
-      var dy = e.changedTouches[0].clientY - _swStartY;
+      var dx = e.changedTouches[0].clientX - _swX;
+      var dy = e.changedTouches[0].clientY - _swY;
       if(Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40){
         if(typeof calNav === 'function') calNav(dx < 0 ? 1 : -1);
       }
     }, {passive:true});
   }
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', attachCalSwipe);
-  else attachCalSwipe();
-  setTimeout(attachCalSwipe, 800);
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hookCalSwipe);
+  else hookCalSwipe();
+  setTimeout(hookCalSwipe, 800);
 })();
 
 // ════════════════════════════════════════════════════════════
