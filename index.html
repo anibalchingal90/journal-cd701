@@ -122,10 +122,10 @@ body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(r
 .fg2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .rbw{display:flex;gap:8px;width:100%}
 .rb{flex:1;padding:9px 8px;border-radius:7px;border:1.5px solid var(--bdr3);background:rgba(255,255,255,.04);color:var(--text2);font-size:12px;font-weight:700;cursor:pointer;text-align:center;transition:background .15s,border-color .15s;font-family:'DM Sans',sans-serif;letter-spacing:.3px;display:flex;align-items:center;justify-content:center;gap:5px;min-height:36px}
-#btn-buy{border-color:#4361ee;color:#818cf8;background:rgba(67,97,238,.15)}
-#btn-buy:hover,#btn-buy.abuy{border-color:#818cf8;color:#a5b4fc;background:rgba(67,97,238,.28);box-shadow:0 0 16px rgba(67,97,238,.4)}
-#btn-sell{border-color:#ff3860;color:#ff3860;background:rgba(255,56,96,.12)}
-#btn-sell:hover,#btn-sell.asell{border-color:#ff6b8a;color:#ff6b8a;background:rgba(255,56,96,.28);box-shadow:0 0 16px rgba(255,56,96,.4)}
+#btn-buy:hover{border-color:#818cf8;color:#a5b4fc;background:rgba(67,97,238,.18)}
+#btn-buy.abuy{border-color:#818cf8;color:#a5b4fc;background:rgba(67,97,238,.28);box-shadow:0 0 16px rgba(67,97,238,.4)}
+#btn-sell:hover{border-color:#ff6b8a;color:#ff6b8a;background:rgba(255,56,96,.18)}
+#btn-sell.asell{border-color:#ff6b8a;color:#ff6b8a;background:rgba(255,56,96,.28);box-shadow:0 0 16px rgba(255,56,96,.4)}
 .rb.atp{border-color:var(--green);background:rgba(0,229,176,.15);color:var(--green);box-shadow:var(--glow-g)}
 .rb.asl{border-color:var(--red);background:rgba(255,56,96,.15);color:var(--red);box-shadow:var(--glow-r)}
 .rb.abuy{border-color:#4d9fff;background:rgba(77,159,255,.15);color:#4d9fff;box-shadow:0 0 16px rgba(77,159,255,.2)}
@@ -4849,7 +4849,7 @@ function renderDash(){
       borderColor:'#00ffb3',
       fill:true,
       tension:0.42,
-      borderWidth:1.5,
+      borderWidth:0.8,
       gradTop:'rgba(0,255,185,0.55)',
       gradMid:'rgba(0,229,176,0.22)',
       gradBot:'rgba(0,200,160,0.06)',
@@ -5518,7 +5518,7 @@ function renderStats(){
   var isCum=(_stEquityMode!=='op');
   mkC('seq',isCum?'line':'bar',eqPts.map(function(e){return e.l;}),
     isCum
-      ?[{data:eqPts.map(function(e){return e.b;}),borderColor:'#00ffb3',fill:true,tension:0.42,borderWidth:1.5,
+      ?[{data:eqPts.map(function(e){return e.b;}),borderColor:'#00ffb3',fill:true,tension:0.42,borderWidth:0.8,
           gradTop:'rgba(0,255,185,0.55)',gradMid:'rgba(0,229,176,0.22)',gradBot:'rgba(0,200,160,0.06)',pointRadius:0,pointHoverRadius:7}]
       :[{data:eqPts.map(function(e){return e.pnl;}),borderRadius:9,borderSkipped:false}],
     {plugins:{legend:{display:false}},
@@ -5904,7 +5904,7 @@ function aRenderEquity(ft){
     borderColor: daily ? undefined : '#d8a4ff',
     fill:!daily,
     tension:0.42,
-    borderWidth:1.5,
+    borderWidth:0.8,
     gradTop:'rgba(216,164,255,0.52)',
     gradBot:'rgba(124,58,237,0.05)',
     pointRadius:0,
@@ -7122,6 +7122,7 @@ function guardarCuenta(){
     _draft = {name:'',currency:'USD',initial:'',desc:'',color:'#8b5cf6',icon:'🏦',challengeActive:false,maxDailyLoss:5,maxTotalLoss:10,profitTarget:10};
     _selectedColor='#8b5cf6'; _selectedIcon='🏦';
     S.settings = {accountSize:10000,assets:[].concat(DEF_ASSETS),challengeActive:false,maxDailyLoss:5,maxTotalLoss:10,profitTarget:10,alertAt:80};
+    loadAccountData(newId); // Recarga pares y fondeo de la cuenta recién creada
     _modoNuevaCuenta = true;
     renderConfig();
     actualizarBtnGuardar();
@@ -7157,6 +7158,7 @@ function guardarCuenta(){
   _draft = {name:'',currency:'USD',initial:'',desc:'',color:'#8b5cf6',icon:'🏦',challengeActive:false,maxDailyLoss:5,maxTotalLoss:10,profitTarget:10};
   _selectedColor='#8b5cf6'; _selectedIcon='🏦';
   S.settings = {accountSize:10000,assets:[].concat(DEF_ASSETS),challengeActive:false,maxDailyLoss:5,maxTotalLoss:10,profitTarget:10,alertAt:80};
+  loadAccountData(activeId); // Recarga pares y fondeo de la cuenta activa al instante
   renderConfig();
   actualizarBtnGuardar();
   _updatePreviewDraft();
@@ -9223,7 +9225,7 @@ window.renderRegCharts = function() {
   ft.forEach(function(t){running+=(t.pnl||0);eq.push(running);labels.push((t.date||'').slice(5));});
   if(typeof mkC==='function'){
     mkC('creg-eq','line',labels,[{
-      data:eq,borderColor:'#00ffb3',fill:true,tension:0.42,borderWidth:1.5,
+      data:eq,borderColor:'#00ffb3',fill:true,tension:0.42,borderWidth:0.8,
       gradTop:'rgba(0,255,185,0.55)',gradMid:'rgba(0,229,176,0.22)',gradBot:'rgba(0,200,160,0.06)',
       pointRadius:0,pointHoverRadius:7
     }],{});
@@ -10079,6 +10081,30 @@ function renderMobAccounts(){
   setTimeout(hookMobAccts, 800);
 })();
 
+
+// ── Swipe calendario en móvil ─────────────────────────────
+(function(){
+  var _swStartX = 0, _swStartY = 0;
+  function attachCalSwipe(){
+    var el = document.getElementById('log-cal');
+    if(!el || el._calSwipe) return;
+    el._calSwipe = true;
+    el.addEventListener('touchstart', function(e){
+      _swStartX = e.touches[0].clientX;
+      _swStartY = e.touches[0].clientY;
+    }, {passive:true});
+    el.addEventListener('touchend', function(e){
+      var dx = e.changedTouches[0].clientX - _swStartX;
+      var dy = e.changedTouches[0].clientY - _swStartY;
+      if(Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40){
+        if(typeof calNav === 'function') calNav(dx < 0 ? 1 : -1);
+      }
+    }, {passive:true});
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', attachCalSwipe);
+  else attachCalSwipe();
+  setTimeout(attachCalSwipe, 800);
+})();
 
 // ════════════════════════════════════════════════════════════
 //  SIDEBAR MÓVIL IZQUIERDO — abrir / cerrar
