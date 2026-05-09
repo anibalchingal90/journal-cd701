@@ -3903,6 +3903,19 @@ function loadSample(){return;// datos de muestra desactivados
 // FORM
 // FORM
 function setR(r){curR=r;g('btn-tp').className='rb'+(r==='TP'?' atp':'');g('btn-sl').className='rb'+(r==='SL'?' asl':'');}
+// Versión del botón: además gestiona el signo en el campo PnL
+function setRBtn(r){
+  setR(r);
+  var el=g('f-pnl');
+  if(!el) return;
+  var v=el.value.trim();
+  if(r==='SL'){
+    if(v===''){ el.value='-'; el.focus(); }
+    else if(v.charAt(0)!=='-'&&v!==''){ el.value='-'+v; onPI(); }
+  } else {
+    if(v.charAt(0)==='-'){ el.value=v.substring(1); onPI(); }
+  }
+}
 function setDir(d){curD=d;g('btn-buy').className='rb'+(d==='BUY'?' abuy':'');g('btn-sell').className='rb'+(d==='SELL'?' asell':'');}
 function onPI(){
   var n=pN(g('f-pnl').value),p=g('pnl-prev');
@@ -4708,7 +4721,7 @@ Chart.register({
         var lw = ds.borderWidth || 3;
 
         // ── 1. Fill gradiente bajo la línea ──────────────────
-        if(ds.fill !== false){
+        if(ds._drawGradient){
           var grad = ctx.createLinearGradient(0, ca.top, 0, ca.bottom);
           grad.addColorStop(0,    ds.gradTop || 'rgba(0,255,180,0.50)');
           grad.addColorStop(0.4,  ds.gradMid || 'rgba(0,229,176,0.20)');
@@ -4911,14 +4924,15 @@ function mkC(id,type,labels,datasets,ex){
       if(ds.fill===false) return ds;
       return Object.assign({},ds,{
         borderColor:ds.borderColor||'#00ffb3',
-        borderWidth:ds.borderWidth||1.5,
+        borderWidth:0,
         tension:ds.tension!=null?ds.tension:0.42,
         pointRadius:0,
         pointHoverRadius:6,
         pointHoverBackgroundColor:ds.borderColor||'#00ffb3',
         pointHoverBorderColor:'rgba(255,255,255,0.9)',
         pointHoverBorderWidth:2.5,
-        fill:true
+        fill:false,
+        _drawGradient:true
       });
     });
   }
@@ -8499,11 +8513,11 @@ button:active, [onclick]:active, .ni:active, .cal-nav-btn:active, .rb:active, .t
         <div>
           <label class="nop-label">Resultado</label>
           <div style="display:flex;gap:6px">
-            <button class="rb atp" id="btn-tp" onclick="setR('TP')" style="flex:1;min-height:38px">
+            <button class="rb atp" id="btn-tp" onclick="setRBtn('TP')" style="flex:1;min-height:38px">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
               TP
             </button>
-            <button class="rb" id="btn-sl" onclick="setR('SL')" style="flex:1;min-height:38px">
+            <button class="rb" id="btn-sl" onclick="setRBtn('SL')" style="flex:1;min-height:38px">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               SL
             </button>
@@ -9442,11 +9456,7 @@ if(typeof _origSaveTrade==='function'){
   };
 }
 
-// ── Click sounds on buttons ───────────────────────────
-document.addEventListener('click',function(e){
-  var btn=e.target.closest('.btn-new-op,.btn-g');
-  if(btn&&btn.id!=='btn-save') window._playClick&&window._playClick();
-});
+// ── Click sounds on buttons — manejado por el listener global mousedown/touchstart ──
 
 // ── Image & Link handling ─────────────────────────────
 window._tradeImages = [];
