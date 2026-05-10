@@ -4225,11 +4225,11 @@ document.addEventListener('click', function(e){
 
 function calGoTo(){
   var yrSel=g('cal-yr-sel'),moSel=g('cal-mo-sel');
-  calYear=parseInt(yrSel.value);calMonth=parseInt(moSel.value);
+  if(!yrSel||!moSel)return;
+  var yr=parseInt(yrSel.value),mo=parseInt(moSel.value);
+  if(isNaN(yr)||isNaN(mo))return;
+  calYear=yr;calMonth=mo;
   selDay=null;renderCal();renderMonthSummary();renderMonthStats();
-  // Cerrar picker tras selección
-  var dp=g('reg-date-selects');var arrow=g('cal-pill-arrow');
-  if(dp)dp.style.display='none';if(arrow)arrow.style.transform='';
   var dd=g('day-detail');if(dd)dd.style.display='none';
 }
 
@@ -8341,6 +8341,7 @@ button:active, [onclick]:active, .ni:active, .cal-nav-btn:active, .rb:active, .t
 .active-dot-pulse{width:9px;height:9px;min-width:9px;border-radius:50%;display:inline-block;animation:active-pulse-col 1.4s ease-in-out infinite;flex-shrink:0;}
 .ripple-fx{position:fixed;border-radius:50%;background:rgba(255,255,255,0.18);pointer-events:none;transform:scale(0);animation:ripplePop .45s ease-out forwards;z-index:9999;}
 @keyframes ripplePop{0%{transform:scale(0);opacity:.7;}100%{transform:scale(1);opacity:0;}}
+button,[onclick],a,.ni,.cal-nav-btn,.rb,.tog,.acct-color-dot,.reg-nav-arrow,.reg-month-pill,.reg-today-btn,.tab-btn,.acct-tab,.log-tab,.kcard,.anal-card,.tog-btn,.btn,.btn-g,.btn-r{touch-action:manipulation;}
 </style>
 <script>
 (function(){
@@ -8388,18 +8389,22 @@ button:active, [onclick]:active, .ni:active, .cal-nav-btn:active, .rb:active, .t
     }
     return false;
   }
+  var _touchPending = false;
+  document.addEventListener('touchstart', function(e){
+    var t = e.touches[0]; if(!t) return;
+    if(!isInteractive(e.target)) return;
+    _touchPending = true;
+    setTimeout(function(){ _touchPending = false; }, 600);
+    spawnRipple(t.clientX, t.clientY);
+    playClick();
+  }, {passive:true, capture:true});
   document.addEventListener('mousedown', function(e){
+    if(_touchPending) return;
     if(e.button!==0) return;
     if(!isInteractive(e.target)) return;
     spawnRipple(e.clientX, e.clientY);
     playClick();
   }, true);
-  document.addEventListener('touchstart', function(e){
-    var t = e.touches[0]; if(!t) return;
-    if(!isInteractive(e.target)) return;
-    spawnRipple(t.clientX, t.clientY);
-    playClick();
-  }, {passive:true, capture:true});
 })();
 </script>
 
