@@ -485,6 +485,13 @@ tr:hover td{background:rgba(14,18,41,.8)}
   #btn-save{padding:14px;font-size:13px;border-radius:11px}
   .fi-lg{font-size:14px;padding:12px 10px}
 
+  /* ── iOS: evitar zoom automático al enfocar inputs del modal ──
+     iOS Safari hace zoom cuando un input tiene font-size < 16px.
+     Aplicamos 16px solo dentro del modal de nueva operación. */
+  #new-op-modal input,
+  #new-op-modal select,
+  #new-op-modal textarea{font-size:16px!important;}
+
   /* ── ESTADÍSTICAS ── */
   .msum{flex-wrap:wrap}
   .msc{min-width:45%}
@@ -3949,6 +3956,14 @@ function saveTrade(){
     if(saveCustomStrategyIfNeeded() === false) return; // validación falló
     save(); // persistir la nueva estrategia en settings
   }
+  // Safety net iOS: releer la fecha directamente de los selects visibles,
+  // por si el debounce de buildDateFromParts aún no corrió al momento de guardar.
+  (function(){
+    var fd=g('f-day'),fm=g('f-month'),fy=g('f-year'),fh=g('f-date');
+    if(fd&&fm&&fy&&fh&&fd.value&&fm.value&&fy.value){
+      fh.value=fy.value+'-'+fm.value+'-'+fd.value;
+    }
+  })();
   var date=g('f-date').value, pnl=pN(g('f-pnl').value);
   if(!date){toast('Selecciona una fecha','var(--red)');return;}
   if(pnl===null){toast('Ingresa un monto válido','var(--red)');return;}
@@ -5289,20 +5304,27 @@ function setCustomYear(val){
   sel.value=String(y);
   buildDateFromParts();
 }
+var _buildDateTimer=null;
 function buildDateFromParts(){
-  var dy=g('f-day'),mo=g('f-month'),yr=g('f-year');
-  if(!dy||!mo||!yr)return;
-  var m=mo.value,y=yr.value;
-  // Always repopulate days using current year/month selection (fallback to today)
-  var useY=parseInt(y)||new Date().getFullYear();
-  var useM=parseInt(m)||new Date().getMonth()+1;
-  populateDaySelect(useY,useM);
-  var d=dy.value;
-  if(d&&m&&y){
-    var val=y+'-'+m+'-'+d;
-    g('f-date').value=val;
-    syncCalFromDate(val);
-  }
+  // Debounce: en iOS el picker nativo dispara onchange con valores intermedios
+  // mientras el usuario aún está scrolleando. Esperamos 350ms desde el último
+  // evento antes de procesar, asegurándonos de usar el valor final seleccionado.
+  clearTimeout(_buildDateTimer);
+  _buildDateTimer=setTimeout(function(){
+    var dy=g('f-day'),mo=g('f-month'),yr=g('f-year');
+    if(!dy||!mo||!yr)return;
+    var m=mo.value,y=yr.value;
+    // Always repopulate days using current year/month selection (fallback to today)
+    var useY=parseInt(y)||new Date().getFullYear();
+    var useM=parseInt(m)||new Date().getMonth()+1;
+    populateDaySelect(useY,useM);
+    var d=dy.value;
+    if(d&&m&&y){
+      var val=y+'-'+m+'-'+d;
+      g('f-date').value=val;
+      syncCalFromDate(val);
+    }
+  },350);
 }
 function buildTimeFromParts(){
   var h=g('f-hour'),mi=g('f-min');
