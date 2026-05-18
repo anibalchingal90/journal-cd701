@@ -2511,7 +2511,9 @@ var FB_COL = 'licenses';
 var EMPRESA = 'TraderTrack';
 var FB_BASE = 'https://firestore.googleapis.com/v1/projects/' + FB_PROJECT + '/databases/(default)/documents/' + FB_COL;
 
+var _deviceFingerprintCache = null;
 function getDeviceFingerprint() {
+  if(_deviceFingerprintCache) return _deviceFingerprintCache;
   // ═══════════════════════════════════════════════════════
   //  DEVICE FINGERPRINT v2 — ESTABLE Y HARDWARE-BOUND
   //  ✅ NO usa userAgent ni vendor (cambian con actualizaciones del browser)
@@ -2538,7 +2540,10 @@ function getDeviceFingerprint() {
         var gl = c.getContext('webgl') || c.getContext('experimental-webgl');
         if(gl) {
           var ext = gl.getExtension('WEBGL_debug_renderer_info');
-          if(ext) return gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) || '';
+          var result = ext ? (gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) || '') : '';
+          var lose = gl.getExtension('WEBGL_lose_context');
+          if(lose) lose.loseContext();
+          return result;
         }
       } catch(e) {}
       return '';
@@ -2551,7 +2556,8 @@ function getDeviceFingerprint() {
     hash = ((hash << 5) + hash) ^ raw.charCodeAt(i);
     hash = hash & hash; // Forzar 32-bit signed
   }
-  return 'FP' + Math.abs(hash).toString(36).toUpperCase().padStart(7, '0');
+  _deviceFingerprintCache = 'FP' + Math.abs(hash).toString(36).toUpperCase().padStart(7, '0');
+  return _deviceFingerprintCache;
 }
 
 function getDeviceId() {
